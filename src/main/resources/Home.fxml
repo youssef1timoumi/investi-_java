@@ -31,6 +31,22 @@
                     <Insets top="40" right="60" bottom="60" left="60"/>
                 </padding>
                 
+                <!-- KYC Banner (shown when is_active=false) -->
+                <HBox fx:id="kycBanner" alignment="CENTER" spacing="15" visible="false" managed="false"
+                      style="-fx-background-color: #9B7E46; -fx-background-radius: 12; -fx-padding: 18 30;">
+                    <Label text="⚠ Your account is pending verification. Please upload your ID to use all features."
+                           style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="uploadIdBtn" text="📤 Upload ID" onAction="#handleUploadId"
+                            style="-fx-background-color: white; -fx-text-fill: #9B7E46; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-cursor: hand;"/>
+                </HBox>
+                
+                <!-- KYC Pending Review Banner -->
+                <HBox fx:id="kycPendingBanner" alignment="CENTER" spacing="15" visible="false" managed="false"
+                      style="-fx-background-color: #456990; -fx-background-radius: 12; -fx-padding: 18 30;">
+                    <Label text="⏳ Your ID has been submitted and is under review. You will be notified once approved."
+                           style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                
                 <!-- Hero Section -->
                 <VBox alignment="CENTER" spacing="25" style="-fx-background-color: #000501;">
                     <Label text="Where Innovation Meets Investment" styleClass="title-large" wrapText="true" textAlignment="CENTER"/>

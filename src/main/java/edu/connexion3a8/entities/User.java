@@ -17,6 +17,7 @@ public class User {
     private Timestamp lastLogin;
     private boolean isActive;
     private boolean emailVerified;
+    private String idImageUrl;
 
     public User() {
     }
@@ -142,6 +143,14 @@ public class User {
 
     public void setEmailVerified(boolean emailVerified) {
         this.emailVerified = emailVerified;
+    }
+
+    public String getIdImageUrl() {
+        return idImageUrl;
+    }
+
+    public void setIdImageUrl(String idImageUrl) {
+        this.idImageUrl = idImageUrl;
     }
 
     @Override

@@ -147,6 +147,37 @@ public class UserService {
         user.setLastLogin(rs.getTimestamp("last_login"));
         user.setActive(rs.getBoolean("is_active"));
         user.setEmailVerified(rs.getBoolean("email_verified"));
+        user.setIdImageUrl(rs.getString("id_image_url"));
         return user;
+    }
+
+    public void updateIdImageUrl(String userId, String imageUrl) throws SQLException {
+        String query = "UPDATE users SET id_image_url=? WHERE id=?";
+        try (PreparedStatement pst = connection.prepareStatement(query)) {
+            pst.setString(1, imageUrl);
+            pst.setString(2, userId);
+            pst.executeUpdate();
+        }
+    }
+
+    public void setUserActive(String userId, boolean active) throws SQLException {
+        String query = "UPDATE users SET is_active=? WHERE id=?";
+        try (PreparedStatement pst = connection.prepareStatement(query)) {
+            pst.setBoolean(1, active);
+            pst.setString(2, userId);
+            pst.executeUpdate();
+        }
+    }
+
+    public List<User> getPendingKycUsers() throws SQLException {
+        List<User> users = new ArrayList<>();
+        String query = "SELECT * FROM users WHERE is_active = FALSE AND id_image_url IS NOT NULL AND role != 'admin' ORDER BY created_at DESC";
+        try (Statement st = connection.createStatement();
+             ResultSet rs = st.executeQuery(query)) {
+            while (rs.next()) {
+                users.add(extractUserFromResultSet(rs));
+            }
+        }
+        return users;
     }
 }

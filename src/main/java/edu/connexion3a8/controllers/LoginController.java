@@ -2,7 +2,9 @@ package edu.connexion3a8.controllers;
 
 import edu.connexion3a8.InvestiApp;
 import edu.connexion3a8.entities.User;
+import edu.connexion3a8.services.EmailService;
 import edu.connexion3a8.services.UserService;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -37,8 +39,18 @@ public class LoginController implements Initializable {
     @FXML private ToggleButton innovatorBtn;
     @FXML private ToggleButton investorBtn;
     
+    // OTP fields
+    @FXML private VBox otpSection;
+    @FXML private TextField otpField;
+    @FXML private Button verifyOtpButton;
+    @FXML private Button resendOtpButton;
+    
     private UserService userService = new UserService();
+    private EmailService emailService = new EmailService();
     private ToggleGroup roleGroup;
+    
+    // Pending registration data (stored while waiting for OTP)
+    private User pendingUser;
     
     // Email validation pattern
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
@@ -288,24 +300,76 @@ public class LoginController implements Initializable {
                 return;
             }
             
-            User newUser = new User(email, password, name, role);
-            newUser.setBio("New " + role + " on INVESTI");
-            
-            userService.addUser(newUser);
+            // Store pending user and send OTP
+            pendingUser = new User(email, password, name, role);
+            pendingUser.setBio("New " + role + " on INVESTI");
             
             registerMessage.setStyle("-fx-text-fill: #456990; -fx-font-size: 12px; -fx-font-weight: 600;");
-            registerMessage.setText("✓ Account created as " + role + "! Redirecting to login...");
+            registerMessage.setText("⏳ Sending verification code...");
+            registerButton.setDisable(true);
             
+            // Send OTP in background thread
+            new Thread(() -> {
+                try {
+                    String otp = emailService.generateOtp();
+                    emailService.sendOtpEmail(email, otp);
+                    Platform.runLater(() -> {
+                        registerMessage.setText("✓ Verification code sent to " + email);
+                        showOtpSection(true);
+                    });
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        registerMessage.setStyle("-fx-text-fill: #A62639; -fx-font-size: 12px;");
+                        registerMessage.setText("⚠ Failed to send email: " + e.getMessage());
+                        registerButton.setDisable(false);
+                    });
+                    e.printStackTrace();
+                }
+            }).start();
+            
+        } catch (SQLException e) {
+            registerMessage.setText("⚠ Registration error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    @FXML
+    private void handleVerifyOtp() {
+        String inputOtp = otpField.getText().trim();
+        
+        if (inputOtp.isEmpty()) {
+            registerMessage.setStyle("-fx-text-fill: #A62639; -fx-font-size: 12px;");
+            registerMessage.setText("⚠ Please enter the verification code");
+            return;
+        }
+        
+        if (!emailService.verifyOtp(inputOtp)) {
+            registerMessage.setStyle("-fx-text-fill: #A62639; -fx-font-size: 12px;");
+            registerMessage.setText("⚠ Invalid verification code. Please try again.");
+            return;
+        }
+        
+        // OTP verified — create the account
+        try {
+            pendingUser.setEmailVerified(true);
+            pendingUser.setActive(false);
+            userService.addUser(pendingUser);
+            
+            registerMessage.setStyle("-fx-text-fill: #456990; -fx-font-size: 12px; -fx-font-weight: 600;");
+            registerMessage.setText("✓ Email verified! Account created. Redirecting to login...");
+            
+            showOtpSection(false);
             registerName.clear();
             registerEmail.clear();
             registerPassword.clear();
+            otpField.clear();
             innovatorBtn.setSelected(true);
+            pendingUser = null;
             
-            // Auto-switch to login after 1.5 seconds
             new Thread(() -> {
                 try {
                     Thread.sleep(1500);
-                    javafx.application.Platform.runLater(this::switchToLogin);
+                    Platform.runLater(this::switchToLogin);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -315,5 +379,45 @@ public class LoginController implements Initializable {
             registerMessage.setText("⚠ Registration error: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    
+    @FXML
+    private void handleResendOtp() {
+        if (pendingUser == null) return;
+        
+        registerMessage.setStyle("-fx-text-fill: #456990; -fx-font-size: 12px; -fx-font-weight: 600;");
+        registerMessage.setText("⏳ Resending verification code...");
+        resendOtpButton.setDisable(true);
+        
+        new Thread(() -> {
+            try {
+                String otp = emailService.generateOtp();
+                emailService.sendOtpEmail(pendingUser.getEmail(), otp);
+                Platform.runLater(() -> {
+                    registerMessage.setText("✓ New code sent to " + pendingUser.getEmail());
+                    resendOtpButton.setDisable(false);
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    registerMessage.setStyle("-fx-text-fill: #A62639; -fx-font-size: 12px;");
+                    registerMessage.setText("⚠ Failed to resend: " + e.getMessage());
+                    resendOtpButton.setDisable(false);
+                });
+            }
+        }).start();
+    }
+    
+    private void showOtpSection(boolean show) {
+        otpSection.setVisible(show);
+        otpSection.setManaged(show);
+        registerButton.setVisible(!show);
+        registerButton.setManaged(!show);
+        registerButton.setDisable(false);
+        // Disable form fields while verifying OTP
+        registerName.setDisable(show);
+        registerEmail.setDisable(show);
+        registerPassword.setDisable(show);
+        innovatorBtn.setDisable(show);
+        investorBtn.setDisable(show);
     }
 }

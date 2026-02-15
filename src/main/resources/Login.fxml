@@ -102,6 +102,16 @@
             </Button>
             
             <Label fx:id="registerMessage" styleClass="error-message" wrapText="true" textAlignment="CENTER"/>
+            
+            <!-- OTP Verification Section (hidden by default) -->
+            <VBox fx:id="otpSection" spacing="10" visible="false" managed="false">
+                <Label text="Enter the 6-digit code sent to your email" style="-fx-font-size: 12px; -fx-text-fill: #456990; -fx-font-weight: bold;" alignment="CENTER" maxWidth="Infinity"/>
+                <TextField fx:id="otpField" promptText="000000" styleClass="modern-input" style="-fx-font-size: 20px; -fx-letter-spacing: 8px; -fx-alignment: center;" alignment="CENTER" maxWidth="Infinity"/>
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="verifyOtpButton" text="✓ Verify" onAction="#handleVerifyOtp" styleClass="modern-button, button-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button fx:id="resendOtpButton" text="↻ Resend" onAction="#handleResendOtp" styleClass="modern-button" style="-fx-background-color: #E8E8E8; -fx-text-fill: #333; -fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 12 20; -fx-cursor: hand;" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                </HBox>
+            </VBox>
         </VBox>
     </VBox>
 </StackPane>

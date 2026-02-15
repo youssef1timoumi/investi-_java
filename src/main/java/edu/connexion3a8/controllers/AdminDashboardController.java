@@ -13,10 +13,14 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
+import java.io.File;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
@@ -52,6 +56,16 @@ public class AdminDashboardController implements Initializable {
     @FXML private Button btnAdd;
     @FXML private Button btnRefresh;
     
+    // KYC fields
+    @FXML private TableView<User> kycTable;
+    @FXML private TableColumn<User, String> kycColName;
+    @FXML private TableColumn<User, String> kycColEmail;
+    @FXML private TableColumn<User, String> kycColRole;
+    @FXML private TableColumn<User, String> kycColActions;
+    @FXML private Label kycEmptyLabel;
+    
+    private ObservableList<User> kycList = FXCollections.observableArrayList();
+    
     // Validation patterns
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
@@ -65,6 +79,7 @@ public class AdminDashboardController implements Initializable {
         setupValidation();
         loadData();
         setupSearch();
+        loadKycData();
     }
     
     private void setupValidation() {
@@ -380,6 +395,124 @@ public class AdminDashboardController implements Initializable {
         alert.showAndWait();
     }
     
+    private void loadKycData() {
+        kycColName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        kycColEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        kycColRole.setCellValueFactory(new PropertyValueFactory<>("role"));
+
+        kycColActions.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    User user = getTableView().getItems().get(getIndex());
+
+                    Button viewBtn = new Button("🖼 View ID");
+                    viewBtn.getStyleClass().addAll("modern-button");
+                    viewBtn.setStyle("-fx-padding: 6 14; -fx-font-size: 12px; -fx-background-color: #456990; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+
+                    Button approveBtn = new Button("✓ Approve");
+                    approveBtn.getStyleClass().addAll("modern-button");
+                    approveBtn.setStyle("-fx-padding: 6 14; -fx-font-size: 12px; -fx-background-color: #2E7D32; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+
+                    Button rejectBtn = new Button("✗ Reject");
+                    rejectBtn.getStyleClass().addAll("modern-button");
+                    rejectBtn.setStyle("-fx-padding: 6 14; -fx-font-size: 12px; -fx-background-color: #A62639; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+
+                    viewBtn.setOnAction(e -> showIdImage(user));
+                    approveBtn.setOnAction(e -> approveKyc(user));
+                    rejectBtn.setOnAction(e -> rejectKyc(user));
+
+                    HBox box = new HBox(8, viewBtn, approveBtn, rejectBtn);
+                    box.setStyle("-fx-alignment: center;");
+                    setGraphic(box);
+                }
+            }
+        });
+
+        refreshKycTable();
+    }
+
+    @FXML
+    private void refreshKycTable() {
+        new Thread(() -> {
+            try {
+                var pending = userService.getPendingKycUsers();
+                Platform.runLater(() -> {
+                    kycList.setAll(pending);
+                    kycTable.setItems(kycList);
+                    kycEmptyLabel.setVisible(kycList.isEmpty());
+                    kycEmptyLabel.setManaged(kycList.isEmpty());
+                    kycTable.setVisible(!kycList.isEmpty());
+                    kycTable.setManaged(!kycList.isEmpty());
+                });
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }).start();
+    }
+
+    private void showIdImage(User user) {
+        try {
+            File file = new File(user.getIdImageUrl());
+            if (!file.exists()) {
+                showErrorAlert("ID image file not found: " + user.getIdImageUrl());
+                return;
+            }
+            Image img = new Image(file.toURI().toString(), 600, 400, true, true);
+            ImageView iv = new ImageView(img);
+            iv.setPreserveRatio(true);
+
+            Alert dialog = new Alert(Alert.AlertType.INFORMATION);
+            dialog.setTitle("ID Document - " + user.getName());
+            dialog.setHeaderText(user.getName() + " (" + user.getEmail() + ")");
+            dialog.getDialogPane().setContent(new VBox(10, iv));
+            dialog.getDialogPane().setPrefWidth(650);
+            dialog.showAndWait();
+        } catch (Exception e) {
+            showErrorAlert("Error loading image: " + e.getMessage());
+        }
+    }
+
+    private void approveKyc(User user) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Approve KYC");
+        confirm.setHeaderText("Approve " + user.getName() + "?");
+        confirm.setContentText("This will activate the user's account.");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    userService.setUserActive(user.getId(), true);
+                    showSuccessAlert("User " + user.getName() + " has been approved!");
+                    refreshKycTable();
+                    refreshTable();
+                } catch (SQLException ex) {
+                    showErrorAlert("Error approving user: " + ex.getMessage());
+                }
+            }
+        });
+    }
+
+    private void rejectKyc(User user) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Reject KYC");
+        confirm.setHeaderText("Reject " + user.getName() + "'s ID?");
+        confirm.setContentText("The user will need to upload a new ID.");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    userService.updateIdImageUrl(user.getId(), null);
+                    showSuccessAlert("KYC rejected. User will be asked to re-upload.");
+                    refreshKycTable();
+                } catch (SQLException ex) {
+                    showErrorAlert("Error rejecting KYC: " + ex.getMessage());
+                }
+            }
+        });
+    }
+
     @FXML
     private void handleViewHome() {
         try {

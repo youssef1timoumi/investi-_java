@@ -33,6 +33,28 @@
                 <!-- Title -->
                 <Label text="User Management" styleClass="title-medium"/>
                 
+                <!-- KYC Review Section -->
+                <VBox spacing="15" styleClass="modern-card">
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Label text="🔍 KYC Verification Queue" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000501;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="🔄 Refresh" onAction="#refreshKycTable" styleClass="modern-button, button-secondary"/>
+                    </HBox>
+                    
+                    <Label fx:id="kycEmptyLabel" text="✓ No pending KYC requests" 
+                           style="-fx-font-size: 14px; -fx-text-fill: #456990; -fx-padding: 20; -fx-alignment: center;"
+                           visible="false" managed="false"/>
+                    
+                    <TableView fx:id="kycTable" styleClass="table-view" prefHeight="250" minHeight="200">
+                        <columns>
+                            <TableColumn fx:id="kycColName" text="Name" prefWidth="150" minWidth="120"/>
+                            <TableColumn fx:id="kycColEmail" text="Email" prefWidth="220" minWidth="150"/>
+                            <TableColumn fx:id="kycColRole" text="Role" prefWidth="120" minWidth="80"/>
+                            <TableColumn fx:id="kycColActions" text="Actions" prefWidth="320" minWidth="280"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+                
                 <!-- Add User Form Card -->
                 <VBox spacing="20" styleClass="modern-card">
                     <Label text="Add New User" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000501;"/>

@@ -28,6 +28,13 @@
             <scope>test</scope>
         </dependency>
         
+        <!-- JavaMail for SMTP -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+        
         <!-- JavaFX Dependencies -->
         <dependency>
             <groupId>org.openjfx</groupId>
