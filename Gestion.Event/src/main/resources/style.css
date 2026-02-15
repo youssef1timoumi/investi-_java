@@ -1,0 +1,134 @@
+/* ================= GLOBAL ================= */
+.root {
+    -fx-background-color: linear-gradient(to bottom right, #F8FAFC, #E0E7FF);
+    -fx-font-family: "Segoe UI", "Arial";
+}
+
+/* ================= TITRES ================= */
+.title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1E3A8A;
+}
+
+/* ================= LABELS ================= */
+.label {
+    -fx-text-fill: #1F2933;
+    -fx-font-size: 13px;
+}
+
+/* ================= TEXT FIELD ================= */
+.text-field {
+    -fx-pref-height: 38px;
+    -fx-background-color: white;
+    -fx-border-color: #CBD5E1;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 6px 12px;
+    -fx-font-size: 13px;
+}
+
+.text-field:focused {
+    -fx-border-color: #2563EB;
+    -fx-border-width: 2px;
+    -fx-background-color: #F8FAFF;
+}
+
+/* ================= BUTTONS ================= */
+.button {
+    -fx-pref-height: 40px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 6, 0.2, 0, 2);
+}
+
+/* Bleu principal */
+.btn-primary {
+    -fx-background-color: linear-gradient(to right, #2563EB, #1E40AF);
+    -fx-text-fill: white;
+}
+
+.btn-primary:hover {
+    -fx-background-color: linear-gradient(to right, #1D4ED8, #1E3A8A);
+}
+
+/* Orange / Modifier */
+.btn-warning {
+    -fx-background-color: linear-gradient(to right, #F59E0B, #D97706);
+    -fx-text-fill: white;
+}
+
+.btn-warning:hover {
+    -fx-background-color: linear-gradient(to right, #D97706, #B45309);
+}
+
+/* Rouge / Supprimer */
+.btn-danger {
+    -fx-background-color: linear-gradient(to right, #EF4444, #B91C1C);
+    -fx-text-fill: white;
+}
+
+.btn-danger:hover {
+    -fx-background-color: linear-gradient(to right, #DC2626, #991B1B);
+}
+
+/* Gris */
+.btn-secondary {
+    -fx-background-color: linear-gradient(to right, #6B7280, #4B5563);
+    -fx-text-fill: white;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: linear-gradient(to right, #4B5563, #374151);
+}
+
+/* ================= TABLE ================= */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #CBD5E1;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 8, 0.2, 0, 3);
+}
+
+/* Header */
+.table-view .column-header-background {
+    -fx-background-color: linear-gradient(to right, #1E3A8A, #2563EB);
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+/* Rows */
+.table-row-cell {
+    -fx-background-color: white;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #EFF6FF;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #DBEAFE;
+    -fx-text-fill: #1E3A8A;
+}
+
+/* ================= SCROLL BAR ================= */
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #2563EB;
+    -fx-background-radius: 5px;
+}
+
+/* ================= PANELS ================= */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 15px;
+    -fx-padding: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 10, 0.3, 0, 4);
+}

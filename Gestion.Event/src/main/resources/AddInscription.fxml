@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controllers.AddInscriptionController"
+            prefHeight="400.0" prefWidth="500.0">
+
+    <!-- TITRE -->
+    <top>
+        <HBox alignment="CENTER" spacing="20" style="-fx-background-color: #10B981; -fx-padding: 20;">
+            <Label text="📝 AJOUTER / MODIFIER UNE INSCRIPTION"
+                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <!-- FORMULAIRE -->
+    <center>
+        <VBox spacing="15" style="-fx-padding: 30;">
+
+            <Label text="ID Utilisateur *" style="-fx-font-weight: bold;"/>
+            <ComboBox fx:id="cbUtilisateur" prefWidth="400" promptText="Sélectionnez un utilisateur"/>
+
+            <Label text="ID Événement *" style="-fx-font-weight: bold;"/>
+            <ComboBox fx:id="cbEvenement" prefWidth="400" promptText="Sélectionnez un événement"/>
+
+            <Label text="Statut *" style="-fx-font-weight: bold;"/>
+            <ComboBox fx:id="cbStatut" prefWidth="400"/>
+
+            <Separator/>
+
+            <HBox spacing="15" alignment="CENTER">
+                <Button fx:id="btnAction" text="➕ Ajouter" onAction="#ajouterInscription"
+                        style="-fx-background-color: #10B981; -fx-text-fill: white;
+                              -fx-font-weight: bold; -fx-pref-width: 150; -fx-pref-height: 40;"/>
+                <Button fx:id="btnAnnuler" text="❌ Annuler" onAction="#annuler"
+                        style="-fx-background-color: #6B7280; -fx-text-fill: white;
+                              -fx-font-weight: bold; -fx-pref-width: 150; -fx-pref-height: 40;"/>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>
