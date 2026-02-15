@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="600" prefWidth="900" stylesheets="@Project.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.collaboration.controllers.Investment.UpdateInvestmentController">
+    <children>
+        <VBox alignment="CENTER" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+            <VBox spacing="15" styleClass="form-container">
+                <Label text="Update Investment" styleClass="heading"/>
+                
+                <TextField fx:id="idTf" promptText="Investment ID" />
+                <TextField fx:id="amountTf" promptText="New Amount" />
+                <TextField fx:id="statusTf" promptText="New Status (PENDING, ACCEPTED, REFUSED)" />
+                
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button onAction="#goMain" styleClass="secondary" text="Back" />
+                    <Button onAction="#updateInvestment" text="Update" />
+                </HBox>
+            </VBox>
+        </VBox>
+    </children>
+</AnchorPane>

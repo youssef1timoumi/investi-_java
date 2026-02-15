@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="600" prefWidth="900" stylesheets="@Project.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.collaboration.controllers.Project.AddProjectController">
+    <children>
+        <VBox alignment="CENTER" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+            <VBox spacing="15" styleClass="form-container">
+                <Label text="Add Project" styleClass="heading"/>
+
+                <TextField fx:id="entrepreneurTf" promptText="Entrepreneur ID"/>
+                <TextField fx:id="titleTf" promptText="Title"/>
+                <TextField fx:id="descriptionTf" promptText="Description"/>
+                <TextField fx:id="amountTf" promptText="Target Amount"/>
+                <TextField fx:id="equityTf" promptText="Equity %"/>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button text="Back" onAction="#goMain" styleClass="secondary"/>
+                    <Button text="Save" onAction="#saveProject"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </children>
+</AnchorPane>
