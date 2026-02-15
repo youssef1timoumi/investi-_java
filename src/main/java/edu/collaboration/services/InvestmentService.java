@@ -52,18 +52,35 @@ public class InvestmentService implements IService<Investment> {
 
     @Override
     public boolean update(int id, Investment i) {
-        String sql = "UPDATE investment SET totalAmount = ?, status = ? WHERE investment_id = ?";
+
+        String sql = "UPDATE investment SET "
+                + "totalAmount = ?, "
+                + "durationMonths = ?, "
+                + "amountPerPeriod = ?, "
+                + "equityRequested = ?, "
+                + "status = ? "
+                + "WHERE investment_id = ?";
+
         try {
-            PreparedStatement pst = MyConnection.getInstance().getCnx().prepareStatement(sql);
-            pst.setDouble(1, i.getTotalAmount());
-            pst.setString(2, i.getStatus());
-            pst.setInt(3, id);
-            return pst.executeUpdate() > 0;
+            PreparedStatement ps = MyConnection.getInstance()
+                    .getCnx()
+                    .prepareStatement(sql);
+
+            ps.setDouble(1, i.getTotalAmount());
+            ps.setInt(2, i.getDurationMonths());
+            ps.setDouble(3, i.getAmountPerPeriod()); // VERY IMPORTANT
+            ps.setDouble(4, i.getEquityRequested());
+            ps.setString(5, i.getStatus());
+            ps.setInt(6, id);
+
+            return ps.executeUpdate() > 0;
+
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
+
 
     @Override
     public List<Investment> getData() {

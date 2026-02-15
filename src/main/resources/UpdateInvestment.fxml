@@ -13,11 +13,16 @@
         <VBox alignment="CENTER" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
             <VBox spacing="15" styleClass="form-container">
                 <Label text="Update Investment" styleClass="heading"/>
-                
+
                 <TextField fx:id="idTf" promptText="Investment ID" />
-                <TextField fx:id="amountTf" promptText="New Amount" />
-                <TextField fx:id="statusTf" promptText="New Status (PENDING, ACCEPTED, REFUSED)" />
-                
+
+                <TextField fx:id="projectTf" promptText="Project ID" />
+                <TextField fx:id="investorTf" promptText="Investor ID" />
+                <TextField fx:id="amountTf" promptText="Total Amount" />
+                <TextField fx:id="durationTf" promptText="Duration (months)" />
+                <TextField fx:id="equityTf" promptText="Equity (%)" />
+                <TextField fx:id="statusTf" promptText="Status (PENDING, ACCEPTED, REFUSED)" />
+
                 <HBox spacing="10" alignment="CENTER_RIGHT">
                     <Button onAction="#goMain" styleClass="secondary" text="Back" />
                     <Button onAction="#updateInvestment" text="Update" />
