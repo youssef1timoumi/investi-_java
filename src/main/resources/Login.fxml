@@ -45,7 +45,12 @@
             
             <VBox spacing="6">
                 <Label text="Password" styleClass="label-field"/>
-                <PasswordField fx:id="loginPassword" promptText="Enter your password" styleClass="modern-input"/>
+                <HBox spacing="0" alignment="CENTER_LEFT">
+                    <PasswordField fx:id="loginPassword" promptText="Enter your password" styleClass="modern-input" HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="loginPasswordVisible" promptText="Enter your password" styleClass="modern-input" visible="false" managed="false" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="loginPasswordToggle" text="👁" onAction="#toggleLoginPassword" 
+                            style="-fx-background-color: transparent; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 8 12; -fx-translate-x: -45;"/>
+                </HBox>
             </VBox>
             
             <Button fx:id="loginButton" text="Login to INVESTI" onAction="#handleLogin" maxWidth="Infinity" styleClass="modern-button, button-primary">
@@ -71,7 +76,13 @@
             
             <VBox spacing="6">
                 <Label text="Password" styleClass="label-field"/>
-                <PasswordField fx:id="registerPassword" promptText="Create a strong password" styleClass="modern-input"/>
+                <HBox spacing="0" alignment="CENTER_LEFT">
+                    <PasswordField fx:id="registerPassword" promptText="Create a strong password" styleClass="modern-input" HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="registerPasswordVisible" promptText="Create a strong password" styleClass="modern-input" visible="false" managed="false" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="registerPasswordToggle" text="👁" onAction="#toggleRegisterPassword" 
+                            style="-fx-background-color: transparent; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 8 12; -fx-translate-x: -45;"/>
+                </HBox>
+                <Label fx:id="passwordStrength" text="" style="-fx-font-size: 11px; -fx-padding: 2 0 0 0;"/>
             </VBox>
             
             <VBox spacing="6">

@@ -20,6 +20,14 @@
             <version>8.0.30</version>
         </dependency>
         
+        <!-- JUnit 5 - Tests unitaires -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.1</version>
+            <scope>test</scope>
+        </dependency>
+        
         <!-- JavaFX Dependencies -->
         <dependency>
             <groupId>org.openjfx</groupId>

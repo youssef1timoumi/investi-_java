@@ -17,6 +17,8 @@ public class LoginController implements Initializable {
     
     @FXML private TextField loginEmail;
     @FXML private PasswordField loginPassword;
+    @FXML private TextField loginPasswordVisible;
+    @FXML private Button loginPasswordToggle;
     @FXML private Label loginMessage;
     @FXML private Button loginButton;
     @FXML private Button loginTabBtn;
@@ -25,6 +27,9 @@ public class LoginController implements Initializable {
     @FXML private TextField registerName;
     @FXML private TextField registerEmail;
     @FXML private PasswordField registerPassword;
+    @FXML private TextField registerPasswordVisible;
+    @FXML private Button registerPasswordToggle;
+    @FXML private Label passwordStrength;
     @FXML private Label registerMessage;
     @FXML private Button registerButton;
     @FXML private Button registerTabBtn;
@@ -47,6 +52,14 @@ public class LoginController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        // Sync password fields
+        if (loginPasswordVisible != null && loginPassword != null) {
+            loginPasswordVisible.textProperty().bindBidirectional(loginPassword.textProperty());
+        }
+        if (registerPasswordVisible != null && registerPassword != null) {
+            registerPasswordVisible.textProperty().bindBidirectional(registerPassword.textProperty());
+        }
+        
         // Create toggle group for role selection (only one can be selected)
         roleGroup = new ToggleGroup();
         innovatorBtn.setToggleGroup(roleGroup);
@@ -89,8 +102,75 @@ public class LoginController implements Initializable {
             }
         });
         
+        // Password strength indicator
+        if (passwordStrength != null && registerPassword != null) {
+            registerPassword.textProperty().addListener((obs, oldVal, newVal) -> {
+                updatePasswordStrength(newVal);
+            });
+        }
+        
         // Trigger initial styling
         innovatorBtn.setSelected(true);
+    }
+    
+    @FXML
+    private void toggleLoginPassword() {
+        if (loginPassword.isVisible()) {
+            loginPassword.setVisible(false);
+            loginPassword.setManaged(false);
+            loginPasswordVisible.setVisible(true);
+            loginPasswordVisible.setManaged(true);
+            loginPasswordToggle.setText("🙈");
+        } else {
+            loginPassword.setVisible(true);
+            loginPassword.setManaged(true);
+            loginPasswordVisible.setVisible(false);
+            loginPasswordVisible.setManaged(false);
+            loginPasswordToggle.setText("👁");
+        }
+    }
+    
+    @FXML
+    private void toggleRegisterPassword() {
+        if (registerPassword.isVisible()) {
+            registerPassword.setVisible(false);
+            registerPassword.setManaged(false);
+            registerPasswordVisible.setVisible(true);
+            registerPasswordVisible.setManaged(true);
+            registerPasswordToggle.setText("🙈");
+        } else {
+            registerPassword.setVisible(true);
+            registerPassword.setManaged(true);
+            registerPasswordVisible.setVisible(false);
+            registerPasswordVisible.setManaged(false);
+            registerPasswordToggle.setText("👁");
+        }
+    }
+    
+    private void updatePasswordStrength(String password) {
+        if (password.isEmpty()) {
+            passwordStrength.setText("");
+            return;
+        }
+        
+        int strength = 0;
+        if (password.length() >= 6) strength++;
+        if (password.length() >= 10) strength++;
+        if (password.matches(".*[A-Z].*")) strength++;
+        if (password.matches(".*[a-z].*")) strength++;
+        if (password.matches(".*[0-9].*")) strength++;
+        if (password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*")) strength++;
+        
+        if (strength <= 2) {
+            passwordStrength.setText("⚠ Weak password");
+            passwordStrength.setStyle("-fx-text-fill: #A62639; -fx-font-size: 11px;");
+        } else if (strength <= 4) {
+            passwordStrength.setText("⚡ Medium password");
+            passwordStrength.setStyle("-fx-text-fill: #9B7E46; -fx-font-size: 11px;");
+        } else {
+            passwordStrength.setText("✓ Strong password");
+            passwordStrength.setStyle("-fx-text-fill: #456990; -fx-font-size: 11px;");
+        }
     }
     
     @FXML

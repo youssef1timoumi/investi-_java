@@ -54,9 +54,9 @@
                         <TextField fx:id="roleField" promptText="user, innovator, investor, admin" GridPane.columnIndex="1" GridPane.rowIndex="3"
                                  styleClass="modern-input" GridPane.hgrow="ALWAYS"/>
                         
-                        <Label text="Bio:" GridPane.columnIndex="0" GridPane.rowIndex="4" styleClass="label-field"/>
-                        <TextField fx:id="bioField" promptText="User bio (optional)" GridPane.columnIndex="1" GridPane.rowIndex="4"
-                                 styleClass="modern-input" GridPane.hgrow="ALWAYS"/>
+                        <Label text="Bio:" GridPane.columnIndex="0" GridPane.rowIndex="4" styleClass="label-field" GridPane.valignment="TOP"/>
+                        <TextArea fx:id="bioField" promptText="User bio (optional)" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                                 styleClass="modern-input" GridPane.hgrow="ALWAYS" prefRowCount="3" wrapText="true"/>
                     </GridPane>
                     
                     <HBox spacing="15">
@@ -67,7 +67,17 @@
                 
                 <!-- Users Table Card -->
                 <VBox spacing="15" styleClass="modern-card" style="-fx-min-height: 600;">
-                    <Label text="All Users" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000501;"/>
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Label text="All Users" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000501;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <ProgressIndicator fx:id="loadingIndicator" visible="false" managed="false" prefWidth="30" prefHeight="30"/>
+                    </HBox>
+                    
+                    <TextField fx:id="searchField" promptText="🔍 Search users by name, email, or role..." styleClass="modern-input"/>
+                    
+                    <Label fx:id="emptyStateLabel" text="📭 No users yet. Add one above!" 
+                           style="-fx-font-size: 16px; -fx-text-fill: #666; -fx-padding: 40; -fx-alignment: center;"
+                           visible="false" managed="false"/>
                     
                     <TableView fx:id="userTable" styleClass="table-view" prefHeight="500" minHeight="500">
                         <columns>

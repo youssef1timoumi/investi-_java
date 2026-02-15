@@ -96,6 +96,14 @@
     -fx-effect: dropshadow(gaussian, rgba(69,105,144,0.2), 8, 0, 0, 0);
 }
 
+.modern-input .text-area {
+    -fx-background-color: #F7F0F5;
+}
+
+.modern-input .content {
+    -fx-background-color: #F7F0F5;
+}
+
 .input-error {
     -fx-background-color: #FFE5E5;
     -fx-border-color: #A62639;
