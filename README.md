@@ -1,59 +1,57 @@
-# INVESTI
+# User Management System
 
-## Where Innovation Meets Investment
+A Java-based terminal application for managing users in the 3a8 database.
 
-INVESTI is a dynamic platform that bridges the gap between visionary innovators and forward-thinking investors. We believe that great ideas deserve the opportunity to become reality, and that smart investors deserve access to the next generation of groundbreaking projects.
+## Database Setup
 
-## What We Do
+1. Make sure MySQL is running on localhost:3306
+2. Create the database if it doesn't exist:
+   ```sql
+   CREATE DATABASE 3a8;
+   ```
+3. Run the schema.sql file to create the tables:
+   ```sql
+   USE 3a8;
+   SOURCE schema.sql;
+   ```
 
-INVESTI creates a vibrant ecosystem where:
+## Running the Application
 
-- **Innovators** can showcase their ideas, connect with potential investors, and receive valuable feedback from a community of experts and peers
-- **Investors** discover promising projects early, evaluate opportunities through detailed proposals, and build relationships with talented entrepreneurs
-- **Communities** form around shared interests, fostering collaboration, knowledge sharing, and mutual growth
+### Option 1: Using Maven
+```bash
+mvn clean compile
+mvn exec:java -Dexec.mainClass="edu.connexion3a8.tests.UserManagementApp"
+```
 
-## Our Mission
+### Option 2: Using IDE
+Run the `UserManagementApp.java` class directly from your IDE.
 
-We're on a mission to democratize innovation funding by making it easier for great ideas to find the right support. Whether you're an entrepreneur with a vision or an investor seeking the next big opportunity, INVESTI provides the tools and community to make meaningful connections happen.
+## Features
 
-## Key Features
+The application provides a terminal-based menu with the following options:
 
-### For Innovators
-- **Showcase Your Vision** - Present your ideas with compelling proposals that highlight your unique value
-- **Build Your Network** - Connect with investors, mentors, and fellow innovators who share your passion
-- **Gain Recognition** - Earn points, badges, and level up as you engage with the community
-- **Get Feedback** - Receive constructive input from experienced investors and industry experts
+1. **Add New User** - Create a new user with email, password, name, and role
+2. **View All Users** - Display all users in a formatted table
+3. **Search User by Email** - Find a specific user by their email address
+4. **View Users by Role** - Filter users by role (admin/investor/innovator)
+5. **Update User** - Modify existing user information
+6. **Delete User** - Remove a user from the database
 
-### For Investors
-- **Discover Opportunities** - Browse a curated selection of innovative projects across various industries
-- **Evaluate Projects** - Access detailed proposals, team information, and community feedback
-- **Connect Directly** - Engage with innovators through our built-in messaging system
-- **Track Your Portfolio** - Monitor your investments and stay updated on project progress
+## User Roles
 
-### For Everyone
-- **Community Forum** - Participate in discussions, ask questions, and share insights
-- **Events & Workshops** - Attend virtual and in-person events to expand your knowledge and network
-- **Collaboration Tools** - Work together on projects with integrated communication features
-- **Achievement System** - Stay motivated with our gamified experience that rewards active participation
+- **admin** - Platform administrators
+- **investor** - Users who invest in projects
+- **innovator** - Users who create and propose projects
 
-## Why Choose INVESTI?
+## Database Configuration
 
-**Transparency** - We believe in open communication between innovators and investors, fostering trust and informed decision-making.
+Update the connection settings in `MyConnection.java` if needed:
+- URL: `jdbc:mysql://localhost:3306/3a8`
+- Username: `root`
+- Password: (empty by default)
 
-**Community-Driven** - Our platform thrives on the collective wisdom and support of our members, creating value for everyone involved.
+## Notes
 
-**Accessibility** - We're breaking down barriers to entry, making innovation funding accessible to diverse voices and perspectives.
-
-**Growth-Focused** - Whether you're launching your first project or your tenth, INVESTI provides resources and support to help you succeed.
-
-## Join Our Community
-
-INVESTI is more than a platform—it's a movement. We're building a future where innovation flourishes, where great ideas get the support they deserve, and where investors discover opportunities that make a real impact.
-
-Ready to be part of something bigger? Join INVESTI today and turn your vision into reality.
-
----
-
-**Connect With Us**
-
-Have questions? Want to learn more? Reach out to our community team or explore our platform to see how INVESTI can help you achieve your goals.
+- Passwords are stored as plain text in this version. For production, implement proper password hashing (bcrypt, etc.)
+- The application uses prepared statements to prevent SQL injection
+- User profiles table is created but not yet integrated into the management app

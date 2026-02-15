@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.connexion3a8.controllers.AdminDashboardController"
+            style="-fx-background-color: #F7F0F5;" stylesheets="@styles.css">
+    
+    <!-- Modern Header -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-bar" style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 15, 0, 0, 3);">
+            <ImageView fitWidth="50" fitHeight="50" preserveRatio="true">
+                <Image url="@INVESTI.png"/>
+            </ImageView>
+            <Label text="INVESTI - Admin Dashboard" styleClass="header-logo"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 View Home Page" onAction="#handleViewHome" styleClass="modern-button, button-primary"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="modern-button, button-danger"/>
+        </HBox>
+    </top>
+    
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane" style="-fx-background: #F7F0F5; -fx-background-color: #F7F0F5;">
+            <VBox spacing="25" style="-fx-background-color: #F7F0F5;">
+                <padding>
+                    <Insets top="30" right="40" bottom="30" left="40"/>
+                </padding>
+                
+                <!-- Title -->
+                <Label text="User Management" styleClass="title-medium"/>
+                
+                <!-- Add User Form Card -->
+                <VBox spacing="20" styleClass="modern-card">
+                    <Label text="Add New User" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000501;"/>
+                    
+                    <GridPane hgap="20" vgap="15">
+                        <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="label-field"/>
+                        <TextField fx:id="emailField" promptText="user@example.com" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                 styleClass="modern-input" GridPane.hgrow="ALWAYS"/>
+                        
+                        <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="label-field"/>
+                        <TextField fx:id="nameField" promptText="Full Name" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                 styleClass="modern-input" GridPane.hgrow="ALWAYS"/>
+                        
+                        <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="label-field"/>
+                        <PasswordField fx:id="passwordField" promptText="Password" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                     styleClass="modern-input" GridPane.hgrow="ALWAYS"/>
+                        
+                        <Label text="Role:" GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="label-field"/>
+                        <TextField fx:id="roleField" promptText="user, innovator, investor, admin" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                 styleClass="modern-input" GridPane.hgrow="ALWAYS"/>
+                        
+                        <Label text="Bio:" GridPane.columnIndex="0" GridPane.rowIndex="4" styleClass="label-field"/>
+                        <TextField fx:id="bioField" promptText="User bio (optional)" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                                 styleClass="modern-input" GridPane.hgrow="ALWAYS"/>
+                    </GridPane>
+                    
+                    <HBox spacing="15">
+                        <Button fx:id="btnAdd" text="💾 Save User" onAction="#addUser" styleClass="modern-button, button-primary"/>
+                        <Button fx:id="btnRefresh" text="🔄 Refresh Table" onAction="#refreshTable" styleClass="modern-button, button-secondary"/>
+                    </HBox>
+                </VBox>
+                
+                <!-- Users Table Card -->
+                <VBox spacing="15" styleClass="modern-card" style="-fx-min-height: 600;">
+                    <Label text="All Users" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000501;"/>
+                    
+                    <TableView fx:id="userTable" styleClass="table-view" prefHeight="500" minHeight="500">
+                        <columns>
+                            <TableColumn fx:id="colId" text="ID" prefWidth="220" minWidth="150"/>
+                            <TableColumn fx:id="colName" text="Name" prefWidth="180" minWidth="120"/>
+                            <TableColumn fx:id="colEmail" text="Email" prefWidth="220" minWidth="150"/>
+                            <TableColumn fx:id="colRole" text="Role" prefWidth="120" minWidth="100"/>
+                            <TableColumn fx:id="colPoints" text="Points" prefWidth="100" minWidth="80"/>
+                            <TableColumn fx:id="colLevel" text="Level" prefWidth="100" minWidth="80"/>
+                            <TableColumn fx:id="colActions" text="Actions" prefWidth="240" minWidth="200"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

@@ -8,7 +8,7 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'investor', 'innovator') NOT NULL,
+    role ENUM('admin', 'investor', 'innovator', 'user') NOT NULL,
     avatar_url TEXT,
     bio TEXT,
     points INT DEFAULT 0,
