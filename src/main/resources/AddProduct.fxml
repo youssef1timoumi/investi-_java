@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.AddProductController">
+   <content>
+      <VBox alignment="CENTER" maxWidth="Infinity" minHeight="600.0" spacing="0" style="-fx-padding: 20;">
+         <children>
+            <VBox maxWidth="650.0" spacing="30.0" styleClass="form-container">
+               <children>
+                  <VBox alignment="CENTER" spacing="10.0">
+                     <children>
+                        <Label fx:id="titleLabel" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #333;" text="📦 Créer un Nouveau Produit" />
+                        <HBox alignment="CENTER" styleClass="info-banner">
+                           <children>
+                              <Label style="-fx-text-fill: #555; -fx-font-size: 13;" text="Tous les champs marqués d'une astérisque (*) sont obligatoires" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+
+                  <VBox spacing="20.0">
+                     <children>
+                        <!-- Product Name -->
+                        <VBox spacing="8.0">
+                           <children>
+                              <HBox spacing="5">
+                                 <Label styleClass="label-bold" text="Nom du Produit" />
+                                 <Label style="-fx-text-fill: #e74c3c;" text="*" />
+                              </HBox>
+                              <TextField fx:id="nameTf" styleClass="custom-text-input" promptText="Entrez le nom du produit" />
+                           </children>
+                        </VBox>
+
+                        <!-- Category and Price Row -->
+                        <GridPane hgap="20.0">
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
+                           </columnConstraints>
+                           <children>
+                              <VBox spacing="8.0">
+                                 <children>
+                                    <HBox spacing="5">
+                                       <Label styleClass="label-bold" text="ID Catégorie" />
+                                       <Label style="-fx-text-fill: #e74c3c;" text="*" />
+                                    </HBox>
+                                    <TextField fx:id="categoryTf" styleClass="custom-text-input" promptText="Numéro de catégorie" />
+                                 </children>
+                              </VBox>
+                              <VBox spacing="8.0" GridPane.columnIndex="1">
+                                 <children>
+                                    <HBox spacing="5">
+                                       <Label styleClass="label-bold" text="Prix" />
+                                       <Label style="-fx-text-fill: #e74c3c;" text="*" />
+                                    </HBox>
+                                    <TextField fx:id="priceTf" styleClass="custom-text-input" promptText="0.00" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </GridPane>
+
+                        <!-- Status -->
+                        <VBox spacing="8.0">
+                           <children>
+                              <HBox spacing="5">
+                                 <Label styleClass="label-bold" text="Statut Initial" />
+                                 <Label style="-fx-text-fill: #e74c3c;" text="*" />
+                              </HBox>
+                              <ComboBox fx:id="statusCb" maxWidth="Infinity" styleClass="combo-box" />
+                           </children>
+                        </VBox>
+
+                        <!-- Image Upload -->
+                        <VBox spacing="8.0">
+                           <children>
+                              <HBox spacing="5">
+                                 <Label styleClass="label-bold" text="Image du Produit" />
+                                 <Label style="-fx-text-fill: #e74c3c;" text="*" />
+                              </HBox>
+                              <VBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10; -fx-background-color: #f8f9fa; -fx-background-radius: 8; -fx-border-color: #e0e0e0; -fx-border-radius: 8;">
+                                 <children>
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                       <children>
+                                          <Button onAction="#importImage" styleClass="file-btn" text="📁 Choisir une image" />
+                                          <TextField fx:id="imageUrlTf" editable="false" style="-fx-background-color: transparent; -fx-border-width: 0;" HBox.hgrow="ALWAYS" promptText="Aucun fichier choisi" />
+                                       </children>
+                                    </HBox>
+                                    <StackPane maxWidth="200" maxHeight="200" style="-fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-padding: 5;">
+                                       <children>
+                                          <ImageView fx:id="imagePreview" fitHeight="180.0" fitWidth="180.0" preserveRatio="true" />
+                                          <Label fx:id="placeholderLabel" text="Aperçu" style="-fx-text-fill: #adb5bd;" />
+                                       </children>
+                                    </StackPane>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+
+                        <!-- Description -->
+                        <VBox spacing="8.0">
+                           <children>
+                              <HBox spacing="5">
+                                 <Label styleClass="label-bold" text="Description du Produit" />
+                                 <Label style="-fx-text-fill: #e74c3c;" text="*" />
+                              </HBox>
+                              <TextArea fx:id="descriptionTa" prefHeight="120.0" styleClass="text-area" promptText="Décrivez votre produit en détail..." wrapText="true" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+
+                  <HBox spacing="15.0" alignment="CENTER">
+                     <children>
+                        <Button fx:id="submitBtn" onAction="#saveProduct" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="btn-gradient" text="✓ Créer le Produit" />
+                        <Button onAction="#resetForm" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="btn-reset" text="↻ Réinitialiser" />
+                        <Button onAction="#navigateShowProducts" maxWidth="Infinity" HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-text-fill: #adb5bd;" text="Annuler" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </VBox>
+   </content>
+</ScrollPane>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20.0" styleClass="card" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ShowSalesController">
+   <children>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <VBox spacing="2.0">
+               <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="Sales Transactions" />
+               <Label style="-fx-text-fill: #6C757D;" text="Recent orders and payment statuses" />
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button mnemonicParsing="false" onAction="#navigateAddSale" styleClass="primary-button" text="+ Record New Sale" />
+         </children>
+      </HBox>
+      <TableView fx:id="saleTable" VBox.vgrow="ALWAYS">
+        <columns>
+          <TableColumn fx:id="refCol" prefWidth="120.0" text="REFERENCE" />
+          <TableColumn fx:id="dateCol" prefWidth="140.0" text="DATE" />
+          <TableColumn fx:id="amountCol" prefWidth="100.0" text="TOTAL" />
+          <TableColumn fx:id="statusCol" prefWidth="100.0" text="STATUS" />
+          <TableColumn fx:id="paymentStatusCol" prefWidth="100.0" text="PAYMENT" />
+          <TableColumn fx:id="methodCol" prefWidth="120.0" text="METHOD" />
+          <TableColumn fx:id="addressCol" prefWidth="180.0" text="ADDR" />
+          <TableColumn fx:id="notesCol" prefWidth="150.0" text="NOTES" />
+          <TableColumn fx:id="actionsCol" prefWidth="180.0" text="ACTIONS" />
+        </columns>
+      </TableView>
+   </children>
+</VBox>

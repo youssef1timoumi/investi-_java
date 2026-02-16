@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20.0" styleClass="card" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ShowProductsController">
+   <children>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <VBox spacing="2.0">
+               <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="All Products" />
+               <Label style="-fx-text-fill: #6C757D;" text="Manage your inventory items and stock status" />
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button mnemonicParsing="false" onAction="#navigateAddProduct" styleClass="primary-button" text="+ Add New Product" />
+         </children>
+      </HBox>
+      <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+         <content>
+            <TilePane fx:id="productGrid" prefTileWidth="250.0" prefTileHeight="350.0" styleClass="product-grid" />
+         </content>
+      </ScrollPane>
+   </children>
+</VBox>

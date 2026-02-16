@@ -1,0 +1,292 @@
+/* =========================
+   Modern Dashboard CSS
+   ========================= */
+
+.root {
+    -fx-font-family: "Segoe UI", "Inter", sans-serif;
+    -fx-background-color: #F7F0F5;
+    /* Platinum */
+}
+
+/* Sidebar Styling */
+.sidebar {
+    -fx-background-color: #000501;
+    /* Rich Black */
+    -fx-padding: 20 0 20 0;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #F7F0F5;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 12 20 12 20;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+    -fx-border-width: 0 0 0 4;
+    -fx-border-color: transparent;
+    -fx-transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+    -fx-background-color: rgba(247, 240, 245, 0.1);
+}
+
+.nav-button.active {
+    -fx-background-color: rgba(155, 126, 70, 0.2);
+    -fx-text-fill: #9B7E46;
+    /* Gold */
+    -fx-border-color: #9B7E46;
+}
+
+/* Header Styling */
+.header {
+    -fx-background-color: white;
+    -fx-padding: 0 30 0 30;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 10, 0, 0, 2);
+}
+
+.header-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000501;
+}
+
+/* Card Styling */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 15, 0, 0, 5);
+}
+
+.stat-card {
+    -fx-padding: 20;
+    -fx-background-radius: 12;
+}
+
+/* TableView Improvements */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #F8F9FA;
+    -fx-background-radius: 8 8 0 0;
+    -fx-padding: 5;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 10;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #6C757D;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: #F1F3F5;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #F8F9FA;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: rgba(73, 102, 144, 0.1);
+}
+
+.table-row-cell:selected .text {
+    -fx-fill: #456690;
+}
+
+/* Modern Controls */
+.button {
+    -fx-background-radius: 8;
+    -fx-padding: 10 20 10 20;
+    -fx-font-weight: bold;
+}
+
+/* --- Modern E-commerce Styles (HTML Reference) --- */
+.gradient-bg {
+    -fx-background-color: linear-gradient(to bottom right, #667eea, #764ba2);
+}
+
+.form-container {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 60, 0, 0, 20);
+}
+
+.label-bold {
+    -fx-text-fill: #555555;
+    -fx-font-weight: bold;
+    -fx-font-size: 14;
+}
+
+.custom-text-input,
+.text-area,
+.combo-box {
+    -fx-background-color: #f9f9f9;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 12;
+    -fx-prompt-text-fill: #adb5bd;
+    -fx-font-size: 14;
+}
+
+.custom-text-input:focused,
+.text-area:focused,
+.combo-box:focused {
+    -fx-background-color: white;
+    -fx-border-color: #667eea;
+    -fx-effect: dropshadow(three-pass-box, rgba(102, 126, 234, 0.1), 3, 0, 0, 0);
+}
+
+.btn-gradient {
+    -fx-background-color: linear-gradient(to bottom right, #667eea, #764ba2);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16;
+    -fx-padding: 12 25;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.btn-gradient:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(102, 126, 234, 0.4), 25, 0, 0, 10);
+    -fx-translate-y: -2;
+}
+
+.btn-reset {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: #555555;
+    -fx-font-weight: bold;
+    -fx-font-size: 16;
+    -fx-padding: 12 25;
+    -fx-background-radius: 8;
+}
+
+.btn-reset:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+.info-banner {
+    -fx-background-color: #f0f4ff;
+    -fx-border-color: #667eea;
+    -fx-border-width: 0 0 0 4;
+    -fx-padding: 12 16;
+    -fx-background-radius: 4;
+}
+
+.file-btn {
+    -fx-background-color: #667eea;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-radius: 6;
+}
+
+.file-btn:hover {
+    -fx-background-color: #5568d3;
+}
+
+.primary-button {
+    -fx-background-color: #456690;
+    -fx-text-fill: white;
+}
+
+.primary-button:hover {
+    -fx-background-color: #35557A;
+}
+
+.danger-button {
+    -fx-background-color: #A62639;
+    -fx-text-fill: white;
+}
+
+.text-field {
+    -fx-background-color: #F8F9FA;
+    -fx-border-color: #E9ECEF;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10;
+}
+
+.text-field:focused {
+    -fx-border-color: #456690;
+    -fx-background-color: white;
+}
+
+/* Product Gallery Grid */
+.product-grid {
+    -fx-hgap: 25;
+    -fx-vgap: 25;
+    -fx-padding: 10;
+}
+
+.product-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 15, 0, 0, 8);
+    -fx-cursor: hand;
+    -fx-transition: all 0.3s ease;
+}
+
+.product-card:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(69, 102, 144, 0.2), 25, 0, 0, 12);
+    -fx-translate-y: -5;
+}
+
+.product-card-image-container {
+    -fx-background-color: #F8F9FA;
+    -fx-background-radius: 16 16 0 0;
+    -fx-alignment: CENTER;
+    -fx-overflow: hidden;
+}
+
+.product-card-details {
+    -fx-padding: 15;
+    -fx-spacing: 8;
+}
+
+.product-card-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000501;
+}
+
+.product-card-price {
+    -fx-font-size: 18px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #456690;
+}
+
+.product-card-status {
+    -fx-font-size: 11px;
+    -fx-padding: 3 8;
+    -fx-background-radius: 20;
+    -fx-text-fill: white;
+}
+
+.status-published {
+    -fx-background-color: #2D6A4F;
+    -fx-text-fill: white;
+}
+
+.status-draft {
+    -fx-background-color: #ADB5BD;
+    -fx-text-fill: white;
+}
+
+.status-archived {
+    -fx-background-color: #A62639;
+}
