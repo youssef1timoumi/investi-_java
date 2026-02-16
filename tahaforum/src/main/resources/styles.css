@@ -1,0 +1,532 @@
+/* INVESTI Forum - Dark Theme with Brand Colors */
+/* Color Palette:
+   - Black: #000501
+   - Lavender Mist: #F7F0F5
+   - Baltic Blue: #456990
+   - Faded Copper: #9B7E46
+   - Brown Red: #A62639
+*/
+
+/* ============================================
+   Base Colors
+   ============================================ */
+* {
+    -fx-investi-black: #000501;
+    -fx-investi-lavender: #F7F0F5;
+    -fx-investi-blue: #456990;
+    -fx-investi-copper: #9B7E46;
+    -fx-investi-red: #A62639;
+    -fx-dark-bg: #0a0a0a;
+    -fx-dark-card: #16181c;
+    -fx-dark-border: #2f3336;
+    -fx-text-primary: #e7e9ea;
+    -fx-text-secondary: #71767b;
+    -fx-font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ============================================
+   Navigation Items (Left Sidebar)
+   ============================================ */
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e7e9ea;
+    -fx-font-size: 18px;
+    -fx-padding: 12 20;
+    -fx-background-radius: 30;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.nav-item:hover {
+    -fx-background-color: rgba(69, 105, 144, 0.2);
+}
+
+.nav-item:selected {
+    -fx-background-color: rgba(69, 105, 144, 0.15);
+    -fx-text-fill: #9B7E46;
+    -fx-font-weight: bold;
+}
+
+/* ============================================
+   Post Button (Faded Copper - Primary Action)
+   ============================================ */
+.post-button {
+    -fx-background-color: #9B7E46;
+    -fx-text-fill: white;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-padding: 15 0;
+    -fx-background-radius: 30;
+    -fx-cursor: hand;
+}
+
+.post-button:hover {
+    -fx-background-color: #8a7040;
+}
+
+/* ============================================
+   User Avatar (Baltic Blue)
+   ============================================ */
+.user-avatar {
+    -fx-background-color: #456990;
+    -fx-background-radius: 25;
+    -fx-min-width: 48;
+    -fx-min-height: 48;
+    -fx-max-width: 48;
+    -fx-max-height: 48;
+    -fx-alignment: center;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+
+.user-avatar-small {
+    -fx-background-color: #456990;
+    -fx-background-radius: 20;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-alignment: center;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* ============================================
+   User Selector (Minimal)
+   ============================================ */
+.user-selector-minimal {
+    -fx-background-color: transparent;
+    -fx-text-fill: #71767b;
+    -fx-font-size: 13px;
+    -fx-padding: 0;
+}
+
+.user-selector-minimal .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.user-selector-minimal .list-cell {
+    -fx-background-color: #16181c;
+    -fx-text-fill: #e7e9ea;
+    -fx-padding: 8 12;
+}
+
+.user-selector-minimal .list-view {
+    -fx-background-color: #16181c;
+    -fx-border-color: #2f3336;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+}
+
+.user-selector-minimal .list-view .list-cell:hover {
+    -fx-background-color: #456990;
+}
+
+/* ============================================
+   Category Combo
+   ============================================ */
+.category-combo {
+    -fx-background-color: #16181c;
+    -fx-text-fill: #e7e9ea;
+    -fx-background-radius: 20;
+    -fx-padding: 8 15;
+    -fx-border-color: #2f3336;
+    -fx-border-radius: 20;
+}
+
+.category-combo .list-cell {
+    -fx-background-color: #16181c;
+    -fx-text-fill: #e7e9ea;
+}
+
+.category-combo-popup .list-view {
+    -fx-background-color: #16181c;
+}
+
+/* ============================================
+   Search Field (Modern with Baltic Blue focus)
+   ============================================ */
+.search-field-modern {
+    -fx-background-color: #202327;
+    -fx-text-fill: #e7e9ea;
+    -fx-prompt-text-fill: #71767b;
+    -fx-background-radius: 20;
+    -fx-padding: 10 20;
+    -fx-border-width: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.search-field-modern:focused {
+    -fx-background-color: #000000;
+    -fx-border-color: #456990;
+    -fx-border-radius: 20;
+    -fx-border-width: 1;
+}
+
+/* ============================================
+   Compose Box
+   ============================================ */
+.compose-box {
+    -fx-background-color: #000000;
+    -fx-padding: 15 20;
+    -fx-border-color: #2f3336;
+    -fx-border-width: 0 0 1 0;
+}
+
+.compose-textarea {
+    -fx-background-color: #16181c;
+    -fx-text-fill: #e7e9ea;
+    -fx-prompt-text-fill: #71767b;
+    -fx-font-size: 18px;
+    -fx-border-width: 0;
+    -fx-background-radius: 12;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-padding: 12;
+}
+
+.compose-textarea .content {
+    -fx-background-color: #16181c;
+}
+
+.compose-textarea .scroll-pane {
+    -fx-background-color: #16181c;
+}
+
+.compose-textarea .scroll-pane .viewport {
+    -fx-background-color: #16181c;
+}
+
+.compose-textarea:focused {
+    -fx-background-color: #16181c;
+    -fx-border-color: #456990;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+.compose-action-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #456990;
+    -fx-font-size: 18px;
+    -fx-cursor: hand;
+    -fx-padding: 8;
+    -fx-background-radius: 20;
+}
+
+.compose-action-btn:hover {
+    -fx-background-color: rgba(69, 105, 144, 0.15);
+}
+
+.compose-post-btn {
+    -fx-background-color: #9B7E46;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+}
+
+.compose-post-btn:hover {
+    -fx-background-color: #8a7040;
+}
+
+/* ============================================
+   Feed Scroll
+   ============================================ */
+.feed-scroll {
+    -fx-background: #000000;
+    -fx-background-color: #000000;
+    -fx-border-width: 0;
+}
+
+.feed-scroll .viewport {
+    -fx-background-color: #000000;
+}
+
+.feed-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+}
+
+.feed-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #456990;
+    -fx-background-radius: 4;
+}
+
+.feed-scroll .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.feed-scroll .scroll-bar .increment-button,
+.feed-scroll .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ============================================
+   Post Card
+   ============================================ */
+.post-card {
+    -fx-background-color: #000000;
+    -fx-padding: 15 20;
+    -fx-border-color: #2f3336;
+    -fx-border-width: 0 0 1 0;
+    -fx-cursor: hand;
+}
+
+.post-card:hover {
+    -fx-background-color: #080808;
+}
+
+/* ============================================
+   Trends Card (Right Sidebar)
+   ============================================ */
+.trends-card {
+    -fx-background-color: #16181c;
+    -fx-background-radius: 16;
+    -fx-padding: 15;
+}
+
+/* ============================================
+   Vote Buttons
+   ============================================ */
+.vote-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #71767b;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-padding: 5 10;
+    -fx-background-radius: 20;
+}
+
+.vote-btn:hover {
+    -fx-background-color: rgba(69, 105, 144, 0.1);
+    -fx-text-fill: #456990;
+}
+
+.vote-btn-up:hover {
+    -fx-background-color: rgba(155, 126, 70, 0.15);
+    -fx-text-fill: #9B7E46;
+}
+
+.vote-btn-down:hover {
+    -fx-background-color: rgba(166, 38, 57, 0.15);
+    -fx-text-fill: #A62639;
+}
+
+/* ============================================
+   Action Buttons (Like, Comment, Share)
+   ============================================ */
+.action-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #71767b;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-padding: 8 12;
+    -fx-background-radius: 20;
+}
+
+.action-btn:hover {
+    -fx-background-color: rgba(69, 105, 144, 0.15);
+    -fx-text-fill: #456990;
+}
+
+/* ============================================
+   Text Input Fields (Dark Background)
+   ============================================ */
+.text-input-dark {
+    -fx-background-color: #16181c;
+    -fx-text-fill: #e7e9ea;
+    -fx-prompt-text-fill: #71767b;
+    -fx-border-color: #2f3336;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+    -fx-font-size: 15px;
+}
+
+.text-input-dark:focused {
+    -fx-border-color: #456990;
+    -fx-background-color: #16181c;
+}
+
+.text-area-dark {
+    -fx-background-color: #16181c;
+    -fx-text-fill: #e7e9ea;
+    -fx-prompt-text-fill: #71767b;
+    -fx-border-color: #2f3336;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-font-size: 15px;
+    -fx-padding: 10;
+}
+
+.text-area-dark .content {
+    -fx-background-color: #16181c;
+}
+
+.text-area-dark:focused {
+    -fx-border-color: #456990;
+    -fx-background-color: #16181c;
+}
+
+.text-area-dark .scroll-pane {
+    -fx-background-color: #16181c;
+}
+
+.text-area-dark .scroll-pane .viewport {
+    -fx-background-color: #16181c;
+}
+
+.text-area-dark .scroll-pane .content {
+    -fx-background-color: #16181c;
+}
+
+/* ============================================
+   Comment Card
+   ============================================ */
+.comment-card {
+    -fx-background-color: transparent;
+    -fx-padding: 12 0 12 50;
+    -fx-border-color: #2f3336;
+    -fx-border-width: 0 0 1 0;
+}
+
+.comment-reply {
+    -fx-border-color: #456990;
+    -fx-border-width: 0 0 0 2;
+    -fx-padding: 12 0 12 15;
+    -fx-margin: 0 0 0 50;
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+.btn-primary {
+    -fx-background-color: #9B7E46;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #8a7040;
+}
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e7e9ea;
+    -fx-border-color: #456990;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: rgba(69, 105, 144, 0.15);
+}
+
+.btn-danger {
+    -fx-background-color: transparent;
+    -fx-text-fill: #A62639;
+    -fx-cursor: hand;
+}
+
+.btn-danger:hover {
+    -fx-background-color: rgba(166, 38, 57, 0.15);
+}
+
+/* ============================================
+   Category Tags
+   ============================================ */
+.category-tag {
+    -fx-background-color: #456990;
+    -fx-text-fill: white;
+    -fx-padding: 3 10;
+    -fx-background-radius: 12;
+    -fx-font-size: 11px;
+}
+
+/* ============================================
+   Stats Labels
+   ============================================ */
+.stats-number {
+    -fx-text-fill: #9B7E46;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+/* ============================================
+   Scrollbar Global
+   ============================================ */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #456990;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ============================================
+   Tooltip
+   ============================================ */
+.tooltip {
+    -fx-background-color: #456990;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-padding: 8 12;
+}
+
+/* ============================================
+   Accent Colors for specific elements
+   ============================================ */
+.accent-copper {
+    -fx-text-fill: #9B7E46;
+}
+
+.accent-blue {
+    -fx-text-fill: #456990;
+}
+
+.accent-red {
+    -fx-text-fill: #A62639;
+}
+
+.bg-copper {
+    -fx-background-color: #9B7E46;
+}
+
+.bg-blue {
+    -fx-background-color: #456990;
+}
+
+.bg-red {
+    -fx-background-color: #A62639;
+}
