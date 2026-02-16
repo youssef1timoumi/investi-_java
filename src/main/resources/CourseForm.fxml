@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="edu.connections3a8.controllers.CourseController"
+      spacing="15" style="-fx-background-color: #f5f5f5;">
+    
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+    
+    <!-- Title -->
+    <Label text="Course Management" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    
+    <Separator/>
+    
+    <!-- Form Fields -->
+    <GridPane hgap="10" vgap="15">
+        <columnConstraints>
+            <ColumnConstraints minWidth="120" prefWidth="120"/>
+            <ColumnConstraints minWidth="300" prefWidth="400"/>
+        </columnConstraints>
+        
+        <!-- Title -->
+        <Label text="Title:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <TextField fx:id="titleField" promptText="Enter course title" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        
+        <!-- Slug -->
+        <Label text="Slug:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField fx:id="slugField" promptText="course-slug" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        
+        <!-- Description -->
+        <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <TextArea fx:id="descriptionArea" promptText="Enter course description" 
+                  prefRowCount="3" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+        
+        <!-- Content URL -->
+        <Label text="Content URL:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <TextField fx:id="contentUrlField" promptText="https://example.com/course" 
+                   GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        
+        <!-- Content Type -->
+        <Label text="Content Type:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <ComboBox fx:id="contentTypeCombo" promptText="Select type" 
+                  GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="200"/>
+        
+        <!-- Difficulty Level -->
+        <Label text="Difficulty:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <ComboBox fx:id="difficultyCombo" promptText="Select difficulty" 
+                  GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="200"/>
+        
+        <!-- Category -->
+        <Label text="Category:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+        <TextField fx:id="categoryField" promptText="programming, database, web..." 
+                   GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+        
+        <!-- Language -->
+        <Label text="Language:" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+        <TextField fx:id="languageField" promptText="en, fr, ar..." 
+                   GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+        
+        <!-- Duration -->
+        <Label text="Duration (min):" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+        <TextField fx:id="durationField" promptText="120" 
+                   GridPane.columnIndex="1" GridPane.rowIndex="8"/>
+        
+        <!-- Reward Points -->
+        <Label text="Reward Points:" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
+        <TextField fx:id="rewardPointsField" promptText="100" 
+                   GridPane.columnIndex="1" GridPane.rowIndex="9"/>
+        
+        <!-- Thumbnail URL -->
+        <Label text="Thumbnail URL:" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
+        <TextField fx:id="thumbnailField" promptText="https://example.com/image.jpg" 
+                   GridPane.columnIndex="1" GridPane.rowIndex="10"/>
+    </GridPane>
+    
+    <Separator/>
+    
+    <!-- Buttons -->
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="Add Course" onAction="#handleAddCourse" 
+                style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px;"
+                prefWidth="120"/>
+        <Button text="Clear Form" onAction="#handleClearForm" 
+                style="-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-size: 14px;"
+                prefWidth="120"/>
+        <Button text="View All" onAction="#handleViewAll" 
+                style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-size: 14px;"
+                prefWidth="120"/>
+    </HBox>
+    
+    <!-- Status Label -->
+    <Label fx:id="statusLabel" style="-fx-font-size: 14px; -fx-text-fill: green;" 
+           alignment="CENTER" wrapText="true"/>
+    
+</VBox>
