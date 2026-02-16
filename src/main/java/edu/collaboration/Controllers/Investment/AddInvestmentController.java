@@ -1,11 +1,13 @@
-package edu.collaboration.controllers.Investment;
+package edu.collaboration.Controllers.Investment;
 
 import edu.collaboration.entities.Investment;
 import edu.collaboration.services.InvestmentService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 import java.sql.SQLException;
 
@@ -15,14 +17,18 @@ public class AddInvestmentController {
 
     @FXML
     private TextField projectTf;
-    @FXML
-    private TextField investorTf;
+
     @FXML
     private TextField amountTf;
     @FXML
     private TextField durationTf;
     @FXML
     private TextField equityTf;
+
+    public void setTargetProjectId(int id) {
+        projectTf.setText(String.valueOf(id));
+        projectTf.setEditable(false);
+    }
 
     @FXML
     void saveInvestment(ActionEvent event) {
@@ -32,19 +38,22 @@ public class AddInvestmentController {
         double total = Double.parseDouble(amountTf.getText());
         int duration = Integer.parseInt(durationTf.getText());
 
+        // MOCK ID: 2 (Investor)
+        int investorId = 2;
+
         Investment i = new Investment(
                 Integer.parseInt(projectTf.getText()),
-                Integer.parseInt(investorTf.getText()),
+                investorId,
                 total,
                 duration,
                 total / duration,
                 Double.parseDouble(equityTf.getText()),
-                "PENDING");
+                "UNDER_REVIEW"); // Initial status for Admin validation
 
         try {
             is.addEntity(i);
             showAlert(Alert.AlertType.INFORMATION, "Success", "Investment added successfully");
-            goMain(event); // Navigate to list
+            closeStage(event);
         } catch (SQLException e) {
             showAlert(Alert.AlertType.ERROR, "Error", e.getMessage());
         }
@@ -59,13 +68,6 @@ public class AddInvestmentController {
         if (projectTf.getText().isEmpty() || !isNumeric(projectTf.getText())) {
             setErrorStyle(projectTf);
             errors.append("- Project ID must be a valid number.\n");
-            isValid = false;
-        }
-
-        // Check Investor ID
-        if (investorTf.getText().isEmpty() || !isNumeric(investorTf.getText())) {
-            setErrorStyle(investorTf);
-            errors.append("- Investor ID must be a valid number.\n");
             isValid = false;
         }
 
@@ -127,7 +129,7 @@ public class AddInvestmentController {
 
     private void clearErrorStyles() {
         projectTf.getStyleClass().remove("error");
-        investorTf.getStyleClass().remove("error");
+
         amountTf.getStyleClass().remove("error");
         durationTf.getStyleClass().remove("error");
         equityTf.getStyleClass().remove("error");
@@ -152,19 +154,12 @@ public class AddInvestmentController {
 
     @FXML
     void goMain(javafx.event.ActionEvent event) {
-        navigate(event, "/ShowInvestment.fxml");
+        closeStage(event);
     }
 
-    private void navigate(javafx.event.ActionEvent event, String fxmlPath) {
-        try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxmlPath));
-            javafx.scene.Parent root = loader.load();
-            javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene()
-                    .getWindow();
-            stage.setScene(new javafx.scene.Scene(root));
-            stage.show();
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
+    private void closeStage(ActionEvent event) {
+        Node source = (Node) event.getSource();
+        Stage stage = (Stage) source.getScene().getWindow();
+        stage.close();
     }
 }

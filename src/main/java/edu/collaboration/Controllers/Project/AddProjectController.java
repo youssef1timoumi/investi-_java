@@ -1,11 +1,13 @@
-package edu.collaboration.controllers.Project;
+package edu.collaboration.Controllers.Project;
 
 import edu.collaboration.entities.Project;
 import edu.collaboration.services.ProjectService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 import java.sql.SQLException;
 
@@ -13,8 +15,6 @@ public class AddProjectController {
 
     private final ProjectService ps = new ProjectService();
 
-    @FXML
-    private TextField entrepreneurTf;
     @FXML
     private TextField titleTf;
     @FXML
@@ -30,17 +30,20 @@ public class AddProjectController {
             return;
 
         try {
+            // MOCK ID: 1 (Entrepreneur)
+            int entrepreneurId = 1;
+
             Project p = new Project(
-                    Integer.parseInt(entrepreneurTf.getText()),
+                    entrepreneurId,
                     titleTf.getText(),
                     descriptionTf.getText(),
                     Double.parseDouble(amountTf.getText()),
                     Double.parseDouble(equityTf.getText()),
-                    "OPEN");
+                    "UNDER_REVIEW"); // Initial status for Admin validation
 
             ps.addEntity(p);
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Project added successfully");
-            goMain(event); // Navigate back to main/list
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Project submitted for review.");
+            closeStage(event);
         } catch (SQLException | NumberFormatException e) {
             showAlert(Alert.AlertType.ERROR, "Error", e.getMessage());
         }
@@ -50,13 +53,6 @@ public class AddProjectController {
         boolean isValid = true;
         clearErrorStyles();
         StringBuilder errors = new StringBuilder();
-
-        // Check Entrepreneur ID
-        if (entrepreneurTf.getText().isEmpty() || !isNumeric(entrepreneurTf.getText())) {
-            setErrorStyle(entrepreneurTf);
-            errors.append("- Entrepreneur ID must be a valid number.\n");
-            isValid = false;
-        }
 
         // Check Title
         if (titleTf.getText().length() < 3) {
@@ -115,7 +111,7 @@ public class AddProjectController {
     }
 
     private void clearErrorStyles() {
-        entrepreneurTf.getStyleClass().remove("error");
+
         titleTf.getStyleClass().remove("error");
         descriptionTf.getStyleClass().remove("error");
         amountTf.getStyleClass().remove("error");
@@ -141,19 +137,12 @@ public class AddProjectController {
 
     @FXML
     void goMain(javafx.event.ActionEvent event) {
-        navigate(event, "/ShowProject.fxml");
+        closeStage(event);
     }
 
-    private void navigate(javafx.event.ActionEvent event, String fxmlPath) {
-        try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxmlPath));
-            javafx.scene.Parent root = loader.load();
-            javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene()
-                    .getWindow();
-            stage.setScene(new javafx.scene.Scene(root));
-            stage.show();
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
+    private void closeStage(ActionEvent event) {
+        Node source = (Node) event.getSource();
+        Stage stage = (Stage) source.getScene().getWindow();
+        stage.close();
     }
 }

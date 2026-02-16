@@ -1,25 +1,37 @@
-package edu.collaboration.controllers.Investment;
+package edu.collaboration.Controllers.Investment;
 
 import edu.collaboration.entities.Investment;
 import edu.collaboration.services.InvestmentService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 public class UpdateInvestmentController {
 
     private final InvestmentService is = new InvestmentService();
 
-    @FXML private TextField idTf;
-    @FXML private TextField projectTf;
-    @FXML private TextField investorTf;
-    @FXML private TextField amountTf;
-    @FXML private TextField durationTf;
-    @FXML private TextField equityTf;
-    @FXML private TextField statusTf;
+    @FXML
+    private TextField idTf;
+    @FXML
+    private TextField projectTf;
+    @FXML
+    private TextField investorTf;
+    @FXML
+    private TextField amountTf;
+    @FXML
+    private TextField durationTf;
+    @FXML
+    private TextField equityTf;
+    @FXML
+    private TextField statusTf;
+
+    private String originalStatus;
 
     public void initData(Investment i) {
+        this.originalStatus = i.getStatus();
 
         idTf.setText(String.valueOf(i.getInvestmentId()));
         idTf.setDisable(true);
@@ -34,10 +46,17 @@ public class UpdateInvestmentController {
         durationTf.setText(String.valueOf(i.getDurationMonths()));
         equityTf.setText(String.valueOf(i.getEquityRequested()));
         statusTf.setText(i.getStatus());
+        statusTf.setDisable(true); // Status is read-only for Investor
     }
 
     @FXML
     void updateInvestment(ActionEvent event) {
+        // LOCKING LOGIC
+        if ("ACCEPTED".equalsIgnoreCase(originalStatus)) {
+            showAlert(Alert.AlertType.ERROR, "Modification Denied",
+                    "You cannot edit an investment that has been ACCEPTED.");
+            return;
+        }
 
         if (!validateInvestment())
             return;
@@ -50,7 +69,9 @@ public class UpdateInvestmentController {
             double total = Double.parseDouble(amountTf.getText());
             int duration = Integer.parseInt(durationTf.getText());
             double equity = Double.parseDouble(equityTf.getText());
-            String status = statusTf.getText().toUpperCase();
+
+            // RESET LOGIC
+            String status = "UNDER_REVIEW";
 
             Investment i = new Investment(
                     projectId,
@@ -59,8 +80,7 @@ public class UpdateInvestmentController {
                     duration,
                     total / duration,
                     equity,
-                    status
-            );
+                    status);
 
             boolean success = is.update(id, i);
 
@@ -68,7 +88,7 @@ public class UpdateInvestmentController {
                 showAlert(Alert.AlertType.INFORMATION,
                         "Success",
                         "Investment updated successfully");
-                goMain(event);
+                closeStage(event);
             } else {
                 showAlert(Alert.AlertType.ERROR,
                         "Error",
@@ -121,8 +141,8 @@ public class UpdateInvestmentController {
         String status = statusTf.getText().toUpperCase();
         if (status.isEmpty()
                 || (!status.equals("PENDING")
-                && !status.equals("ACCEPTED")
-                && !status.equals("REFUSED"))) {
+                        && !status.equals("ACCEPTED")
+                        && !status.equals("REFUSED"))) {
             setErrorStyle(statusTf);
             errors.append("- Status must be PENDING, ACCEPTED, or REFUSED.\n");
             isValid = false;
@@ -168,21 +188,12 @@ public class UpdateInvestmentController {
 
     @FXML
     void goMain(ActionEvent event) {
-        navigate(event, "/ShowInvestment.fxml");
+        closeStage(event);
     }
 
-    private void navigate(ActionEvent event, String fxmlPath) {
-        try {
-            javafx.fxml.FXMLLoader loader =
-                    new javafx.fxml.FXMLLoader(getClass().getResource(fxmlPath));
-            javafx.scene.Parent root = loader.load();
-            javafx.stage.Stage stage =
-                    (javafx.stage.Stage) ((javafx.scene.Node) event.getSource())
-                            .getScene().getWindow();
-            stage.setScene(new javafx.scene.Scene(root));
-            stage.show();
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
+    private void closeStage(ActionEvent event) {
+        Node source = (Node) event.getSource();
+        Stage stage = (Stage) source.getScene().getWindow();
+        stage.close();
     }
 }

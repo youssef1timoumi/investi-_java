@@ -1,11 +1,13 @@
-package edu.collaboration.controllers.Project;
+package edu.collaboration.Controllers.Project;
 
 import edu.collaboration.entities.Project;
 import edu.collaboration.services.ProjectService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 public class UpdateProjectController {
 
@@ -24,7 +26,10 @@ public class UpdateProjectController {
     @FXML
     private TextField statusTf;
 
+    private String originalStatus;
+
     public void initData(Project p) {
+        this.originalStatus = p.getStatus();
         idTf.setText(String.valueOf(p.getProjectId()));
         idTf.setDisable(true);
         titleTf.setText(p.getTitle());
@@ -32,10 +37,18 @@ public class UpdateProjectController {
         amountTf.setText(String.valueOf(p.getAmountRequested()));
         equityTf.setText(String.valueOf(p.getEquityOffered()));
         statusTf.setText(p.getStatus());
+        statusTf.setDisable(true); // Status is read-only for Entrepreneur
     }
 
     @FXML
     void updateProject(ActionEvent event) {
+        // LOCKING LOGIC
+        if ("FUNDED".equalsIgnoreCase(originalStatus) || "CLOSED".equalsIgnoreCase(originalStatus)) {
+            showAlert(Alert.AlertType.ERROR, "Modification Denied",
+                    "You cannot edit a project that is FUNDED or CLOSED.");
+            return;
+        }
+
         if (!validateUpdate())
             return;
 
@@ -46,13 +59,18 @@ public class UpdateProjectController {
             p.setDescription(descTf.getText());
             p.setAmountRequested(Double.parseDouble(amountTf.getText()));
             p.setEquityOffered(Double.parseDouble(equityTf.getText()));
-            p.setStatus(statusTf.getText().toUpperCase());
+
+            // RESET LOGIC: Any update requires re-validation
+            p.setStatus("UNDER_REVIEW");
+
+            System.out.println("DEBUG: Controller attempting update for ID " + p.getProjectId());
+            System.out.println("DEBUG: Values - Title: " + p.getTitle() + ", Status: " + p.getStatus());
 
             boolean success = ps.update(p.getProjectId(), p);
 
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Project updated successfully");
-                goMain(event);
+                closeStage(event);
             } else {
                 showAlert(Alert.AlertType.ERROR, "Error", "Project update failed.");
             }
@@ -155,19 +173,12 @@ public class UpdateProjectController {
 
     @FXML
     void goMain(javafx.event.ActionEvent event) {
-        navigate(event, "/ShowProject.fxml");
+        closeStage(event);
     }
 
-    private void navigate(javafx.event.ActionEvent event, String fxmlPath) {
-        try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxmlPath));
-            javafx.scene.Parent root = loader.load();
-            javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene()
-                    .getWindow();
-            stage.setScene(new javafx.scene.Scene(root));
-            stage.show();
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
+    private void closeStage(ActionEvent event) {
+        Node source = (Node) event.getSource();
+        Stage stage = (Stage) source.getScene().getWindow();
+        stage.close();
     }
 }

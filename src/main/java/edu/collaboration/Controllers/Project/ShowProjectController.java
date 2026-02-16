@@ -1,14 +1,19 @@
-package edu.collaboration.controllers.Project;
+package edu.collaboration.Controllers.Project;
 
 import edu.collaboration.entities.Project;
 import edu.collaboration.services.ProjectService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import edu.collaboration.Controllers.ActionButtonsController;
 
+import java.io.IOException;
 import java.util.List;
 
 public class ShowProjectController {
@@ -71,17 +76,17 @@ public class ShowProjectController {
                             try {
                                 javafx.fxml.FXMLLoader editLoader = new javafx.fxml.FXMLLoader(
                                         getClass().getResource("/UpdateProject.fxml"));
-                                javafx.scene.Parent root = editLoader.load();
+                                Parent root = editLoader.load();
 
                                 UpdateProjectController updateController = editLoader.getController();
                                 updateController.initData(p);
 
-                                javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) e.getSource())
-                                        .getScene()
-                                        .getWindow();
-                                stage.setScene(new javafx.scene.Scene(root));
-                                stage.show();
-                            } catch (java.io.IOException ex) {
+                                Stage stage = new Stage();
+                                stage.setScene(new Scene(root));
+                                stage.initModality(Modality.APPLICATION_MODAL);
+                                stage.showAndWait();
+                                loadData(); // Refresh after edit
+                            } catch (IOException ex) {
                                 ex.printStackTrace();
                             }
                         });
@@ -99,7 +104,7 @@ public class ShowProjectController {
                         });
 
                         setGraphic(pane);
-                    } catch (java.io.IOException ex) {
+                    } catch (IOException ex) {
                         ex.printStackTrace();
                         setGraphic(null);
                     }
@@ -123,7 +128,17 @@ public class ShowProjectController {
 
     @FXML
     void goAdd(javafx.event.ActionEvent event) {
-        navigate(event, "/AddProject.fxml");
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/AddProject.fxml"));
+            Parent root = loader.load();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+            loadData(); // Refresh after add
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void navigate(javafx.event.ActionEvent event, String fxmlPath) {

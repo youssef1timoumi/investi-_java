@@ -8,14 +8,14 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="600" prefWidth="900" stylesheets="@Project.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.collaboration.controllers.Investment.AddInvestmentController">
+<AnchorPane prefHeight="600" prefWidth="900" stylesheets="@Project.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.collaboration.Controllers.Investment.AddInvestmentController">
     <children>
         <VBox alignment="CENTER" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
             <VBox spacing="15" styleClass="form-container">
                 <Label text="Add Investment" styleClass="heading"/>
 
                 <TextField fx:id="projectTf" promptText="Project ID"/>
-                <TextField fx:id="investorTf" promptText="Investor ID"/>
+
                 <TextField fx:id="amountTf" promptText="Total Amount"/>
                 <TextField fx:id="durationTf" promptText="Duration (Months)"/>
                 <TextField fx:id="equityTf" promptText="Equity %"/>
