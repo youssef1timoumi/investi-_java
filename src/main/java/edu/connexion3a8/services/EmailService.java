@@ -3,17 +3,39 @@ package edu.connexion3a8.services;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.Random;
 
 public class EmailService {
 
-    private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final int SMTP_PORT = 587;
-    private static final String EMAIL_FROM = "6ysfcrybaby9@gmail.com";
-    private static final String APP_PASSWORD = "vqds vbpk kbol zjbv";
-
+    private final String smtpHost;
+    private final int smtpPort;
+    private final String emailFrom;
+    private final String appPassword;
     private String currentOtp;
+
+    public EmailService() {
+        Properties config = loadConfig();
+        this.smtpHost = config.getProperty("smtp.host", "smtp.gmail.com");
+        this.smtpPort = Integer.parseInt(config.getProperty("smtp.port", "587"));
+        this.emailFrom = config.getProperty("smtp.email");
+        this.appPassword = config.getProperty("smtp.password");
+    }
+
+    private Properties loadConfig() {
+        Properties props = new Properties();
+        try (InputStream is = getClass().getResourceAsStream("/config.properties")) {
+            if (is == null) {
+                throw new RuntimeException("config.properties not found! Copy config.properties.example to config.properties and fill in your credentials.");
+            }
+            props.load(is);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load config.properties", e);
+        }
+        return props;
+    }
 
     public String generateOtp() {
         currentOtp = String.format("%06d", new Random().nextInt(999999));
@@ -28,18 +50,18 @@ public class EmailService {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", SMTP_HOST);
-        props.put("mail.smtp.port", String.valueOf(SMTP_PORT));
+        props.put("mail.smtp.host", smtpHost);
+        props.put("mail.smtp.port", String.valueOf(smtpPort));
 
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(EMAIL_FROM, APP_PASSWORD);
+                return new PasswordAuthentication(emailFrom, appPassword);
             }
         });
 
         Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(EMAIL_FROM));
+        message.setFrom(new InternetAddress(emailFrom));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
         message.setSubject("INVESTI - Email Verification Code");
         message.setContent(

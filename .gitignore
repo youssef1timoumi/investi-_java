@@ -20,7 +20,7 @@ target/
 .settings
 .springBeans
 .sts4-cache
-
+uploads/
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -33,6 +33,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Config (contains credentials) ###
+src/main/resources/config.properties
 
 ### Mac OS ###
 .DS_Store
