@@ -1,0 +1,41 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.light {
+  background-color: var(--color-lavender-mist);
+}
+
+.dark {
+  background-color: var(--color-black);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Skip to main content link - hidden until focused */
+.skipLink {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-baltic-blue);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0 0 0.5rem 0.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  z-index: 9999;
+  transition: top 0.2s ease-in-out;
+}
+
+.skipLink:focus {
+  top: 0;
+  outline: 2px solid var(--color-faded-copper);
+  outline-offset: 2px;
+}

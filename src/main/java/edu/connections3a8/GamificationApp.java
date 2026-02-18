@@ -12,7 +12,7 @@ public class GamificationApp extends Application {
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/MainMenu.fxml"));
         
-        Scene scene = new Scene(root, 500, 600);
+        Scene scene = new Scene(root, 800, 700);
         
         primaryStage.setTitle("Gamification System - Main Menu");
         primaryStage.setScene(scene);

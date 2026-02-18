@@ -3,99 +3,152 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="edu.connections3a8.controllers.CourseController"
-      spacing="15" style="-fx-background-color: #f5f5f5;">
-    
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="edu.connections3a8.controllers.CourseController"
+            fitToWidth="true" fitToHeight="true"
+            style="-fx-background-color: transparent;">
+
+<VBox styleClass="root-container"
+      stylesheets="@coursesForm.css"
+      spacing="20"
+      minHeight="1800">
+
     <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
+        <Insets top="32" right="36" bottom="32" left="36"/>
     </padding>
-    
-    <!-- Title -->
-    <Label text="Course Management" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-    
-    <Separator/>
-    
+
+    <!-- Title and Theme Toggle -->
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <Label text="Course Management" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+        
+        <HBox spacing="8" alignment="CENTER_RIGHT">
+            <Button fx:id="themeToggleBtn" text="🌙 Dark" onAction="#handleThemeToggle"
+                    styleClass="btn, btn-secondary"
+                    style="-fx-font-size: 12px; -fx-padding: 8 16 8 16;"/>
+            <Button fx:id="autoModeBtn" text="⏰ Auto" onAction="#handleAutoMode"
+                    styleClass="btn, btn-secondary"
+                    style="-fx-font-size: 12px; -fx-padding: 8 16 8 16;"/>
+        </HBox>
+    </HBox>
+
+    <Separator styleClass="styled-separator"/>
+
     <!-- Form Fields -->
-    <GridPane hgap="10" vgap="15">
+    <GridPane styleClass="form-grid">
         <columnConstraints>
-            <ColumnConstraints minWidth="120" prefWidth="120"/>
-            <ColumnConstraints minWidth="300" prefWidth="400"/>
+            <ColumnConstraints minWidth="120" prefWidth="140"/>
+            <ColumnConstraints minWidth="300" prefWidth="420" hgrow="ALWAYS"/>
         </columnConstraints>
-        
+
         <!-- Title -->
-        <Label text="Title:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-        <TextField fx:id="titleField" promptText="Enter course title" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-        
+        <Label text="Title:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <TextField fx:id="titleField" promptText="Enter course title" styleClass="modern-text-field"
+                   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
         <!-- Slug -->
-        <Label text="Slug:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <TextField fx:id="slugField" promptText="course-slug" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-        
+        <Label text="Slug:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField fx:id="slugField" promptText="course-slug" styleClass="modern-text-field"
+                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
         <!-- Description -->
-        <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <Label text="Description:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
         <TextArea fx:id="descriptionArea" promptText="Enter course description" 
-                  prefRowCount="3" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-        
+                  prefRowCount="3" styleClass="modern-text-area"
+                  GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
         <!-- Content URL -->
-        <Label text="Content URL:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <TextField fx:id="contentUrlField" promptText="https://example.com/course" 
+        <Label text="Content URL:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <TextField fx:id="contentUrlField" promptText="https://example.com/course" styleClass="modern-text-field"
                    GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-        
+
         <!-- Content Type -->
-        <Label text="Content Type:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-        <ComboBox fx:id="contentTypeCombo" promptText="Select type" 
+        <Label text="Content Type:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <ComboBox fx:id="contentTypeCombo" promptText="Select type" styleClass="modern-combo"
                   GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="200"/>
-        
+
         <!-- Difficulty Level -->
-        <Label text="Difficulty:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-        <ComboBox fx:id="difficultyCombo" promptText="Select difficulty" 
+        <Label text="Difficulty:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <ComboBox fx:id="difficultyCombo" promptText="Select difficulty" styleClass="modern-combo"
                   GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="200"/>
-        
+
         <!-- Category -->
-        <Label text="Category:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-        <TextField fx:id="categoryField" promptText="programming, database, web..." 
+        <Label text="Category:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+        <TextField fx:id="categoryField" promptText="programming, database, web..." styleClass="modern-text-field"
                    GridPane.columnIndex="1" GridPane.rowIndex="6"/>
-        
+
         <!-- Language -->
-        <Label text="Language:" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
-        <TextField fx:id="languageField" promptText="en, fr, ar..." 
+        <Label text="Language:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+        <TextField fx:id="languageField" promptText="en, fr, ar..." styleClass="modern-text-field"
                    GridPane.columnIndex="1" GridPane.rowIndex="7"/>
-        
+
         <!-- Duration -->
-        <Label text="Duration (min):" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
-        <TextField fx:id="durationField" promptText="120" 
+        <Label text="Duration (min):" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+        <TextField fx:id="durationField" promptText="120" styleClass="modern-text-field"
                    GridPane.columnIndex="1" GridPane.rowIndex="8"/>
-        
+
         <!-- Reward Points -->
-        <Label text="Reward Points:" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
-        <TextField fx:id="rewardPointsField" promptText="100" 
+        <Label text="Reward Points:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
+        <TextField fx:id="rewardPointsField" promptText="100" styleClass="modern-text-field"
                    GridPane.columnIndex="1" GridPane.rowIndex="9"/>
-        
+
         <!-- Thumbnail URL -->
-        <Label text="Thumbnail URL:" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
-        <TextField fx:id="thumbnailField" promptText="https://example.com/image.jpg" 
+        <Label text="Thumbnail URL:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
+        <TextField fx:id="thumbnailField" promptText="https://example.com/image.jpg" styleClass="modern-text-field"
                    GridPane.columnIndex="1" GridPane.rowIndex="10"/>
     </GridPane>
-    
-    <Separator/>
-    
+
+    <Separator styleClass="styled-separator"/>
+
     <!-- Buttons -->
-    <HBox spacing="10" alignment="CENTER">
+    <HBox styleClass="button-bar">
         <Button text="Add Course" onAction="#handleAddCourse" 
-                style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px;"
-                prefWidth="120"/>
+                styleClass="btn, btn-primary" prefWidth="130"/>
         <Button text="Clear Form" onAction="#handleClearForm" 
-                style="-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-size: 14px;"
-                prefWidth="120"/>
+                styleClass="btn, btn-secondary" prefWidth="130"/>
         <Button text="View All" onAction="#handleViewAll" 
-                style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-size: 14px;"
-                prefWidth="120"/>
+                styleClass="btn, btn-secondary" prefWidth="130"/>
+        <Button text="Back" onAction="#handleBack" 
+                styleClass="btn, btn-dark" prefWidth="110"/>
     </HBox>
-    
+
     <!-- Status Label -->
-    <Label fx:id="statusLabel" style="-fx-font-size: 14px; -fx-text-fill: green;" 
+    <Label fx:id="statusLabel" styleClass="status-label"
            alignment="CENTER" wrapText="true"/>
-    
+
+    <Separator styleClass="styled-separator"/>
+
+    <!-- Course List -->
+    <VBox spacing="12" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="Existing Courses" styleClass="section-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="📚" style="-fx-font-size: 16px;"/>
+        </HBox>
+
+        <!-- Search and Sort Controls -->
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <TextField fx:id="searchField" promptText="Search by title, category, or difficulty..."
+                       styleClass="modern-text-field"
+                       prefWidth="350" HBox.hgrow="ALWAYS"/>
+            
+            <ComboBox fx:id="sortCombo" promptText="Sort by..."
+                      styleClass="modern-combo"
+                      prefWidth="200"/>
+            
+            <Button text="Clear" onAction="#handleClearSearch"
+                    styleClass="btn, btn-secondary"
+                    style="-fx-font-size: 12px; -fx-padding: 8 16 8 16;"/>
+        </HBox>
+
+        <ScrollPane fitToWidth="true" minHeight="600" prefHeight="700" VBox.vgrow="ALWAYS"
+                    styleClass="item-scroll-pane">
+            <VBox fx:id="courseListContainer" styleClass="item-list-container">
+                <!-- Courses will be loaded here dynamically -->
+            </VBox>
+        </ScrollPane>
+    </VBox>
+
 </VBox>
+
+</ScrollPane>

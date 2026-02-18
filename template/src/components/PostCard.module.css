@@ -1,0 +1,239 @@
+.postCard {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.postCard:hover {
+  box-shadow: 0 4px 20px rgba(0, 5, 1, 0.1);
+  border-color: rgba(69, 105, 144, 0.2);
+  transform: translateY(-2px);
+}
+
+.voteColumn {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--spacing-xs);
+}
+
+.contentColumn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-baltic-blue);
+}
+
+.avatarPlaceholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-baltic-blue), var(--color-faded-copper));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+}
+
+.author {
+  color: var(--color-black);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+.separator {
+  color: rgba(0, 5, 1, 0.3);
+}
+
+.date {
+  color: rgba(0, 5, 1, 0.5);
+}
+
+.category {
+  color: var(--color-baltic-blue);
+  font-weight: 500;
+  background: rgba(69, 105, 144, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+}
+
+.trendingBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.trendingIcon {
+  font-size: 0.8rem;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+  line-height: 1.3;
+  transition: color 0.2s ease;
+}
+
+.title:hover {
+  color: var(--color-baltic-blue);
+}
+
+.content {
+  font-size: var(--font-size-sm);
+  color: rgba(0, 5, 1, 0.75);
+  line-height: 1.7;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid rgba(0, 5, 1, 0.08);
+}
+
+.commentButton,
+.shareButton,
+.bookmarkButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
+  color: rgba(0, 5, 1, 0.6);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.commentButton:hover,
+.shareButton:hover,
+.bookmarkButton:hover {
+  background-color: rgba(69, 105, 144, 0.1);
+  color: var(--color-baltic-blue);
+}
+
+.commentButton:focus-visible,
+.shareButton:focus-visible,
+.bookmarkButton:focus-visible {
+  outline: 2px solid var(--color-baltic-blue);
+  outline-offset: 2px;
+}
+
+.commentIcon,
+.shareIcon,
+.bookmarkIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .postCard {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+  }
+
+  .voteColumn {
+    flex-direction: row;
+    padding-top: 0;
+    order: 2;
+  }
+
+  .contentColumn {
+    order: 1;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .avatar,
+  .avatarPlaceholder {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .title {
+    font-size: var(--font-size-md);
+  }
+
+  .content {
+    -webkit-line-clamp: 2;
+  }
+
+  .actions {
+    order: 3;
+    flex-wrap: wrap;
+  }
+
+  .shareButton,
+  .bookmarkButton {
+    display: none;
+  }
+}

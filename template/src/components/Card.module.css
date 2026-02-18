@@ -1,0 +1,53 @@
+.card {
+  border-radius: 8px;
+  padding: var(--spacing-lg);
+  transition: all var(--transition-normal);
+}
+
+/* Variants */
+.light {
+  background-color: var(--color-lavender-mist);
+  color: var(--color-black);
+}
+
+.dark {
+  background-color: var(--color-black);
+  color: var(--color-lavender-mist);
+}
+
+/* Hoverable */
+.hoverable {
+  cursor: pointer;
+}
+
+.hoverable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 5, 1, 0.15);
+}
+
+.light.hoverable:hover {
+  border: 2px solid var(--color-baltic-blue);
+  padding: calc(var(--spacing-lg) - 2px);
+}
+
+.dark.hoverable:hover {
+  box-shadow: 0 8px 24px rgba(69, 105, 144, 0.3);
+}
+
+/* Focus states for keyboard navigation */
+.hoverable:focus-visible {
+  outline: 2px solid var(--color-baltic-blue);
+  outline-offset: 2px;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 5, 1, 0.15);
+}
+
+.light.hoverable:focus-visible {
+  border: 2px solid var(--color-baltic-blue);
+  padding: calc(var(--spacing-lg) - 2px);
+}
+
+.dark.hoverable:focus-visible {
+  outline-color: var(--color-faded-copper);
+  box-shadow: 0 8px 24px rgba(69, 105, 144, 0.3);
+}

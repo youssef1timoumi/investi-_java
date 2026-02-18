@@ -1,0 +1,259 @@
+/* Achievements Page Styles */
+
+.achievementsPage {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #F7F0F5 0%, #fff 50%, #F7F0F5 100%);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Header Section */
+.headerSection {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-top: 80px;
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #000501;
+  margin: 0 0 1rem 0;
+  position: relative;
+  display: inline-block;
+}
+
+.pageTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #456990, #9B7E46);
+  border-radius: 2px;
+}
+
+.pageDescription {
+  font-size: 1.125rem;
+  color: #456990;
+  max-width: 600px;
+  margin: 1.5rem auto 0;
+  line-height: 1.6;
+}
+
+/* Points Section */
+.pointsSection {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+/* Stats Summary */
+.statsSummary {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 5, 1, 0.08);
+  min-width: 160px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.statItem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #456990, #9B7E46);
+}
+
+.statItem:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 5, 1, 0.12);
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #456990;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #000501;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+/* Section Styles */
+.badgesSection,
+.quizzesSection {
+  margin-bottom: 3rem;
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 5, 1, 0.06);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #000501;
+  margin: 0 0 0.75rem 0;
+}
+
+.sectionIcon {
+  font-size: 1.75rem;
+}
+
+.sectionDescription {
+  font-size: 1rem;
+  color: #456990;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+/* Quizzes Grid */
+.quizzesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #F7F0F5;
+  border-radius: 16px;
+  border: 2px dashed #9B7E46;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.emptyTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #000501;
+  margin: 0 0 0.5rem 0;
+}
+
+.emptyDescription {
+  font-size: 1rem;
+  color: #456990;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+
+  .headerSection {
+    padding-top: 60px;
+  }
+
+  .pageTitle {
+    font-size: 2rem;
+  }
+
+  .pageDescription {
+    font-size: 1rem;
+  }
+
+  .statsSummary {
+    gap: 1rem;
+  }
+
+  .statItem {
+    padding: 1rem 1.5rem;
+    min-width: 130px;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+
+  .statLabel {
+    font-size: 0.75rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .badgesSection,
+  .quizzesSection {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .quizzesGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerSection {
+    margin-bottom: 2rem;
+  }
+
+  .pageTitle {
+    font-size: 1.75rem;
+  }
+
+  .statsSummary {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .statItem {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .sectionTitle {
+    font-size: 1.25rem;
+  }
+
+  .sectionIcon {
+    font-size: 1.25rem;
+  }
+
+  .badgesSection,
+  .quizzesSection {
+    margin-bottom: 2rem;
+    padding: 1rem;
+  }
+}

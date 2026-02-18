@@ -1,0 +1,88 @@
+.metricCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 200px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.icon {
+  font-size: 1.5rem;
+  color: var(--color-faded-copper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: rgba(247, 240, 245, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.valueContainer {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+}
+
+.value {
+  font-size: var(--font-size-xxxl);
+  font-weight: 700;
+  color: var(--color-lavender-mist);
+  line-height: 1;
+}
+
+.trend {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trendUp {
+  color: #22c55e;
+  background-color: rgba(34, 197, 94, 0.15);
+}
+
+.trendDown {
+  color: var(--color-brown-red);
+  background-color: rgba(166, 38, 57, 0.15);
+}
+
+.trendNeutral {
+  color: var(--color-baltic-blue);
+  background-color: rgba(69, 105, 144, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .metricCard {
+    min-width: 150px;
+  }
+
+  .value {
+    font-size: var(--font-size-xxl);
+  }
+
+  .icon {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .metricCard {
+    min-width: 100%;
+  }
+}

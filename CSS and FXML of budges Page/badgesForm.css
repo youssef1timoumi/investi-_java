@@ -1,0 +1,330 @@
+/* ============================================================
+   BadgesForm.css — Modern JavaFX Stylesheet
+   Color Palette:
+     Primary   : #9B7E46 (warm gold)
+     Secondary : #456990 (steel blue)
+     Dark      : #1A1A2E (deep navy)
+     Surface   : #FFFFFF
+     Background: #F4F6FA (cool off-white)
+     Text      : #23272F
+     Muted     : #6B7280
+     Border    : #E2E6ED
+     Danger    : #DC3545
+     Success   : #28A745
+   ============================================================ */
+
+/* ---------- Root Container ---------- */
+.root-container {
+    -fx-background-color: linear-gradient(to bottom right, #F4F6FA, #EDE8F5);
+    -fx-padding: 32 36 32 36;
+    -fx-spacing: 20;
+}
+
+/* ---------- Typography ---------- */
+
+.page-title {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #1A1A2E;
+    -fx-padding: 0 0 4 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 2, 0, 0, 1);
+}
+
+.section-title {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 19px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1A1A2E;
+    -fx-padding: 4 0 2 0;
+}
+
+.form-label {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #23272F;
+    -fx-padding: 6 0 0 0;
+}
+
+.hint-label {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 12px;
+    -fx-text-fill: #6B7280;
+    -fx-padding: 0 0 0 2;
+}
+
+.status-label {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #456990;
+    -fx-padding: 6 0 6 0;
+}
+
+/* ---------- Separators ---------- */
+.styled-separator {
+    -fx-padding: 8 0 8 0;
+}
+
+.styled-separator > .line {
+    -fx-border-color: transparent transparent #E2E6ED transparent;
+    -fx-border-width: 0 0 1.5 0;
+    -fx-border-style: solid;
+}
+
+/* ---------- Form Grid ---------- */
+.form-grid {
+    -fx-hgap: 16;
+    -fx-vgap: 16;
+    -fx-padding: 8 0 8 0;
+}
+
+/* ---------- Text Fields ---------- */
+.modern-text-field {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-text-fill: #23272F;
+    -fx-prompt-text-fill: #A0A8B4;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10 14 10 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0, 0, 1);
+}
+
+.modern-text-field:focused {
+    -fx-border-color: #9B7E46;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(155,126,70,0.18), 8, 0, 0, 0);
+}
+
+.modern-text-field:hover {
+    -fx-border-color: #B8A06A;
+}
+
+/* ---------- Text Area ---------- */
+.modern-text-area {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-text-fill: #23272F;
+    -fx-prompt-text-fill: #A0A8B4;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 4 4 4 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0, 0, 1);
+}
+
+.modern-text-area:focused {
+    -fx-border-color: #9B7E46;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(155,126,70,0.18), 8, 0, 0, 0);
+}
+
+.modern-text-area:hover {
+    -fx-border-color: #B8A06A;
+}
+
+.modern-text-area .content {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 10;
+    -fx-padding: 8 10 8 10;
+}
+
+.modern-text-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.modern-text-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ---------- Buttons — Shared Base ---------- */
+.btn {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-padding: 10 22 10 22;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 6, 0, 0, 2);
+    -fx-border-width: 0;
+}
+
+.btn:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 10, 0, 0, 3);
+}
+
+.btn:pressed {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);
+}
+
+/* Primary — Gold */
+.btn-primary {
+    -fx-background-color: linear-gradient(to bottom, #B8983E, #9B7E46);
+    -fx-text-fill: #FFFFFF;
+}
+
+.btn-primary:hover {
+    -fx-background-color: linear-gradient(to bottom, #C8A84E, #A8893E);
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #8A6E3A;
+}
+
+/* Secondary — Steel Blue */
+.btn-secondary {
+    -fx-background-color: linear-gradient(to bottom, #5179A0, #456990);
+    -fx-text-fill: #FFFFFF;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: linear-gradient(to bottom, #6189B0, #5179A0);
+}
+
+.btn-secondary:pressed {
+    -fx-background-color: #3A5A7D;
+}
+
+/* Dark — Navy */
+.btn-dark {
+    -fx-background-color: linear-gradient(to bottom, #2A2A3E, #1A1A2E);
+    -fx-text-fill: #FFFFFF;
+}
+
+.btn-dark:hover {
+    -fx-background-color: linear-gradient(to bottom, #3A3A4E, #2A2A3E);
+}
+
+.btn-dark:pressed {
+    -fx-background-color: #12121E;
+}
+
+/* ---------- Button Bar ---------- */
+.button-bar {
+    -fx-spacing: 14;
+    -fx-alignment: center;
+    -fx-padding: 8 0 4 0;
+}
+
+/* ---------- Scroll Pane (Badge List) ---------- */
+.badge-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 6, 0, 0, 2);
+}
+
+.badge-scroll-pane > .viewport {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 12;
+}
+
+.badge-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 8;
+    -fx-background-color: transparent;
+    -fx-padding: 4 2 4 0;
+}
+
+.badge-scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+}
+
+.badge-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #C5CADB;
+    -fx-background-radius: 4;
+}
+
+.badge-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #9B7E46;
+}
+
+.badge-scroll-pane .scroll-bar:horizontal {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-opacity: 0;
+}
+
+/* Increment / decrement arrow buttons hidden */
+.badge-scroll-pane .scroll-bar .increment-button,
+.badge-scroll-pane .scroll-bar .decrement-button {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-opacity: 0;
+}
+
+.badge-scroll-pane .scroll-bar .increment-arrow,
+.badge-scroll-pane .scroll-bar .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
+/* ---------- Badge List Container ---------- */
+.badge-list-container {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 14;
+    -fx-spacing: 8;
+}
+
+/* ---------- Individual Badge Card (apply in controller) ---------- */
+.badge-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 14 18 14 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 4, 0, 0, 1);
+}
+
+.badge-card:hover {
+    -fx-border-color: #9B7E46;
+    -fx-background-color: #FDFBF6;
+    -fx-effect: dropshadow(gaussian, rgba(155,126,70,0.12), 8, 0, 0, 2);
+}
+
+.badge-card-title {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1A1A2E;
+}
+
+.badge-card-description {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 13px;
+    -fx-text-fill: #6B7280;
+}
+
+.badge-card-points {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #9B7E46;
+    -fx-background-color: #FDF6E3;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 20;
+}
+
+/* ---------- Tooltip ---------- */
+.tooltip {
+    -fx-background-color: #1A1A2E;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 12px;
+    -fx-background-radius: 8;
+    -fx-padding: 6 12 6 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);
+}

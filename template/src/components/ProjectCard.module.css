@@ -1,0 +1,161 @@
+.projectCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+/* Status Badge */
+.status {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.statusPlanning {
+  background-color: rgba(155, 126, 70, 0.15);
+  color: var(--color-faded-copper);
+}
+
+.statusInProgress {
+  background-color: rgba(69, 105, 144, 0.15);
+  color: var(--color-baltic-blue);
+}
+
+.statusCompleted {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.description {
+  font-size: var(--font-size-md);
+  color: rgba(0, 5, 1, 0.8);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Progress Section */
+.progressSection {
+  padding: var(--spacing-md);
+  background-color: rgba(0, 5, 1, 0.03);
+  border-radius: 8px;
+}
+
+/* Team Section */
+.teamSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.teamLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-black);
+}
+
+.teamList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.teamMember {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: rgba(155, 126, 70, 0.1);
+  border-radius: 20px;
+  font-size: var(--font-size-sm);
+}
+
+.memberAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: var(--color-faded-copper);
+  color: white;
+  border-radius: 50%;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.memberName {
+  color: var(--color-black);
+}
+
+/* Meta Information */
+.meta {
+  display: flex;
+  align-items: center;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid rgba(0, 5, 1, 0.1);
+}
+
+.startDate {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: rgba(0, 5, 1, 0.6);
+}
+
+.dateIcon {
+  font-size: var(--font-size-md);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .projectCard {
+    padding: var(--spacing-md);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: var(--font-size-md);
+  }
+
+  .description {
+    font-size: var(--font-size-sm);
+  }
+
+  .teamList {
+    flex-direction: column;
+  }
+
+  .teamMember {
+    width: fit-content;
+  }
+}

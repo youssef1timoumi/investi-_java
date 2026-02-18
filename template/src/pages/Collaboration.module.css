@@ -1,0 +1,197 @@
+/* Collaboration Page Styles */
+/* Design System Colors:
+   - Black: #000501 (primary dark background)
+   - Lavender Mist: #F7F0F5 (light background)
+   - Baltic Blue: #456990 (primary UI elements)
+   - Faded Copper: #9B7E46 (secondary accents)
+   - Brown Red: #A62639 (critical actions only)
+*/
+
+.collaborationPage {
+  min-height: 100vh;
+  background-color: #F7F0F5; /* Lavender Mist */
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Header Section */
+.headerSection {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #000501; /* Black */
+  margin: 0 0 1rem 0;
+}
+
+.pageDescription {
+  font-size: 1.125rem;
+  color: #456990; /* Baltic Blue */
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Stats Summary */
+.statsSummary {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 5, 1, 0.08);
+  min-width: 120px;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #456990; /* Baltic Blue */
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #000501;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+/* Proposals Grid */
+.proposalsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: #fff;
+  border-radius: 12px;
+  border: 2px dashed #9B7E46; /* Faded Copper */
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.emptyTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #000501;
+  margin: 0 0 0.5rem 0;
+}
+
+.emptyDescription {
+  font-size: 1rem;
+  color: #456990;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .proposalsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+
+  .pageTitle {
+    font-size: 2rem;
+  }
+
+  .pageDescription {
+    font-size: 1rem;
+  }
+
+  .proposalsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .statsSummary {
+    gap: 1rem;
+  }
+
+  .statItem {
+    padding: 0.75rem 1rem;
+    min-width: 100px;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+
+  .statLabel {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem 0.75rem;
+  }
+
+  .headerSection {
+    margin-bottom: 2rem;
+  }
+
+  .pageTitle {
+    font-size: 1.75rem;
+  }
+
+  .pageDescription {
+    font-size: 0.9375rem;
+  }
+
+  .statsSummary {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .statItem {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .emptyState {
+    padding: 2rem 1rem;
+  }
+
+  .emptyIcon {
+    font-size: 2.5rem;
+  }
+
+  .emptyTitle {
+    font-size: 1.25rem;
+  }
+
+  .emptyDescription {
+    font-size: 0.875rem;
+  }
+}

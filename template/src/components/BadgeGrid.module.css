@@ -1,0 +1,197 @@
+.container {
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+/* Badge Card Base Styles */
+.badgeCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: 12px;
+  text-align: center;
+  transition: all var(--transition-normal);
+}
+
+/* Earned Badge Styles */
+.earned {
+  background-color: var(--color-lavender-mist);
+  border: 3px solid var(--color-faded-copper);
+  box-shadow: 0 4px 12px rgba(155, 126, 70, 0.2);
+}
+
+.earned:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(155, 126, 70, 0.3);
+}
+
+/* Locked Badge Styles */
+.locked {
+  background-color: var(--color-lavender-mist);
+  border: 3px solid #d1d5db;
+  opacity: 0.6;
+}
+
+.locked .iconContainer {
+  filter: grayscale(100%);
+}
+
+.locked .badgeName,
+.locked .badgeDescription {
+  color: #6b7280;
+}
+
+/* Icon Container */
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  background-color: rgba(155, 126, 70, 0.1);
+  border-radius: 50%;
+  transition: transform var(--transition-normal);
+}
+
+.earned .iconContainer {
+  background-color: rgba(155, 126, 70, 0.15);
+}
+
+.locked .iconContainer {
+  background-color: rgba(107, 114, 128, 0.1);
+}
+
+.icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+/* Badge Info */
+.badgeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.badgeName {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+}
+
+.badgeDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-black);
+  opacity: 0.7;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Status Indicator */
+.statusIndicator {
+  margin-top: var(--spacing-xs);
+}
+
+.earnedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: var(--color-faded-copper);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  border-radius: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.lockedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: #e5e7eb;
+  color: #6b7280;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  border-radius: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xl);
+  color: var(--color-black);
+  opacity: 0.6;
+  font-size: var(--font-size-md);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--spacing-md);
+  }
+
+  .badgeCard {
+    padding: var(--spacing-md);
+  }
+
+  .iconContainer {
+    width: 60px;
+    height: 60px;
+  }
+
+  .icon {
+    font-size: 2rem;
+  }
+
+  .badgeName {
+    font-size: var(--font-size-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .badgeCard {
+    flex-direction: row;
+    text-align: left;
+    gap: var(--spacing-md);
+  }
+
+  .iconContainer {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+  }
+
+  .icon {
+    font-size: 1.75rem;
+  }
+
+  .badgeInfo {
+    flex: 1;
+    align-items: flex-start;
+  }
+
+  .statusIndicator {
+    margin-top: 0;
+    align-self: center;
+  }
+}

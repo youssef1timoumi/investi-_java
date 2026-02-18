@@ -1,0 +1,115 @@
+/* QuizCard Component Styles */
+
+.quizCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  position: relative;
+}
+
+/* Header with title and points */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+  flex: 1;
+}
+
+/* Points badge */
+.pointsBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background-color: var(--color-faded-copper);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.pointsIcon {
+  font-size: 0.875rem;
+}
+
+.pointsValue {
+  font-weight: 700;
+}
+
+/* Description */
+.description {
+  color: var(--color-black);
+  opacity: 0.8;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Quiz info */
+.info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.questionCount {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-black);
+  opacity: 0.7;
+  font-size: 0.875rem;
+}
+
+.infoIcon {
+  font-size: 0.875rem;
+}
+
+/* Completed badge */
+.completedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background-color: rgba(69, 105, 144, 0.15);
+  color: var(--color-baltic-blue);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.completedIcon {
+  color: var(--color-baltic-blue);
+  font-weight: bold;
+}
+
+/* Actions */
+.actions {
+  margin-top: var(--spacing-sm);
+}
+
+.startButton {
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .pointsBadge {
+    align-self: flex-start;
+  }
+}

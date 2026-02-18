@@ -1,0 +1,42 @@
+.loginPage {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #F7F0F5; /* Lavender Mist */
+}
+
+.loginContainer {
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #000501; /* Black */
+  margin-bottom: 0.5rem;
+}
+
+.pageSubtitle {
+  font-size: 1.125rem;
+  color: #456990; /* Baltic Blue */
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .loginPage {
+    padding: 1rem;
+  }
+
+  .pageTitle {
+    font-size: 1.75rem;
+  }
+
+  .pageSubtitle {
+    font-size: 1rem;
+  }
+}

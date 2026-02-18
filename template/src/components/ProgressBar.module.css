@@ -1,0 +1,41 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-black);
+  min-width: 80px;
+}
+
+.track {
+  flex: 1;
+  height: 8px;
+  background-color: rgba(0, 5, 1, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width var(--transition-normal);
+}
+
+.primary {
+  background-color: var(--color-baltic-blue);
+}
+
+.accent {
+  background-color: var(--color-faded-copper);
+}
+
+.percentage {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-black);
+  min-width: 40px;
+  text-align: right;
+}

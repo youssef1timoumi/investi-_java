@@ -1,0 +1,498 @@
+/* ============================================================
+   CoursesForm.css — Modern JavaFX Stylesheet
+   Color Palette:
+     Primary   : #9B7E46 (warm gold)
+     Secondary : #456990 (steel blue)
+     Dark      : #1A1A2E (deep navy)
+     Surface   : #FFFFFF
+     Background: #F4F6FA (cool off-white)
+     Text      : #23272F
+     Muted     : #6B7280
+     Border    : #E2E6ED
+     Danger    : #DC3545
+     Success   : #28A745
+   ============================================================ */
+
+/* ---------- Root Container ---------- */
+.root-container {
+    -fx-background-color: linear-gradient(to bottom right, #F4F6FA, #EDE8F5);
+    -fx-padding: 32 36 32 36;
+    -fx-spacing: 20;
+}
+
+/* ---------- Typography ---------- */
+
+.page-title {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #1A1A2E;
+    -fx-padding: 0 0 4 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 2, 0, 0, 1);
+}
+
+.section-title {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 19px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1A1A2E;
+    -fx-padding: 4 0 2 0;
+}
+
+.form-label {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #23272F;
+    -fx-padding: 6 0 0 0;
+}
+
+.status-label {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #456990;
+    -fx-padding: 6 0 6 0;
+}
+
+/* ---------- Separators ---------- */
+.styled-separator {
+    -fx-padding: 8 0 8 0;
+}
+
+.styled-separator > .line {
+    -fx-border-color: transparent transparent #E2E6ED transparent;
+    -fx-border-width: 0 0 1.5 0;
+    -fx-border-style: solid;
+}
+
+/* ---------- Form Grid ---------- */
+.form-grid {
+    -fx-hgap: 16;
+    -fx-vgap: 16;
+    -fx-padding: 8 0 8 0;
+}
+
+/* ---------- Text Fields ---------- */
+.modern-text-field {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-text-fill: #23272F;
+    -fx-prompt-text-fill: #A0A8B4;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10 14 10 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0, 0, 1);
+}
+
+.modern-text-field:focused {
+    -fx-border-color: #9B7E46;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(155,126,70,0.18), 8, 0, 0, 0);
+}
+
+.modern-text-field:hover {
+    -fx-border-color: #B8A06A;
+}
+
+/* ---------- ComboBox ---------- */
+.modern-combo {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0, 0, 1);
+}
+
+.modern-combo:focused {
+    -fx-border-color: #9B7E46;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(155,126,70,0.18), 8, 0, 0, 0);
+}
+
+.modern-combo:hover {
+    -fx-border-color: #B8A06A;
+}
+
+.modern-combo .list-cell {
+    -fx-background-color: #FFFFFF;
+    -fx-text-fill: #23272F;
+    -fx-padding: 8 12 8 12;
+}
+
+.modern-combo .list-cell:hover {
+    -fx-background-color: #F4F6FA;
+}
+
+.modern-combo .list-cell:selected {
+    -fx-background-color: #9B7E46;
+    -fx-text-fill: #FFFFFF;
+}
+
+/* ---------- Text Area ---------- */
+.modern-text-area {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-text-fill: #23272F;
+    -fx-prompt-text-fill: #A0A8B4;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 4 4 4 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0, 0, 1);
+}
+
+.modern-text-area:focused {
+    -fx-border-color: #9B7E46;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(155,126,70,0.18), 8, 0, 0, 0);
+}
+
+.modern-text-area:hover {
+    -fx-border-color: #B8A06A;
+}
+
+.modern-text-area .content {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 10;
+    -fx-padding: 8 10 8 10;
+}
+
+.modern-text-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.modern-text-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ---------- Buttons — Shared Base ---------- */
+.btn {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-padding: 10 22 10 22;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 6, 0, 0, 2);
+    -fx-border-width: 0;
+}
+
+.btn:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 10, 0, 0, 3);
+}
+
+.btn:pressed {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);
+}
+
+/* Primary — Gold */
+.btn-primary {
+    -fx-background-color: linear-gradient(to bottom, #B8983E, #9B7E46);
+    -fx-text-fill: #FFFFFF;
+}
+
+.btn-primary:hover {
+    -fx-background-color: linear-gradient(to bottom, #C8A84E, #A8893E);
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #8A6E3A;
+}
+
+/* Secondary — Steel Blue */
+.btn-secondary {
+    -fx-background-color: linear-gradient(to bottom, #5179A0, #456990);
+    -fx-text-fill: #FFFFFF;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: linear-gradient(to bottom, #6189B0, #5179A0);
+}
+
+.btn-secondary:pressed {
+    -fx-background-color: #3A5A7D;
+}
+
+/* Dark — Navy */
+.btn-dark {
+    -fx-background-color: linear-gradient(to bottom, #2A2A3E, #1A1A2E);
+    -fx-text-fill: #FFFFFF;
+}
+
+.btn-dark:hover {
+    -fx-background-color: linear-gradient(to bottom, #3A3A4E, #2A2A3E);
+}
+
+.btn-dark:pressed {
+    -fx-background-color: #12121E;
+}
+
+/* ---------- Button Bar ---------- */
+.button-bar {
+    -fx-spacing: 14;
+    -fx-alignment: center;
+    -fx-padding: 8 0 4 0;
+}
+
+/* ---------- Scroll Pane ---------- */
+.item-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 6, 0, 0, 2);
+}
+
+.item-scroll-pane > .viewport {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 12;
+}
+
+.item-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 8;
+    -fx-background-color: transparent;
+    -fx-padding: 4 2 4 0;
+}
+
+.item-scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+}
+
+.item-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #C5CADB;
+    -fx-background-radius: 4;
+}
+
+.item-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #9B7E46;
+}
+
+.item-scroll-pane .scroll-bar:horizontal {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-opacity: 0;
+}
+
+.item-scroll-pane .scroll-bar .increment-button,
+.item-scroll-pane .scroll-bar .decrement-button {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-opacity: 0;
+}
+
+.item-scroll-pane .scroll-bar .increment-arrow,
+.item-scroll-pane .scroll-bar .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
+/* ---------- List Container ---------- */
+.item-list-container {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 14;
+    -fx-spacing: 8;
+}
+
+/* ---------- Item Card ---------- */
+.item-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 14 18 14 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 4, 0, 0, 1);
+}
+
+.item-card:hover {
+    -fx-border-color: #9B7E46;
+    -fx-background-color: #FDFBF6;
+    -fx-effect: dropshadow(gaussian, rgba(155,126,70,0.12), 8, 0, 0, 2);
+}
+
+.item-card-title {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1A1A2E;
+}
+
+.item-card-details {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial";
+    -fx-font-size: 13px;
+    -fx-text-fill: #6B7280;
+}
+
+/* ============================================================
+   DARK MODE STYLES
+   ============================================================ */
+
+.dark-mode .root-container {
+    -fx-background-color: linear-gradient(to bottom right, #1A1A2E, #16213E);
+}
+
+.dark-mode .page-title,
+.dark-mode .section-title,
+.dark-mode .form-label {
+    -fx-text-fill: #E8E8E8;
+}
+
+.dark-mode .status-label {
+    -fx-text-fill: #6189B0;
+}
+
+.dark-mode .styled-separator > .line {
+    -fx-border-color: transparent transparent #3A3A4E transparent;
+}
+
+.dark-mode .modern-text-field {
+    -fx-background-color: #2A2A3E;
+    -fx-text-fill: #E8E8E8;
+    -fx-prompt-text-fill: #6B7280;
+    -fx-border-color: #3A3A4E;
+}
+
+.dark-mode .modern-text-field:focused {
+    -fx-border-color: #B8A06A;
+    -fx-effect: dropshadow(gaussian, rgba(184,160,106,0.25), 8, 0, 0, 0);
+}
+
+.dark-mode .modern-text-field:hover {
+    -fx-border-color: #9B7E46;
+}
+
+.dark-mode .modern-text-area {
+    -fx-background-color: #2A2A3E;
+    -fx-text-fill: #E8E8E8;
+    -fx-prompt-text-fill: #6B7280;
+    -fx-border-color: #3A3A4E;
+}
+
+.dark-mode .modern-text-area:focused {
+    -fx-border-color: #B8A06A;
+    -fx-effect: dropshadow(gaussian, rgba(184,160,106,0.25), 8, 0, 0, 0);
+}
+
+.dark-mode .modern-text-area:hover {
+    -fx-border-color: #9B7E46;
+}
+
+.dark-mode .modern-text-area .content {
+    -fx-background-color: #2A2A3E;
+}
+
+.dark-mode .modern-combo {
+    -fx-background-color: #2A2A3E;
+    -fx-border-color: #3A3A4E;
+}
+
+.dark-mode .modern-combo:focused {
+    -fx-border-color: #B8A06A;
+    -fx-effect: dropshadow(gaussian, rgba(184,160,106,0.25), 8, 0, 0, 0);
+}
+
+.dark-mode .modern-combo:hover {
+    -fx-border-color: #9B7E46;
+}
+
+.dark-mode .modern-combo .list-cell {
+    -fx-background-color: #2A2A3E;
+    -fx-text-fill: #E8E8E8;
+}
+
+.dark-mode .modern-combo .list-cell:hover {
+    -fx-background-color: #3A3A4E;
+}
+
+.dark-mode .modern-combo .list-cell:selected {
+    -fx-background-color: #9B7E46;
+    -fx-text-fill: #FFFFFF;
+}
+
+.dark-mode .btn-primary {
+    -fx-background-color: linear-gradient(to bottom, #C8A84E, #9B7E46);
+}
+
+.dark-mode .btn-primary:hover {
+    -fx-background-color: linear-gradient(to bottom, #D8B85E, #AB8E56);
+}
+
+.dark-mode .btn-secondary {
+    -fx-background-color: linear-gradient(to bottom, #3A5A7D, #2A4A6D);
+}
+
+.dark-mode .btn-secondary:hover {
+    -fx-background-color: linear-gradient(to bottom, #4A6A8D, #3A5A7D);
+}
+
+.dark-mode .btn-dark {
+    -fx-background-color: linear-gradient(to bottom, #4A4A5E, #3A3A4E);
+}
+
+.dark-mode .btn-dark:hover {
+    -fx-background-color: linear-gradient(to bottom, #5A5A6E, #4A4A5E);
+}
+
+.dark-mode .item-scroll-pane {
+    -fx-border-color: #3A3A4E;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 6, 0, 0, 2);
+}
+
+.dark-mode .item-scroll-pane > .viewport {
+    -fx-background-color: #2A2A3E;
+}
+
+.dark-mode .item-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #5A5A6E;
+}
+
+.dark-mode .item-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #9B7E46;
+}
+
+.dark-mode .item-list-container {
+    -fx-background-color: #2A2A3E;
+}
+
+.dark-mode .item-card {
+    -fx-background-color: #1F1F33;
+    -fx-border-color: #3A3A4E;
+}
+
+.dark-mode .item-card:hover {
+    -fx-border-color: #9B7E46;
+    -fx-background-color: #2A2A3E;
+    -fx-effect: dropshadow(gaussian, rgba(155,126,70,0.25), 8, 0, 0, 2);
+}
+
+.dark-mode .item-card-title {
+    -fx-text-fill: #E8E8E8;
+}
+
+.dark-mode .item-card-details {
+    -fx-text-fill: #A0A8B4;
+}
+
+.auto-mode-active {
+    -fx-background-color: linear-gradient(to bottom, #28A745, #218838) !important;
+    -fx-text-fill: #FFFFFF !important;
+}
+
+.auto-mode-active:hover {
+    -fx-background-color: linear-gradient(to bottom, #38B755, #28A745) !important;
+}

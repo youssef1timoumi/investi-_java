@@ -1,0 +1,160 @@
+.ideaCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.status {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.statusOpen {
+  background-color: rgba(69, 105, 144, 0.15);
+  color: var(--color-baltic-blue);
+}
+
+.statusInCollaboration {
+  background-color: rgba(155, 126, 70, 0.15);
+  color: var(--color-faded-copper);
+}
+
+.statusFunded {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.statusProject {
+  background-color: rgba(0, 5, 1, 0.1);
+  color: var(--color-black);
+}
+
+.description {
+  font-size: var(--font-size-md);
+  color: rgba(0, 5, 1, 0.8);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: rgba(0, 5, 1, 0.6);
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.investors {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.investors::before {
+  content: '•';
+  color: var(--color-faded-copper);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.tag {
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: rgba(155, 126, 70, 0.1);
+  color: var(--color-faded-copper);
+  border: 1px solid var(--color-faded-copper);
+  border-radius: 4px;
+}
+
+.collaborationIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-baltic-blue);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: rgba(69, 105, 144, 0.1);
+  border-radius: 4px;
+}
+
+.indicatorDot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-baltic-blue);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .investors::before {
+    display: none;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

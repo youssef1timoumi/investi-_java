@@ -1,0 +1,286 @@
+.container {
+  width: 100%;
+}
+
+/* Filter Tabs */
+.filters {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xl);
+  flex-wrap: wrap;
+}
+
+.filterButton {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid transparent;
+  border-radius: 30px;
+  background: rgba(69, 105, 144, 0.1);
+  color: var(--color-black);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filterButton:hover {
+  background: rgba(69, 105, 144, 0.2);
+  transform: translateY(-2px);
+}
+
+.filterButton:focus-visible {
+  outline: 2px solid var(--color-baltic-blue);
+  outline-offset: 2px;
+}
+
+.activeFilter {
+  background: var(--color-baltic-blue);
+  color: white;
+  box-shadow: 0 4px 12px rgba(69, 105, 144, 0.3);
+}
+
+.activeFilter:hover {
+  background: var(--color-baltic-blue);
+}
+
+/* Ideas Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+}
+
+/* Idea Card */
+.ideaCard {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: var(--spacing-lg);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 5, 1, 0.08);
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.ideaCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 5, 1, 0.12);
+  border-color: var(--color-baltic-blue);
+}
+
+.ideaCard:focus-visible {
+  outline: 3px solid var(--color-baltic-blue);
+  outline-offset: 2px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.statusBadge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statusOpen {
+  background: rgba(69, 105, 144, 0.15);
+  color: var(--color-baltic-blue);
+}
+
+.statusCollab {
+  background: rgba(155, 126, 70, 0.15);
+  color: var(--color-faded-copper);
+}
+
+.statusFunded {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.statusProject {
+  background: rgba(147, 51, 234, 0.15);
+  color: #9333ea;
+}
+
+.investorCount {
+  font-size: var(--font-size-sm);
+  color: rgba(0, 5, 1, 0.6);
+}
+
+/* Card Content */
+.ideaTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-black);
+  margin: 0 0 var(--spacing-sm);
+  transition: color 0.3s ease;
+}
+
+.ideaCard:hover .ideaTitle {
+  color: var(--color-baltic-blue);
+}
+
+.ideaDescription {
+  font-size: var(--font-size-sm);
+  color: rgba(0, 5, 1, 0.7);
+  line-height: 1.6;
+  margin: 0 0 var(--spacing-md);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.tag {
+  padding: 0.25rem 0.625rem;
+  background: var(--color-lavender-mist);
+  border-radius: 12px;
+  font-size: var(--font-size-xs);
+  color: var(--color-baltic-blue);
+  transition: all 0.3s ease;
+}
+
+.ideaCard:hover .tag {
+  background: rgba(69, 105, 144, 0.15);
+}
+
+/* Card Footer */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid rgba(0, 5, 1, 0.08);
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: rgba(0, 5, 1, 0.7);
+}
+
+.authorAvatar {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-faded-copper);
+  color: white;
+  border-radius: 50%;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.viewMore {
+  font-size: var(--font-size-sm);
+  color: var(--color-baltic-blue);
+  font-weight: 500;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
+
+.ideaCard:hover .viewMore {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Hover Overlay */
+.hoverOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(69, 105, 144, 0.95) 0%, rgba(58, 90, 124, 0.95) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.hoverOverlay span {
+  color: white;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  transform: translateY(10px);
+  transition: transform 0.3s ease;
+}
+
+.ideaCard:hover .hoverOverlay {
+  opacity: 0;
+}
+
+/* View All Button */
+.viewAllContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-xl);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
+    gap: var(--spacing-xs);
+  }
+
+  .filterButton {
+    padding: 0.5rem 1rem;
+    font-size: var(--font-size-sm);
+  }
+
+  .ideaCard {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ideaCard {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .ideaCard:hover {
+    transform: none;
+  }
+  
+  .viewMore {
+    opacity: 1;
+    transform: none;
+  }
+}

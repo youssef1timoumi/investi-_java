@@ -1,0 +1,135 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  background-color: var(--color-lavender-mist);
+  border-radius: 12px;
+  text-align: center;
+}
+
+/* Points Section */
+.pointsSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.pointsLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-black);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+.pointsValue {
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--color-baltic-blue);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Level Section */
+.levelSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 280px;
+}
+
+.levelBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--color-faded-copper);
+  color: white;
+  border-radius: 24px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(155, 126, 70, 0.3);
+}
+
+.levelIcon {
+  font-size: var(--font-size-lg);
+  line-height: 1;
+}
+
+.levelText {
+  font-size: var(--font-size-md);
+  letter-spacing: 0.02em;
+}
+
+/* Progress Section */
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 8px;
+  background-color: rgba(0, 5, 1, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--color-faded-copper);
+  border-radius: 4px;
+  transition: width var(--transition-normal);
+}
+
+.progressText {
+  font-size: var(--font-size-xs);
+  color: var(--color-black);
+  opacity: 0.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-lg);
+  }
+
+  .pointsValue {
+    font-size: 3rem;
+  }
+
+  .levelSection {
+    max-width: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .pointsValue {
+    font-size: 2.5rem;
+  }
+
+  .levelBadge {
+    padding: var(--spacing-xs) var(--spacing-md);
+  }
+
+  .levelText {
+    font-size: var(--font-size-sm);
+  }
+
+  .levelSection {
+    max-width: 200px;
+  }
+}
