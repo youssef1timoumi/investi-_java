@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="edu.connections3a8.controllers.CourseController"
@@ -11,30 +12,33 @@
 
 <VBox styleClass="root-container"
       stylesheets="@coursesForm.css"
-      spacing="20"
-      minHeight="1800">
+      spacing="0"
+      minHeight="2200">
 
-    <padding>
-        <Insets top="32" right="36" bottom="32" left="36"/>
-    </padding>
-
-    <!-- Title and Theme Toggle -->
-    <HBox alignment="CENTER_LEFT" spacing="20">
-        <Label text="Course Management" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+    <!-- Glass Header -->
+    <HBox styleClass="glass-header" alignment="CENTER_LEFT" spacing="20" fx:id="headerBox">
+        <padding>
+            <Insets top="20" right="36" bottom="20" left="36"/>
+        </padding>
         
-        <HBox spacing="8" alignment="CENTER_RIGHT">
+        <Label text="Course Management" styleClass="page-title" HBox.hgrow="ALWAYS" fx:id="titleLabel"/>
+        
+        <HBox spacing="12" alignment="CENTER_RIGHT">
             <Button fx:id="themeToggleBtn" text="🌙 Dark" onAction="#handleThemeToggle"
-                    styleClass="btn, btn-secondary"
-                    style="-fx-font-size: 12px; -fx-padding: 8 16 8 16;"/>
+                    styleClass="btn, btn-secondary, theme-btn"/>
             <Button fx:id="autoModeBtn" text="⏰ Auto" onAction="#handleAutoMode"
-                    styleClass="btn, btn-secondary"
-                    style="-fx-font-size: 12px; -fx-padding: 8 16 8 16;"/>
+                    styleClass="btn, btn-secondary, auto-btn"/>
         </HBox>
     </HBox>
 
-    <Separator styleClass="styled-separator"/>
+    <!-- Main Content -->
+    <VBox spacing="32" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="32" right="36" bottom="32" left="36"/>
+        </padding>
 
     <!-- Form Fields -->
+    <VBox spacing="20" fx:id="formContainer" styleClass="form-container">
     <GridPane styleClass="form-grid">
         <columnConstraints>
             <ColumnConstraints minWidth="120" prefWidth="140"/>
@@ -97,11 +101,12 @@
         <TextField fx:id="thumbnailField" promptText="https://example.com/image.jpg" styleClass="modern-text-field"
                    GridPane.columnIndex="1" GridPane.rowIndex="10"/>
     </GridPane>
+    </VBox>
 
     <Separator styleClass="styled-separator"/>
 
     <!-- Buttons -->
-    <HBox styleClass="button-bar">
+    <HBox styleClass="button-bar" fx:id="buttonBar">
         <Button text="Add Course" onAction="#handleAddCourse" 
                 styleClass="btn, btn-primary" prefWidth="130"/>
         <Button text="Clear Form" onAction="#handleClearForm" 
@@ -113,17 +118,24 @@
     </HBox>
 
     <!-- Status Label -->
-    <Label fx:id="statusLabel" styleClass="status-label"
-           alignment="CENTER" wrapText="true"/>
+    <HBox alignment="CENTER" fx:id="statusContainer" managed="false" visible="false">
+        <Label fx:id="statusLabel" styleClass="status-label" wrapText="true"/>
+    </HBox>
 
-    <Separator styleClass="styled-separator"/>
+    <!-- Animated Separator -->
+    <StackPane prefHeight="2" maxHeight="2" fx:id="separatorPane">
+       
+        <Rectangle styleClass="shimmer-line" height="1" width="${separatorPane.width}" fx:id="shimmerLine"/>
+    </StackPane>
 
     <!-- Course List -->
-    <VBox spacing="12" VBox.vgrow="ALWAYS">
+    <VBox spacing="12" VBox.vgrow="ALWAYS" fx:id="courseListSection" managed="false" visible="false">
         <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="✨" style="-fx-font-size: 18px;" styleClass="sparkle-icon" fx:id="sparkleIcon"/>
             <Label text="Existing Courses" styleClass="section-title"/>
+            <Label fx:id="courseCountLabel" text="(0)" styleClass="badge-count"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label text="📚" style="-fx-font-size: 16px;"/>
+
         </HBox>
 
         <!-- Search and Sort Controls -->
@@ -147,6 +159,7 @@
                 <!-- Courses will be loaded here dynamically -->
             </VBox>
         </ScrollPane>
+    </VBox>
     </VBox>
 
 </VBox>

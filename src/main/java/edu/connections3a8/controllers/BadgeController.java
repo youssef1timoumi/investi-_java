@@ -2,12 +2,16 @@ package edu.connections3a8.controllers;
 
 import edu.connections3a8.entities.Badge;
 import edu.connections3a8.services.GamificationService;
+import javafx.animation.*;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,18 +30,37 @@ public class BadgeController {
     @FXML private ComboBox<String> sortCombo;
     @FXML private Button themeToggleBtn;
     @FXML private Button autoModeBtn;
+    
+    // Animation elements
+    @FXML private VBox mainContainer;
+    @FXML private HBox headerBox;
+    @FXML private Label titleLabel;
+    @FXML private VBox formContainer;
+    @FXML private HBox buttonBar;
+    @FXML private HBox statusContainer;
+    @FXML private VBox badgeListSection;
+    @FXML private Label badgeCountLabel;
+    @FXML private Label sparkleIcon;
+    @FXML private Rectangle shimmerLine;
+    @FXML private StackPane separatorPane;
+    @FXML private ScrollPane badgeScrollPane;
+    @FXML private Button addBtn;
+    @FXML private Button clearBtn;
+    @FXML private Button viewBtn;
+    @FXML private Button backBtn;
 
     private GamificationService gamificationService;
-    private Badge selectedBadge = null; // For editing
-    private List<Badge> allBadges = new ArrayList<>(); // Cache all badges
+    private Badge selectedBadge = null;
+    private List<Badge> allBadges = new ArrayList<>();
     private boolean isDarkMode = false;
     private boolean isAutoMode = false;
     private javafx.scene.layout.Pane rootPane;
+    
+    private Timeline shimmerAnimation;
 
     @FXML
     public void initialize() {
         gamificationService = new GamificationService();
-        statusLabel.setText("");
         
         // Initialize sort combo
         if (sortCombo != null) {
@@ -45,10 +68,9 @@ public class BadgeController {
                 "Name (A-Z)",
                 "Name (Z-A)",
                 "Points (Low to High)",
-                "Points (High to Low)"
+                "Points (High to Low)",
+                "Newest First"
             ));
-            
-            // Add listener for sort changes
             sortCombo.setOnAction(e -> applyFiltersAndSort());
         }
         
@@ -65,18 +87,181 @@ public class BadgeController {
             }
         }
         
-        // Load badges only if container is initialized
-        if (badgeListContainer != null) {
-            loadBadges();
-        } else {
-            System.err.println("Warning: badgeListContainer not initialized yet");
+        // Don't load badges on initialization - wait for "View All" click
+        // Just load the count
+        try {
+            allBadges = gamificationService.getAllBadges();
+            if (badgeCountLabel != null) {
+                badgeCountLabel.setText("(" + allBadges.size() + ")");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error loading badge count: " + e.getMessage());
+        }
+        
+        // Start entrance animations after a short delay
+        Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> playEntranceAnimations()));
+        delayTimeline.play();
+        
+        // Start shimmer animation
+        startShimmerAnimation();
+        
+        // Start sparkle animation
+        startSparkleAnimation();
+    }
+
+    private void playEntranceAnimations() {
+        // Header entrance animation
+        if (headerBox != null) {
+            headerBox.setOpacity(0);
+            headerBox.setTranslateY(-40);
+            
+            FadeTransition headerFade = new FadeTransition(Duration.millis(800), headerBox);
+            headerFade.setFromValue(0);
+            headerFade.setToValue(1);
+            
+            TranslateTransition headerSlide = new TranslateTransition(Duration.millis(800), headerBox);
+            headerSlide.setFromY(-40);
+            headerSlide.setToY(0);
+            
+            ParallelTransition headerAnim = new ParallelTransition(headerFade, headerSlide);
+            headerAnim.setDelay(Duration.millis(100));
+            headerAnim.play();
+        }
+        
+        // Title character animation (simulated)
+        if (titleLabel != null) {
+            titleLabel.setOpacity(0);
+            titleLabel.setScaleX(0.8);
+            titleLabel.setScaleY(0.8);
+            
+            FadeTransition titleFade = new FadeTransition(Duration.millis(600), titleLabel);
+            titleFade.setFromValue(0);
+            titleFade.setToValue(1);
+            
+            ScaleTransition titleScale = new ScaleTransition(Duration.millis(600), titleLabel);
+            titleScale.setFromX(0.8);
+            titleScale.setFromY(0.8);
+            titleScale.setToX(1);
+            titleScale.setToY(1);
+            
+            ParallelTransition titleAnim = new ParallelTransition(titleFade, titleScale);
+            titleAnim.setDelay(Duration.millis(200));
+            titleAnim.play();
+        }
+        
+        // Form entrance animation
+        if (formContainer != null) {
+            formContainer.setOpacity(0);
+            formContainer.setTranslateX(-50);
+            formContainer.setRotate(-5);
+            
+            FadeTransition formFade = new FadeTransition(Duration.millis(800), formContainer);
+            formFade.setFromValue(0);
+            formFade.setToValue(1);
+            
+            TranslateTransition formSlide = new TranslateTransition(Duration.millis(800), formContainer);
+            formSlide.setFromX(-50);
+            formSlide.setToX(0);
+            
+            RotateTransition formRotate = new RotateTransition(Duration.millis(800), formContainer);
+            formRotate.setFromAngle(-5);
+            formRotate.setToAngle(0);
+            
+            ParallelTransition formAnim = new ParallelTransition(formFade, formSlide, formRotate);
+            formAnim.setDelay(Duration.millis(400));
+            formAnim.play();
+        }
+        
+        // Buttons entrance animation with stagger
+        if (buttonBar != null) {
+            List<Button> buttons = List.of(addBtn, clearBtn, viewBtn, backBtn);
+            for (int i = 0; i < buttons.size(); i++) {
+                Button btn = buttons.get(i);
+                if (btn != null) {
+                    btn.setOpacity(0);
+                    btn.setTranslateY(60);
+                    btn.setScaleX(0.5);
+                    btn.setScaleY(0.5);
+                    
+                    FadeTransition btnFade = new FadeTransition(Duration.millis(600), btn);
+                    btnFade.setFromValue(0);
+                    btnFade.setToValue(1);
+                    
+                    TranslateTransition btnSlide = new TranslateTransition(Duration.millis(600), btn);
+                    btnSlide.setFromY(60);
+                    btnSlide.setToY(0);
+                    
+                    ScaleTransition btnScale = new ScaleTransition(Duration.millis(600), btn);
+                    btnScale.setFromX(0.5);
+                    btnScale.setFromY(0.5);
+                    btnScale.setToX(1);
+                    btnScale.setToY(1);
+                    
+                    ParallelTransition btnAnim = new ParallelTransition(btnFade, btnSlide, btnScale);
+                    btnAnim.setDelay(Duration.millis(800 + i * 100));
+                    btnAnim.play();
+                }
+            }
+        }
+        
+        // Badge list section entrance (skip if hidden)
+        if (badgeListSection != null && badgeListSection.isVisible()) {
+            badgeListSection.setOpacity(0);
+            badgeListSection.setTranslateY(50);
+            
+            FadeTransition listFade = new FadeTransition(Duration.millis(700), badgeListSection);
+            listFade.setFromValue(0);
+            listFade.setToValue(1);
+            
+            TranslateTransition listSlide = new TranslateTransition(Duration.millis(700), badgeListSection);
+            listSlide.setFromY(50);
+            listSlide.setToY(0);
+            
+            ParallelTransition listAnim = new ParallelTransition(listFade, listSlide);
+            listAnim.setDelay(Duration.millis(1000));
+            listAnim.play();
         }
     }
-    
+
+    private void startShimmerAnimation() {
+        if (shimmerLine != null && separatorPane != null) {
+            // Bind shimmer animation to the actual width of the separator pane
+            separatorPane.widthProperty().addListener((obs, oldVal, newVal) -> {
+                if (shimmerAnimation != null) {
+                    shimmerAnimation.stop();
+                }
+                double width = newVal.doubleValue();
+                shimmerAnimation = new Timeline(
+                    new KeyFrame(Duration.ZERO, new KeyValue(shimmerLine.translateXProperty(), -width)),
+                    new KeyFrame(Duration.seconds(2), new KeyValue(shimmerLine.translateXProperty(), width))
+                );
+                shimmerAnimation.setCycleCount(Timeline.INDEFINITE);
+                shimmerAnimation.play();
+            });
+        }
+    }
+
+    private void startSparkleAnimation() {
+        if (sparkleIcon != null) {
+            ScaleTransition sparkle = new ScaleTransition(Duration.millis(1500), sparkleIcon);
+            sparkle.setFromX(1);
+            sparkle.setFromY(1);
+            sparkle.setToX(1.2);
+            sparkle.setToY(1.2);
+            sparkle.setAutoReverse(true);
+            sparkle.setCycleCount(Timeline.INDEFINITE);
+            sparkle.play();
+            
+            RotateTransition rotate = new RotateTransition(Duration.millis(3000), sparkleIcon);
+            rotate.setByAngle(360);
+            rotate.setCycleCount(Timeline.INDEFINITE);
+            rotate.play();
+        }
+    }
+
     @FXML
     private void handleThemeToggle() {
         if (isAutoMode) {
-            // Disable auto mode when manually toggling
             isAutoMode = false;
             updateAutoModeButton();
         }
@@ -97,10 +282,7 @@ public class BadgeController {
     }
     
     private void applyAutoTheme() {
-        // Get current hour (0-23)
         int hour = java.time.LocalTime.now().getHour();
-        
-        // Dark mode between 6 PM (18:00) and 6 AM (06:00)
         boolean shouldBeDark = hour >= 18 || hour < 6;
         
         if (isDarkMode != shouldBeDark) {
@@ -112,7 +294,6 @@ public class BadgeController {
     
     private void applyTheme() {
         if (rootPane == null) {
-            // Try to get root pane again
             if (nameField != null && nameField.getScene() != null) {
                 javafx.scene.Parent root = nameField.getScene().getRoot();
                 if (root instanceof javafx.scene.layout.Pane) {
@@ -145,7 +326,9 @@ public class BadgeController {
     private void updateAutoModeButton() {
         if (autoModeBtn != null) {
             if (isAutoMode) {
-                autoModeBtn.getStyleClass().add("auto-mode-active");
+                if (!autoModeBtn.getStyleClass().contains("auto-mode-active")) {
+                    autoModeBtn.getStyleClass().add("auto-mode-active");
+                }
                 autoModeBtn.setText("⏰ Auto ✓");
             } else {
                 autoModeBtn.getStyleClass().remove("auto-mode-active");
@@ -157,69 +340,76 @@ public class BadgeController {
     @FXML
     private void handleAddBadge() {
         try {
-            // Check if fields are initialized
             if (nameField == null || descriptionArea == null || pointsRequiredField == null) {
-                showError("Form not properly initialized!");
+                showStatus("Form not properly initialized!", "error");
                 return;
             }
             
-            // Get text safely
             String name = nameField.getText();
             String description = descriptionArea.getText();
             
-            // Validate inputs
             if (name == null || name.trim().isEmpty()) {
-                showError("Badge name is required!");
+                showStatus("Badge name is required!", "error");
                 return;
             }
 
             if (description == null || description.trim().isEmpty()) {
-                showError("Description is required!");
+                showStatus("Description is required!", "error");
                 return;
             }
 
-            // Create or update badge object
             Badge badge = selectedBadge != null ? selectedBadge : new Badge();
             badge.setName(name.trim());
             badge.setDescription(description.trim());
             
-            // Parse points required
             try {
                 String pointsText = pointsRequiredField.getText();
                 int pointsRequired = (pointsText == null || pointsText.trim().isEmpty()) ? 0 : 
                                     Integer.parseInt(pointsText.trim());
                 
                 if (pointsRequired < 0) {
-                    showError("Points required must be 0 or positive!");
+                    showStatus("Points required must be 0 or positive!", "error");
                     return;
                 }
                 
                 badge.setPointsRequired(pointsRequired);
             } catch (NumberFormatException e) {
-                showError("Points required must be a valid number!");
+                showStatus("Points required must be a valid number!", "error");
                 return;
             }
 
-            // Add or update badge in database
             if (selectedBadge != null) {
                 updateBadgeInDatabase(badge);
-                showSuccess("Badge updated successfully!");
+                showStatus("Badge updated successfully!", "success");
             } else {
                 addBadgeToDatabase(badge);
-                showSuccess("Badge added successfully!");
+                showStatus("Badge added successfully!", "success");
             }
             
             handleClearForm();
-            loadBadges(); // Refresh the list
+            
+            // Reload badges if the list is visible
+            if (badgeListSection != null && badgeListSection.isVisible()) {
+                loadBadges();
+            } else {
+                // Just update the count
+                try {
+                    allBadges = gamificationService.getAllBadges();
+                    if (badgeCountLabel != null) {
+                        badgeCountLabel.setText("(" + allBadges.size() + ")");
+                    }
+                } catch (SQLException ex) {
+                    System.err.println("Error updating badge count: " + ex.getMessage());
+                }
+            }
             
         } catch (Exception e) {
-            showError("Error: " + e.getMessage());
+            showStatus("Error: " + e.getMessage(), "error");
             e.printStackTrace();
         }
     }
 
     private void addBadgeToDatabase(Badge badge) throws SQLException {
-        // Using direct SQL since we don't have addBadge in service
         String query = "INSERT INTO badges (name, description, points_required) VALUES (?, ?, ?)";
         java.sql.PreparedStatement pst = gamificationService.getCnx().prepareStatement(query);
         pst.setString(1, badge.getName());
@@ -241,50 +431,133 @@ public class BadgeController {
     @FXML
     private void handleClearForm() {
         selectedBadge = null;
-        nameField.clear();
-        descriptionArea.clear();
-        pointsRequiredField.clear();
-        statusLabel.setText("");
+        if (nameField != null) nameField.clear();
+        if (descriptionArea != null) descriptionArea.clear();
+        if (pointsRequiredField != null) pointsRequiredField.clear();
+        hideStatus();
     }
 
     @FXML
     private void handleViewAll() {
-        try {
-            List<Badge> badges = gamificationService.getAllBadges();
+        // Toggle badge list section visibility
+        if (badgeListSection != null) {
+            boolean isVisible = badgeListSection.isVisible();
             
-            StringBuilder sb = new StringBuilder();
-            sb.append("Total Badges: ").append(badges.size()).append("\n\n");
+            if (!isVisible) {
+                // Show the badge list section
+                badgeListSection.setManaged(true);
+                badgeListSection.setVisible(true);
+                
+                // Load badges if not already loaded
+                if (allBadges.isEmpty()) {
+                    loadBadges();
+                } else {
+                    applyFiltersAndSort();
+                }
+                
+                // Animate the section appearance
+                badgeListSection.setOpacity(0);
+                badgeListSection.setTranslateY(30);
+                
+                FadeTransition fade = new FadeTransition(Duration.millis(500), badgeListSection);
+                fade.setFromValue(0);
+                fade.setToValue(1);
+                
+                TranslateTransition slide = new TranslateTransition(Duration.millis(500), badgeListSection);
+                slide.setFromY(30);
+                slide.setToY(0);
+                
+                ParallelTransition anim = new ParallelTransition(fade, slide);
+                anim.play();
+                
+                showStatus("Showing all " + allBadges.size() + " badges", "info");
+            } else {
+                // Hide the badge list section
+                FadeTransition fade = new FadeTransition(Duration.millis(300), badgeListSection);
+                fade.setFromValue(1);
+                fade.setToValue(0);
+                fade.setOnFinished(e -> {
+                    badgeListSection.setManaged(false);
+                    badgeListSection.setVisible(false);
+                });
+                fade.play();
+                
+                showStatus("Badge list hidden", "info");
+            }
+        }
+    }
+
+    private void showStatus(String message, String type) {
+        if (statusLabel != null && statusContainer != null) {
+            statusLabel.setText(message);
+            statusContainer.setManaged(true);
+            statusContainer.setVisible(true);
             
-            for (Badge badge : badges) {
-                sb.append("🏅 ").append(badge.getName())
-                  .append("\n   ").append(badge.getDescription())
-                  .append("\n   Points Required: ").append(badge.getPointsRequired())
-                  .append("\n\n");
+            // Apply style based on type
+            statusLabel.getStyleClass().removeAll("status-success", "status-error", "status-info");
+            switch (type) {
+                case "success":
+                    statusLabel.setStyle("-fx-background-color: rgba(40,167,69,0.1); -fx-text-fill: #28A745;");
+                    break;
+                case "error":
+                    statusLabel.setStyle("-fx-background-color: rgba(220,53,69,0.1); -fx-text-fill: #DC3545;");
+                    break;
+                case "info":
+                    statusLabel.setStyle("-fx-background-color: rgba(69,105,144,0.1); -fx-text-fill: #456990;");
+                    break;
             }
             
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("All Badges");
-            alert.setHeaderText("Badge List");
-            alert.setContentText(sb.toString());
-            alert.showAndWait();
+            // Animate status appearance
+            statusContainer.setOpacity(0);
+            statusContainer.setTranslateY(-20);
             
-        } catch (SQLException e) {
-            showError("Error loading badges: " + e.getMessage());
+            FadeTransition fade = new FadeTransition(Duration.millis(400), statusContainer);
+            fade.setFromValue(0);
+            fade.setToValue(1);
+            
+            TranslateTransition slide = new TranslateTransition(Duration.millis(400), statusContainer);
+            slide.setFromY(-20);
+            slide.setToY(0);
+            
+            ParallelTransition anim = new ParallelTransition(fade, slide);
+            anim.play();
+            
+            // Auto-hide after 4 seconds
+            Timeline hideTimeline = new Timeline(new KeyFrame(Duration.seconds(4), e -> hideStatus()));
+            hideTimeline.play();
+        }
+    }
+
+    private void hideStatus() {
+        if (statusContainer != null) {
+            FadeTransition fade = new FadeTransition(Duration.millis(300), statusContainer);
+            fade.setFromValue(1);
+            fade.setToValue(0);
+            fade.setOnFinished(e -> {
+                statusContainer.setManaged(false);
+                statusContainer.setVisible(false);
+            });
+            fade.play();
         }
     }
 
     private void loadBadges() {
         try {
             if (badgeListContainer == null) {
-                System.err.println("badgeListContainer is null - FXML not loaded properly");
                 return;
             }
             
             allBadges = gamificationService.getAllBadges();
+            
+            // Update badge count
+            if (badgeCountLabel != null) {
+                badgeCountLabel.setText("(" + allBadges.size() + ")");
+            }
+            
             applyFiltersAndSort();
             
         } catch (SQLException e) {
-            showError("Error loading badges: " + e.getMessage());
+            showStatus("Error loading badges: " + e.getMessage(), "error");
         }
     }
     
@@ -295,16 +568,14 @@ public class BadgeController {
         
         badgeListContainer.getChildren().clear();
         
-        // Filter badges based on search
+        // Filter badges
         List<Badge> filteredBadges = allBadges;
         
         if (searchField != null && searchField.getText() != null && !searchField.getText().trim().isEmpty()) {
             String searchText = searchField.getText().trim().toLowerCase();
             filteredBadges = allBadges.stream()
                 .filter(badge -> {
-                    // Search by name
                     boolean matchesName = badge.getName().toLowerCase().contains(searchText);
-                    // Search by points
                     boolean matchesPoints = String.valueOf(badge.getPointsRequired()).contains(searchText);
                     return matchesName || matchesPoints;
                 })
@@ -328,22 +599,63 @@ public class BadgeController {
                 case "Points (High to Low)":
                     filteredBadges.sort(Comparator.comparingInt(Badge::getPointsRequired).reversed());
                     break;
+                case "Newest First":
+                default:
+                    // Keep original order (newest first)
+                    break;
             }
         }
         
-        // Display filtered and sorted badges
+        // Display badges
         if (filteredBadges.isEmpty()) {
-            Label emptyLabel = new Label(searchField != null && !searchField.getText().trim().isEmpty() 
-                ? "No badges found matching your search." 
-                : "No badges yet. Add your first badge!");
-            emptyLabel.setStyle("-fx-text-fill: #6B7280; -fx-font-style: italic; -fx-font-size: 13px;");
-            badgeListContainer.getChildren().add(emptyLabel);
+            VBox emptyBox = new VBox(20);
+            emptyBox.setAlignment(javafx.geometry.Pos.CENTER);
+            emptyBox.setPadding(new Insets(80, 20, 80, 20));
+            
+            Label emptyIcon = new Label("🏆");
+            emptyIcon.setStyle("-fx-font-size: 64px; -fx-opacity: 0.5;");
+            
+            Label emptyText = new Label("No badges found");
+            emptyText.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #6B7280;");
+            
+            Label emptyHint = new Label("Try adjusting your search or add a new badge");
+            emptyHint.setStyle("-fx-font-size: 14px; -fx-text-fill: #6B7280;");
+            
+            emptyBox.getChildren().addAll(emptyIcon, emptyText, emptyHint);
+            badgeListContainer.getChildren().add(emptyBox);
+            
+            // Floating animation for empty state
+            TranslateTransition floatAnim = new TranslateTransition(Duration.seconds(3), emptyIcon);
+            floatAnim.setFromY(0);
+            floatAnim.setToY(-15);
+            floatAnim.setAutoReverse(true);
+            floatAnim.setCycleCount(Timeline.INDEFINITE);
+            floatAnim.play();
+            
             return;
         }
         
-        for (Badge badge : filteredBadges) {
-            HBox badgeItem = createBadgeItem(badge);
-            badgeListContainer.getChildren().add(badgeItem);
+        // Add badge cards with stagger animation
+        for (int i = 0; i < filteredBadges.size(); i++) {
+            Badge badge = filteredBadges.get(i);
+            HBox badgeCard = createBadgeCard(badge);
+            badgeListContainer.getChildren().add(badgeCard);
+            
+            // Entrance animation for each card
+            badgeCard.setOpacity(0);
+            badgeCard.setTranslateX(100);
+            
+            FadeTransition fade = new FadeTransition(Duration.millis(600), badgeCard);
+            fade.setFromValue(0);
+            fade.setToValue(1);
+            
+            TranslateTransition slide = new TranslateTransition(Duration.millis(600), badgeCard);
+            slide.setFromX(100);
+            slide.setToX(0);
+            
+            ParallelTransition cardAnim = new ParallelTransition(fade, slide);
+            cardAnim.setDelay(Duration.millis(i * 100));
+            cardAnim.play();
         }
     }
     
@@ -358,35 +670,44 @@ public class BadgeController {
         applyFiltersAndSort();
     }
 
-    private HBox createBadgeItem(Badge badge) {
-        HBox container = new HBox(15);
+    private HBox createBadgeCard(Badge badge) {
+        HBox container = new HBox(16);
         container.getStyleClass().add("badge-card");
+        container.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         
         // Badge icon
-        Label iconLabel = new Label("🏅");
-        iconLabel.setStyle("-fx-font-size: 24px;");
+        StackPane iconContainer = new StackPane();
+        iconContainer.setPrefSize(48, 48);
+        iconContainer.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(255,215,0,0.35), rgba(255,223,0,0.15)); -fx-background-radius: 12;");
+        
+        Label iconLabel = new Label("🏆");
+        iconLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: #FFD700; -fx-effect: dropshadow(gaussian, rgba(255,215,0,0.6), 4, 0, 0, 0);");
+        iconContainer.getChildren().add(iconLabel);
         
         // Badge info
-        VBox infoBox = new VBox(5);
+        VBox infoBox = new VBox(6);
+        HBox.setHgrow(infoBox, javafx.scene.layout.Priority.ALWAYS);
+        
         Label nameLabel = new Label(badge.getName());
         nameLabel.getStyleClass().add("badge-card-title");
         
         Label descLabel = new Label(badge.getDescription());
         descLabel.getStyleClass().add("badge-card-description");
         descLabel.setWrapText(true);
-        descLabel.setMaxWidth(300);
+        descLabel.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(infoBox, javafx.scene.layout.Priority.ALWAYS);
         
-        Label pointsLabel = new Label("Points Required: " + badge.getPointsRequired());
+        infoBox.getChildren().addAll(nameLabel, descLabel);
+        
+        // Points badge
+        Label pointsLabel = new Label(badge.getPointsRequired() == 0 ? "✨ Action" : badge.getPointsRequired() + " pts");
         pointsLabel.getStyleClass().add("badge-card-points");
-        
-        infoBox.getChildren().addAll(nameLabel, descLabel, pointsLabel);
         
         // Buttons
         HBox buttonBox = new HBox(10);
         
         Button editBtn = new Button("Edit");
-        editBtn.getStyleClass().addAll("btn", "btn-secondary");
-        editBtn.setStyle("-fx-font-size: 11px; -fx-padding: 6 14 6 14;");
+        editBtn.setStyle("-fx-background-color: #456990; -fx-text-fill: white; -fx-font-size: 11px; -fx-background-radius: 8px; -fx-padding: 6 14 6 14; -fx-cursor: hand;");
         editBtn.setOnAction(e -> handleEditBadge(badge));
         
         Button deleteBtn = new Button("Delete");
@@ -394,9 +715,31 @@ public class BadgeController {
         deleteBtn.setOnAction(e -> handleDeleteBadge(badge));
         
         buttonBox.getChildren().addAll(editBtn, deleteBtn);
-        HBox.setMargin(buttonBox, new Insets(0, 0, 0, 20));
         
-        container.getChildren().addAll(iconLabel, infoBox, buttonBox);
+        container.getChildren().addAll(iconContainer, infoBox, pointsLabel, buttonBox);
+        
+        // Hover animation
+        container.setOnMouseEntered(e -> {
+            ScaleTransition scale = new ScaleTransition(Duration.millis(200), iconContainer);
+            scale.setToX(1.1);
+            scale.setToY(1.1);
+            scale.play();
+            
+            RotateTransition rotate = new RotateTransition(Duration.millis(200), pointsLabel);
+            rotate.setByAngle(3);
+            rotate.play();
+        });
+        
+        container.setOnMouseExited(e -> {
+            ScaleTransition scale = new ScaleTransition(Duration.millis(200), iconContainer);
+            scale.setToX(1);
+            scale.setToY(1);
+            scale.play();
+            
+            RotateTransition rotate = new RotateTransition(Duration.millis(200), pointsLabel);
+            rotate.setByAngle(-3);
+            rotate.play();
+        });
         
         return container;
     }
@@ -404,12 +747,11 @@ public class BadgeController {
     private void handleEditBadge(Badge badge) {
         selectedBadge = badge;
         
-        nameField.setText(badge.getName());
-        descriptionArea.setText(badge.getDescription());
-        pointsRequiredField.setText(String.valueOf(badge.getPointsRequired()));
+        if (nameField != null) nameField.setText(badge.getName());
+        if (descriptionArea != null) descriptionArea.setText(badge.getDescription());
+        if (pointsRequiredField != null) pointsRequiredField.setText(String.valueOf(badge.getPointsRequired()));
         
-        statusLabel.setStyle("-fx-text-fill: #456990; -fx-font-size: 14px;");
-        statusLabel.setText("✏️ Editing: " + badge.getName());
+        showStatus("✏️ Editing: " + badge.getName(), "info");
     }
 
     private void handleDeleteBadge(Badge badge) {
@@ -426,24 +768,28 @@ public class BadgeController {
                     pst.setLong(1, badge.getId());
                     pst.executeUpdate();
                     
-                    showSuccess("Badge deleted successfully!");
-                    loadBadges(); // Refresh the list
+                    showStatus("Badge deleted successfully!", "success");
+                    
+                    // Reload badges if the list is visible
+                    if (badgeListSection != null && badgeListSection.isVisible()) {
+                        loadBadges();
+                    } else {
+                        // Just update the count
+                        try {
+                            allBadges = gamificationService.getAllBadges();
+                            if (badgeCountLabel != null) {
+                                badgeCountLabel.setText("(" + allBadges.size() + ")");
+                            }
+                        } catch (SQLException ex) {
+                            System.err.println("Error updating badge count: " + ex.getMessage());
+                        }
+                    }
                     
                 } catch (SQLException e) {
-                    showError("Error deleting badge: " + e.getMessage());
+                    showStatus("Error deleting badge: " + e.getMessage(), "error");
                 }
             }
         });
-    }
-
-    private void showSuccess(String message) {
-        statusLabel.setStyle("-fx-text-fill: #28A745; -fx-font-size: 14px; -fx-font-weight: 600;");
-        statusLabel.setText("✓ " + message);
-    }
-
-    private void showError(String message) {
-        statusLabel.setStyle("-fx-text-fill: #DC3545; -fx-font-size: 14px; -fx-font-weight: 600;");
-        statusLabel.setText("✗ " + message);
     }
 
     @FXML
@@ -452,7 +798,7 @@ public class BadgeController {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/MainMenu.fxml"));
             javafx.scene.Parent root = loader.load();
             
-            javafx.stage.Stage stage = (javafx.stage.Stage) statusLabel.getScene().getWindow();
+            javafx.stage.Stage stage = (javafx.stage.Stage) nameField.getScene().getWindow();
             stage.getScene().setRoot(root);
             stage.setTitle("Gamification System - Main Menu");
         } catch (Exception e) {

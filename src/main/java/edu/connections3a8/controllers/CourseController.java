@@ -2,12 +2,16 @@ package edu.connections3a8.controllers;
 
 import edu.connections3a8.entities.Course;
 import edu.connections3a8.services.CouseService;
+import javafx.animation.*;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -34,6 +38,18 @@ public class CourseController {
     @FXML private ComboBox<String> sortCombo;
     @FXML private Button themeToggleBtn;
     @FXML private Button autoModeBtn;
+    
+    // Animation elements
+    @FXML private HBox headerBox;
+    @FXML private Label titleLabel;
+    @FXML private VBox formContainer;
+    @FXML private HBox buttonBar;
+    @FXML private StackPane separatorPane;
+    @FXML private Rectangle shimmerLine;
+    @FXML private Label sparkleIcon;
+    @FXML private VBox courseListSection;
+    @FXML private Label courseCountLabel;
+    @FXML private HBox statusContainer;
 
     private CouseService courseService;
     private Course selectedCourse = null;
@@ -83,12 +99,26 @@ public class CourseController {
             }
         }
         
-        // Load courses only if container is initialized
-        if (courseListContainer != null) {
-            loadCourses();
-        } else {
-            System.err.println("Warning: courseListContainer not initialized yet");
+        // Don't load courses on initialization - wait for "View All" click
+        // Just load the count
+        try {
+            allCourses = courseService.getAllCourses();
+            if (courseCountLabel != null) {
+                courseCountLabel.setText("(" + allCourses.size() + ")");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error loading course count: " + e.getMessage());
         }
+        
+        // Start entrance animations after a short delay
+        Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> playEntranceAnimations()));
+        delayTimeline.play();
+        
+        // Start shimmer animation
+        startShimmerAnimation();
+        
+        // Start sparkle animation
+        startSparkleAnimation();
     }
 
     @FXML
@@ -255,7 +285,21 @@ public class CourseController {
             }
             
             handleClearForm();
-            loadCourses();
+            
+            // Reload courses if the list is visible
+            if (courseListSection != null && courseListSection.isVisible()) {
+                loadCourses();
+            } else {
+                // Just update the count
+                try {
+                    allCourses = courseService.getAllCourses();
+                    if (courseCountLabel != null) {
+                        courseCountLabel.setText("(" + allCourses.size() + ")");
+                    }
+                } catch (SQLException ex) {
+                    System.err.println("Error updating course count: " + ex.getMessage());
+                }
+            }
             
         } catch (SQLException e) {
             showError("Database error: " + e.getMessage());
@@ -285,36 +329,114 @@ public class CourseController {
 
     @FXML
     private void handleViewAll() {
-        try {
-            List<Course> courses = courseService.getAllCourses();
+        // Toggle course list section visibility
+        if (courseListSection != null) {
+            boolean isVisible = courseListSection.isVisible();
             
-            StringBuilder sb = new StringBuilder();
-            sb.append("Total Courses: ").append(courses.size()).append("\n\n");
-            
-            for (Course course : courses) {
-                sb.append("- ").append(course.getTitle())
-                  .append(" (").append(course.getRewardPoints()).append(" points)\n");
+            if (!isVisible) {
+                // Show the course list section
+                courseListSection.setManaged(true);
+                courseListSection.setVisible(true);
+                
+                // Load courses if not already loaded
+                if (allCourses.isEmpty()) {
+                    loadCourses();
+                } else {
+                    applyFiltersAndSort();
+                }
+                
+                // Animate the section appearance
+                courseListSection.setOpacity(0);
+                courseListSection.setTranslateY(30);
+                
+                FadeTransition fade = new FadeTransition(Duration.millis(500), courseListSection);
+                fade.setFromValue(0);
+                fade.setToValue(1);
+                
+                TranslateTransition slide = new TranslateTransition(Duration.millis(500), courseListSection);
+                slide.setFromY(30);
+                slide.setToY(0);
+                
+                ParallelTransition anim = new ParallelTransition(fade, slide);
+                anim.play();
+                
+                showStatus("Showing all " + allCourses.size() + " courses", "info");
+            } else {
+                // Hide the course list section
+                FadeTransition fade = new FadeTransition(Duration.millis(300), courseListSection);
+                fade.setFromValue(1);
+                fade.setToValue(0);
+                fade.setOnFinished(e -> {
+                    courseListSection.setManaged(false);
+                    courseListSection.setVisible(false);
+                });
+                fade.play();
+                
+                showStatus("Course list hidden", "info");
             }
-            
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("All Courses");
-            alert.setHeaderText("Course List");
-            alert.setContentText(sb.toString());
-            alert.showAndWait();
-            
-        } catch (SQLException e) {
-            showError("Error loading courses: " + e.getMessage());
         }
     }
 
     private void showSuccess(String message) {
-        statusLabel.setStyle("-fx-text-fill: #28A745; -fx-font-size: 14px; -fx-font-weight: 600;");
-        statusLabel.setText("✓ " + message);
+        showStatus(message, "success");
     }
 
     private void showError(String message) {
-        statusLabel.setStyle("-fx-text-fill: #DC3545; -fx-font-size: 14px; -fx-font-weight: 600;");
-        statusLabel.setText("✗ " + message);
+        showStatus(message, "error");
+    }
+    
+    private void showStatus(String message, String type) {
+        if (statusLabel != null && statusContainer != null) {
+            statusLabel.setText(message);
+            statusContainer.setManaged(true);
+            statusContainer.setVisible(true);
+            
+            // Apply style based on type
+            statusLabel.getStyleClass().removeAll("status-success", "status-error", "status-info");
+            switch (type) {
+                case "success":
+                    statusLabel.setStyle("-fx-background-color: rgba(40,167,69,0.1); -fx-text-fill: #28A745;");
+                    break;
+                case "error":
+                    statusLabel.setStyle("-fx-background-color: rgba(220,53,69,0.1); -fx-text-fill: #DC3545;");
+                    break;
+                case "info":
+                    statusLabel.setStyle("-fx-background-color: rgba(69,105,144,0.1); -fx-text-fill: #456990;");
+                    break;
+            }
+            
+            // Animate status appearance
+            statusContainer.setOpacity(0);
+            statusContainer.setTranslateY(-20);
+            
+            FadeTransition fade = new FadeTransition(Duration.millis(400), statusContainer);
+            fade.setFromValue(0);
+            fade.setToValue(1);
+            
+            TranslateTransition slide = new TranslateTransition(Duration.millis(400), statusContainer);
+            slide.setFromY(-20);
+            slide.setToY(0);
+            
+            ParallelTransition anim = new ParallelTransition(fade, slide);
+            anim.play();
+            
+            // Auto-hide after 4 seconds
+            Timeline hideTimeline = new Timeline(new KeyFrame(Duration.seconds(4), e -> hideStatus()));
+            hideTimeline.play();
+        }
+    }
+    
+    private void hideStatus() {
+        if (statusContainer != null) {
+            FadeTransition fade = new FadeTransition(Duration.millis(300), statusContainer);
+            fade.setFromValue(1);
+            fade.setToValue(0);
+            fade.setOnFinished(e -> {
+                statusContainer.setManaged(false);
+                statusContainer.setVisible(false);
+            });
+            fade.play();
+        }
     }
 
     private void loadCourses() {
@@ -390,9 +512,27 @@ public class CourseController {
             return;
         }
         
-        for (Course course : filteredCourses) {
+        // Add course cards with stagger animation
+        for (int i = 0; i < filteredCourses.size(); i++) {
+            Course course = filteredCourses.get(i);
             HBox courseItem = createCourseItem(course);
             courseListContainer.getChildren().add(courseItem);
+            
+            // Entrance animation for each card
+            courseItem.setOpacity(0);
+            courseItem.setTranslateX(100);
+            
+            FadeTransition fade = new FadeTransition(Duration.millis(600), courseItem);
+            fade.setFromValue(0);
+            fade.setToValue(1);
+            
+            TranslateTransition slide = new TranslateTransition(Duration.millis(600), courseItem);
+            slide.setFromX(100);
+            slide.setToX(0);
+            
+            ParallelTransition cardAnim = new ParallelTransition(fade, slide);
+            cardAnim.setDelay(Duration.millis(i * 100));
+            cardAnim.play();
         }
     }
     
@@ -410,13 +550,22 @@ public class CourseController {
     private HBox createCourseItem(Course course) {
         HBox container = new HBox(15);
         container.getStyleClass().add("item-card");
+        container.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         
-        // Course icon
+        // Course icon with yellow background
+        StackPane iconContainer = new StackPane();
+        iconContainer.setPrefSize(48, 48);
+        iconContainer.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(255,215,0,0.25), rgba(255,223,0,0.1)); -fx-background-radius: 12;");
+        
         Label iconLabel = new Label("📚");
-        iconLabel.setStyle("-fx-font-size: 24px;");
+        iconLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: #FFD700; -fx-effect: dropshadow(gaussian, rgba(255,215,0,0.6), 4, 0, 0, 0);");
+        iconContainer.getChildren().add(iconLabel);
+
         
         // Course info
         VBox infoBox = new VBox(5);
+        HBox.setHgrow(infoBox, javafx.scene.layout.Priority.ALWAYS);
+        
         Label titleLabel = new Label(course.getTitle());
         titleLabel.getStyleClass().add("item-card-title");
         
@@ -438,9 +587,23 @@ public class CourseController {
         deleteBtn.setOnAction(e -> handleDeleteCourse(course));
         
         buttonBox.getChildren().addAll(editBtn, deleteBtn);
-        HBox.setMargin(buttonBox, new Insets(0, 0, 0, 20));
         
-        container.getChildren().addAll(iconLabel, infoBox, buttonBox);
+        container.getChildren().addAll(iconContainer, infoBox, buttonBox);
+        
+        // Hover animation
+        container.setOnMouseEntered(e -> {
+            ScaleTransition scale = new ScaleTransition(Duration.millis(200), iconContainer);
+            scale.setToX(1.1);
+            scale.setToY(1.1);
+            scale.play();
+        });
+        
+        container.setOnMouseExited(e -> {
+            ScaleTransition scale = new ScaleTransition(Duration.millis(200), iconContainer);
+            scale.setToX(1);
+            scale.setToY(1);
+            scale.play();
+        });
         
         return container;
     }
@@ -475,7 +638,21 @@ public class CourseController {
                 try {
                     courseService.deleteCourse(course.getId());
                     showSuccess("Course deleted successfully!");
-                    loadCourses();
+                    
+                    // Reload courses if the list is visible
+                    if (courseListSection != null && courseListSection.isVisible()) {
+                        loadCourses();
+                    } else {
+                        // Just update the count
+                        try {
+                            allCourses = courseService.getAllCourses();
+                            if (courseCountLabel != null) {
+                                courseCountLabel.setText("(" + allCourses.size() + ")");
+                            }
+                        } catch (SQLException ex) {
+                            System.err.println("Error updating course count: " + ex.getMessage());
+                        }
+                    }
                     
                 } catch (SQLException e) {
                     showError("Error deleting course: " + e.getMessage());
@@ -495,6 +672,116 @@ public class CourseController {
             stage.setTitle("Gamification System - Main Menu");
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    
+    private void playEntranceAnimations() {
+        // Header entrance animation
+        if (headerBox != null) {
+            headerBox.setOpacity(0);
+            headerBox.setTranslateY(-40);
+            
+            FadeTransition headerFade = new FadeTransition(Duration.millis(800), headerBox);
+            headerFade.setFromValue(0);
+            headerFade.setToValue(1);
+            
+            TranslateTransition headerSlide = new TranslateTransition(Duration.millis(800), headerBox);
+            headerSlide.setFromY(-40);
+            headerSlide.setToY(0);
+            
+            ParallelTransition headerAnim = new ParallelTransition(headerFade, headerSlide);
+            headerAnim.setDelay(Duration.millis(100));
+            headerAnim.play();
+        }
+        
+        // Title animation
+        if (titleLabel != null) {
+            titleLabel.setOpacity(0);
+            titleLabel.setScaleX(0.8);
+            titleLabel.setScaleY(0.8);
+            
+            FadeTransition titleFade = new FadeTransition(Duration.millis(600), titleLabel);
+            titleFade.setFromValue(0);
+            titleFade.setToValue(1);
+            
+            ScaleTransition titleScale = new ScaleTransition(Duration.millis(600), titleLabel);
+            titleScale.setFromX(0.8);
+            titleScale.setFromY(0.8);
+            titleScale.setToX(1);
+            titleScale.setToY(1);
+            
+            ParallelTransition titleAnim = new ParallelTransition(titleFade, titleScale);
+            titleAnim.setDelay(Duration.millis(200));
+            titleAnim.play();
+        }
+        
+        // Form entrance animation
+        if (formContainer != null) {
+            formContainer.setOpacity(0);
+            formContainer.setTranslateX(-50);
+            
+            FadeTransition formFade = new FadeTransition(Duration.millis(800), formContainer);
+            formFade.setFromValue(0);
+            formFade.setToValue(1);
+            
+            TranslateTransition formSlide = new TranslateTransition(Duration.millis(800), formContainer);
+            formSlide.setFromX(-50);
+            formSlide.setToX(0);
+            
+            ParallelTransition formAnim = new ParallelTransition(formFade, formSlide);
+            formAnim.setDelay(Duration.millis(400));
+            formAnim.play();
+        }
+        
+        // Button bar entrance animation
+        if (buttonBar != null) {
+            buttonBar.setOpacity(0);
+            buttonBar.setTranslateY(60);
+            
+            FadeTransition btnFade = new FadeTransition(Duration.millis(600), buttonBar);
+            btnFade.setFromValue(0);
+            btnFade.setToValue(1);
+            
+            TranslateTransition btnSlide = new TranslateTransition(Duration.millis(600), buttonBar);
+            btnSlide.setFromY(60);
+            btnSlide.setToY(0);
+            
+            ParallelTransition btnAnim = new ParallelTransition(btnFade, btnSlide);
+            btnAnim.setDelay(Duration.millis(800));
+            btnAnim.play();
+        }
+    }
+    
+    private void startShimmerAnimation() {
+        if (shimmerLine != null && separatorPane != null) {
+            // Bind shimmer animation to the actual width of the separator pane
+            separatorPane.widthProperty().addListener((obs, oldVal, newVal) -> {
+                double width = newVal.doubleValue();
+                Timeline shimmerAnimation = new Timeline(
+                    new KeyFrame(Duration.ZERO, new KeyValue(shimmerLine.translateXProperty(), -width)),
+                    new KeyFrame(Duration.seconds(2), new KeyValue(shimmerLine.translateXProperty(), width))
+                );
+                shimmerAnimation.setCycleCount(Timeline.INDEFINITE);
+                shimmerAnimation.play();
+            });
+        }
+    }
+    
+    private void startSparkleAnimation() {
+        if (sparkleIcon != null) {
+            ScaleTransition sparkle = new ScaleTransition(Duration.millis(1500), sparkleIcon);
+            sparkle.setFromX(1);
+            sparkle.setFromY(1);
+            sparkle.setToX(1.2);
+            sparkle.setToY(1.2);
+            sparkle.setAutoReverse(true);
+            sparkle.setCycleCount(Timeline.INDEFINITE);
+            sparkle.play();
+            
+            RotateTransition rotate = new RotateTransition(Duration.millis(3000), sparkleIcon);
+            rotate.setByAngle(360);
+            rotate.setCycleCount(Timeline.INDEFINITE);
+            rotate.play();
         }
     }
 }
