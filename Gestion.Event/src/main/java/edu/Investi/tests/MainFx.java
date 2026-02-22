@@ -7,14 +7,22 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class MainFx extends Application {
+
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ShowInscription.fxml"));
-        Parent root = fxmlLoader.load();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Main.fxml"));
+        Parent root = loader.load();
+
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+
         stage.setScene(scene);
-        stage.setTitle("INVESTI - Gestion Événements");
+        stage.setTitle("INVESTI - Plateforme Complète");
+        stage.setMaximized(true);
         stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }

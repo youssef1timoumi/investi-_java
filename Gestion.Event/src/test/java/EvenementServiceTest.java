@@ -67,6 +67,11 @@ public class EvenementServiceTest {
 
             List<Evenement> events = es.getData();
             assertFalse(events.isEmpty(), "La liste ne devrait pas être vide");
+            assertTrue(
+                    events.stream().anyMatch(e->
+                           e.getTitre().equals("Test Unitaire ")
+                    )
+            );
 
             idTestEvent = events.get(events.size() - 1).getIdEvenement();
 

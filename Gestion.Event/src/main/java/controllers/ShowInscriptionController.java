@@ -34,8 +34,6 @@ public class ShowInscriptionController {
 
     @FXML
     void initialize() {
-        System.out.println("✅ Initialisation ShowInscriptionController...");
-
         colIdUser.setCellValueFactory(new PropertyValueFactory<>("idUtilisateur"));
         colIdEvenement.setCellValueFactory(new PropertyValueFactory<>("idEvenement"));
         colDateInscription.setCellValueFactory(new PropertyValueFactory<>("dateInscription"));
@@ -103,10 +101,8 @@ public class ShowInscriptionController {
             List<Inscription> inscriptions = is.getData();
             observableList = FXCollections.observableList(inscriptions);
             tabInscription.setItems(observableList);
-            System.out.println("✅ " + inscriptions.size() + " inscriptions chargées");
         } catch (Exception e) {
             afficherErreur("Erreur", "Erreur de chargement des données", e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -117,15 +113,11 @@ public class ShowInscriptionController {
             tabInscription.getScene().setRoot(root);
         } catch (Exception e) {
             afficherErreur("Erreur", "Erreur de navigation !", e.getMessage());
-            e.printStackTrace();
         }
     }
 
     private void modifierInscription(Inscription inscription) {
         try {
-            System.out.println("✏️ Modification de l'inscription : User " + inscription.getIdUtilisateur() +
-                    " → Event " + inscription.getIdEvenement());
-
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/AddInscription.fxml"));
             Parent root = loader.load();
 
@@ -136,7 +128,6 @@ public class ShowInscriptionController {
 
         } catch (Exception e) {
             afficherErreur("Erreur", "Erreur lors de la modification", e.getMessage());
-            e.printStackTrace();
         }
     }
 
