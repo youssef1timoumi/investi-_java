@@ -3,6 +3,8 @@ package edu.connexion3a8.controllers;
 import edu.connexion3a8.entities.ForumPost;
 import edu.connexion3a8.entities.ForumComment;
 import edu.connexion3a8.services.ForumPostService;
+import edu.connexion3a8.tools.TranslationService;
+import edu.connexion3a8.tools.TranslationService.Language;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -554,10 +556,25 @@ public class ForumController implements Initializable {
         Label viewsLabel = new Label("👁 " + post.getViews());
         viewsLabel.setStyle("-fx-text-fill: #71767b; -fx-font-size: 13px; -fx-padding: 8 12;");
         
+        // Translate button with dropdown
+        MenuButton translateBtn = new MenuButton("🌐");
+        translateBtn.getStyleClass().add("action-btn");
+        translateBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #71767b;");
+        
+        MenuItem toEnglish = new MenuItem("🇬🇧 English");
+        MenuItem toFrench = new MenuItem("🇫🇷 Français");
+        MenuItem toArabic = new MenuItem("🇸🇦 العربية");
+        
+        toEnglish.setOnAction(e -> showTranslatedPost(post, Language.ENGLISH));
+        toFrench.setOnAction(e -> showTranslatedPost(post, Language.FRENCH));
+        toArabic.setOnAction(e -> showTranslatedPost(post, Language.ARABIC));
+        
+        translateBtn.getItems().addAll(toEnglish, toFrench, toArabic);
+        
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        actions.getChildren().addAll(commentBtn, upvoteBtn, downvoteBtn, viewsLabel, spacer);
+        actions.getChildren().addAll(commentBtn, upvoteBtn, downvoteBtn, viewsLabel, translateBtn, spacer);
         
         // Edit/Delete for own posts OR if user is admin
         boolean isOwner = post.getUserId() != null && post.getUserId().equals(currentUserId);
@@ -598,6 +615,104 @@ public class ForumController implements Initializable {
         } catch (SQLException e) {
             showError("Vote failed: " + e.getMessage());
         }
+    }
+
+    private void showTranslatedPost(ForumPost post, Language targetLang) {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle("Translation");
+
+        VBox root = new VBox(15);
+        root.setStyle("-fx-background-color: #000000; -fx-border-color: #2f3336; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 20;");
+        root.setMaxWidth(600);
+
+        // Header
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.CENTER_LEFT);
+        
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e7e9ea; -fx-font-size: 18px; -fx-cursor: hand;");
+        closeBtn.setOnAction(e -> dialog.close());
+        
+        Label titleLbl = new Label("🌐 Translation to " + targetLang.getDisplayName());
+        titleLbl.setStyle("-fx-text-fill: #e7e9ea; -fx-font-size: 18px; -fx-font-weight: bold;");
+        
+        header.getChildren().addAll(closeBtn, titleLbl);
+
+        // Loading indicator
+        Label loadingLabel = new Label("Translating...");
+        loadingLabel.setStyle("-fx-text-fill: #71767b; -fx-font-size: 14px;");
+        
+        root.getChildren().addAll(header, loadingLabel);
+
+        Scene scene = new Scene(root, 550, 400);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        dialog.setScene(scene);
+        dialog.show();
+
+        // Run translation in background thread
+        new Thread(() -> {
+            String translatedTitle = post.getTitle() != null ? 
+                    TranslationService.translate(post.getTitle(), targetLang) : null;
+            String translatedContent = post.getContent() != null ? 
+                    TranslationService.translate(post.getContent(), targetLang) : null;
+
+            // Update UI on JavaFX thread
+            javafx.application.Platform.runLater(() -> {
+                root.getChildren().remove(loadingLabel);
+
+                // Original section
+                Label origLabel = new Label("Original:");
+                origLabel.setStyle("-fx-text-fill: #71767b; -fx-font-size: 12px;");
+                
+                VBox origBox = new VBox(5);
+                origBox.setStyle("-fx-background-color: #16181c; -fx-padding: 10; -fx-background-radius: 8;");
+                
+                if (post.getTitle() != null && !post.getTitle().isEmpty()) {
+                    Label origTitle = new Label(post.getTitle());
+                    origTitle.setStyle("-fx-text-fill: #e7e9ea; -fx-font-weight: bold;");
+                    origTitle.setWrapText(true);
+                    origBox.getChildren().add(origTitle);
+                }
+                if (post.getContent() != null && !post.getContent().isEmpty()) {
+                    Label origContent = new Label(post.getContent());
+                    origContent.setStyle("-fx-text-fill: #e7e9ea;");
+                    origContent.setWrapText(true);
+                    origBox.getChildren().add(origContent);
+                }
+
+                // Translated section
+                Label transLabel = new Label("Translated (" + targetLang.getDisplayName() + "):");
+                transLabel.setStyle("-fx-text-fill: #1d9bf0; -fx-font-size: 12px; -fx-padding: 10 0 0 0;");
+                
+                VBox transBox = new VBox(5);
+                transBox.setStyle("-fx-background-color: #16181c; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #1d9bf0; -fx-border-radius: 8;");
+                
+                if (translatedTitle != null && !translatedTitle.isEmpty()) {
+                    Label transTitle = new Label(translatedTitle);
+                    transTitle.setStyle("-fx-text-fill: #e7e9ea; -fx-font-weight: bold;");
+                    transTitle.setWrapText(true);
+                    transBox.getChildren().add(transTitle);
+                }
+                if (translatedContent != null && !translatedContent.isEmpty()) {
+                    Label transContent = new Label(translatedContent);
+                    transContent.setStyle("-fx-text-fill: #e7e9ea;");
+                    transContent.setWrapText(true);
+                    transBox.getChildren().add(transContent);
+                }
+
+                ScrollPane scrollPane = new ScrollPane();
+                VBox contentBox = new VBox(10);
+                contentBox.getChildren().addAll(origLabel, origBox, transLabel, transBox);
+                scrollPane.setContent(contentBox);
+                scrollPane.setFitToWidth(true);
+                scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+                VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+                root.getChildren().add(scrollPane);
+            });
+        }).start();
     }
 
     private void showFullImage(String imagePath) {
