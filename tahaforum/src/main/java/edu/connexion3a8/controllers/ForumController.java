@@ -267,10 +267,18 @@ public class ForumController implements Initializable {
         }
         
         try {
+            // Validate post before saving
+            String validationError = forumService.validatePost(post);
+            if (validationError != null) {
+                showError(validationError);
+                return;
+            }
+            
             forumService.addPost(post);
             composeTextArea.clear();
             pendingImages.clear();
             loadPosts();
+            showSuccess("Post published!");
         } catch (SQLException e) {
             showError("Failed to post: " + e.getMessage());
         }
@@ -725,9 +733,17 @@ public class ForumController implements Initializable {
             }
             
             try {
+                // Validate post before saving
+                String validationError = forumService.validatePost(newPost);
+                if (validationError != null) {
+                    showError(validationError);
+                    return;
+                }
+                
                 forumService.addPost(newPost);
                 dialog.close();
                 loadPosts();
+                showSuccess("Post published!");
             } catch (SQLException ex) {
                 showError("Failed to create post: " + ex.getMessage());
             }

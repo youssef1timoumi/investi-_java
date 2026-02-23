@@ -754,4 +754,126 @@ public class ForumPostService {
         }
         return null;
     }
+
+    // ========== INPUT VALIDATION OPERATIONS ==========
+
+    /**
+     * Check if a duplicate post exists (same title + content by same user)
+     * Returns true if duplicate exists
+     */
+    public boolean isDuplicatePost(String userId, String title, String content) throws SQLException {
+        String query = "SELECT id FROM forum_posts WHERE user_id=? AND is_deleted=FALSE " +
+                "AND (title=? OR (title IS NULL AND ? IS NULL)) " +
+                "AND (content=? OR (content IS NULL AND ? IS NULL))";
+        
+        try (PreparedStatement pst = connection.prepareStatement(query)) {
+            pst.setString(1, userId);
+            pst.setString(2, title);
+            pst.setString(3, title);
+            pst.setString(4, content);
+            pst.setString(5, content);
+            ResultSet rs = pst.executeQuery();
+            return rs.next();
+        }
+    }
+
+    /**
+     * Validate post ID format (UUID format)
+     */
+    public boolean isValidPostId(String postId) {
+        if (postId == null || postId.trim().isEmpty()) {
+            return false;
+        }
+        // UUID format: 8-4-4-4-12 hex characters
+        String uuidRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
+        return postId.matches(uuidRegex);
+    }
+
+    /**
+     * Check if post ID exists in database
+     */
+    public boolean postExists(String postId) throws SQLException {
+        if (!isValidPostId(postId)) {
+            return false;
+        }
+        String query = "SELECT id FROM forum_posts WHERE id=? AND is_deleted=FALSE";
+        try (PreparedStatement pst = connection.prepareStatement(query)) {
+            pst.setString(1, postId);
+            ResultSet rs = pst.executeQuery();
+            return rs.next();
+        }
+    }
+
+    /**
+     * Validate post title (not empty, max 500 chars, no spam patterns)
+     */
+    public String validateTitle(String title) {
+        if (title == null || title.trim().isEmpty()) {
+            return null; // Title is optional
+        }
+        title = title.trim();
+        if (title.length() > 500) {
+            return "Title must be less than 500 characters";
+        }
+        // Check for spam patterns (repeated characters)
+        if (title.matches(".*(.)(\\1{5,}).*")) {
+            return "Title contains invalid repeated characters";
+        }
+        return null; // Valid
+    }
+
+    /**
+     * Validate post content (not empty if no title, max 10000 chars)
+     */
+    public String validateContent(String content, String title, boolean hasImages) {
+        if ((content == null || content.trim().isEmpty()) && 
+            (title == null || title.trim().isEmpty()) && !hasImages) {
+            return "Post must have title, content, or images";
+        }
+        if (content != null && content.length() > 10000) {
+            return "Content must be less than 10000 characters";
+        }
+        return null; // Valid
+    }
+
+    /**
+     * Validate category
+     */
+    public String validateCategory(String category) {
+        if (category == null || category.trim().isEmpty()) {
+            return "Category is required";
+        }
+        List<String> validCategories = List.of(
+            "General", "Tips & Advice", "Success Stories", 
+            "Investor Insights", "Collaboration", "Announcements"
+        );
+        if (!validCategories.contains(category)) {
+            return "Invalid category";
+        }
+        return null; // Valid
+    }
+
+    /**
+     * Full post validation - returns error message or null if valid
+     */
+    public String validatePost(ForumPost post) throws SQLException {
+        // Check title
+        String titleError = validateTitle(post.getTitle());
+        if (titleError != null) return titleError;
+
+        // Check content
+        String contentError = validateContent(post.getContent(), post.getTitle(), post.hasImages());
+        if (contentError != null) return contentError;
+
+        // Check category
+        String categoryError = validateCategory(post.getCategory());
+        if (categoryError != null) return categoryError;
+
+        // Check for duplicate
+        if (isDuplicatePost(post.getUserId(), post.getTitle(), post.getContent())) {
+            return "You have already posted this content";
+        }
+
+        return null; // All valid
+    }
 }
