@@ -3,6 +3,7 @@ package edu.connexion3a8.controllers;
 import edu.connexion3a8.entities.ForumPost;
 import edu.connexion3a8.entities.ForumComment;
 import edu.connexion3a8.services.ForumPostService;
+import edu.connexion3a8.tools.SummarizationService;
 import edu.connexion3a8.tools.TranslationService;
 import edu.connexion3a8.tools.TranslationService.Language;
 import javafx.fxml.FXML;
@@ -385,6 +386,14 @@ public class ForumController implements Initializable {
             contentCol.getChildren().add(titleLabel);
         }
         
+        // TL;DR Summary (for long posts)
+        String fullContent = (post.getTitle() != null ? post.getTitle() + " " : "") + 
+                            (post.getContent() != null ? post.getContent() : "");
+        if (SummarizationService.shouldSummarize(fullContent)) {
+            VBox summaryBox = createSummaryBox(post);
+            contentCol.getChildren().add(summaryBox);
+        }
+        
         // Content
         if (post.getContent() != null && !post.getContent().isEmpty()) {
             Label contentLabel = new Label(post.getContent());
@@ -413,6 +422,154 @@ public class ForumController implements Initializable {
         });
         
         return card;
+    }
+
+    /**
+     * Create TL;DR button that opens a popup with summary
+     */
+    private VBox createSummaryBox(ForumPost post) {
+        VBox box = new VBox(5);
+        
+        Button summaryBtn = new Button("✨ TL;DR - Generate Summary");
+        summaryBtn.setStyle("-fx-background-color: #1a1a2e; -fx-text-fill: #9B7E46; " +
+                "-fx-border-color: #9B7E46; -fx-border-radius: 8; -fx-background-radius: 8; " +
+                "-fx-padding: 8 15; -fx-cursor: hand; -fx-font-weight: bold;");
+        
+        summaryBtn.setOnMouseEntered(e -> summaryBtn.setStyle(
+                "-fx-background-color: #9B7E46; -fx-text-fill: white; " +
+                "-fx-border-color: #9B7E46; -fx-border-radius: 8; -fx-background-radius: 8; " +
+                "-fx-padding: 8 15; -fx-cursor: hand; -fx-font-weight: bold;"));
+        summaryBtn.setOnMouseExited(e -> summaryBtn.setStyle(
+                "-fx-background-color: #1a1a2e; -fx-text-fill: #9B7E46; " +
+                "-fx-border-color: #9B7E46; -fx-border-radius: 8; -fx-background-radius: 8; " +
+                "-fx-padding: 8 15; -fx-cursor: hand; -fx-font-weight: bold;"));
+        
+        summaryBtn.setOnAction(e -> {
+            e.consume();
+            showSummaryPopup(post);
+        });
+        
+        box.getChildren().add(summaryBtn);
+        return box;
+    }
+
+    /**
+     * Show summary in a popup dialog
+     */
+    private void showSummaryPopup(ForumPost post) {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.setTitle("AI Summary");
+
+        VBox root = new VBox(15);
+        root.setStyle("-fx-background-color: #000000; -fx-border-color: #9B7E46; " +
+                "-fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 25; -fx-border-width: 2;");
+        root.setPrefWidth(550);
+        root.setMinWidth(500);
+
+        // Header
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e7e9ea; " +
+                "-fx-font-size: 18px; -fx-cursor: hand;");
+        closeBtn.setOnAction(e -> dialog.close());
+
+        Label titleLbl = new Label("✨ AI Summary");
+        titleLbl.setStyle("-fx-text-fill: #9B7E46; -fx-font-size: 20px; -fx-font-weight: bold;");
+
+        header.getChildren().addAll(closeBtn, titleLbl);
+
+        // Loading state
+        Label loadingLabel = new Label("🔄 Generating summary with AI...");
+        loadingLabel.setStyle("-fx-text-fill: #71767b; -fx-font-size: 14px;");
+
+        ProgressIndicator progress = new ProgressIndicator();
+        progress.setStyle("-fx-progress-color: #9B7E46;");
+        progress.setPrefSize(40, 40);
+
+        VBox loadingBox = new VBox(15);
+        loadingBox.setAlignment(Pos.CENTER);
+        loadingBox.setPadding(new Insets(30));
+        loadingBox.getChildren().addAll(progress, loadingLabel);
+
+        root.getChildren().addAll(header, loadingBox);
+
+        Scene scene = new Scene(root, 550, 450);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        dialog.setScene(scene);
+        dialog.show();
+
+        // Generate summary in background
+        new Thread(() -> {
+            String textToSummarize = (post.getTitle() != null ? post.getTitle() + ". " : "") +
+                    (post.getContent() != null ? post.getContent() : "");
+            String summary = SummarizationService.summarize(textToSummarize);
+            
+            System.out.println("[Summarization] Summary to display: " + (summary != null ? summary.substring(0, Math.min(50, summary.length())) + "..." : "null"));
+
+            javafx.application.Platform.runLater(() -> {
+                root.getChildren().remove(loadingBox);
+
+                if (summary != null && !summary.isEmpty()) {
+                    // Original text section
+                    Label origLabel = new Label("📝 Original:");
+                    origLabel.setStyle("-fx-text-fill: #71767b; -fx-font-size: 12px; -fx-padding: 0 0 5 0;");
+
+                    Label origText = new Label(textToSummarize.length() > 150 ? 
+                            textToSummarize.substring(0, 150) + "..." : textToSummarize);
+                    origText.setStyle("-fx-text-fill: #a0a0a0; -fx-font-size: 12px;");
+                    origText.setWrapText(true);
+                    origText.setMaxWidth(480);
+
+                    VBox origBox = new VBox(5);
+                    origBox.setStyle("-fx-background-color: #16181c; -fx-padding: 12; -fx-background-radius: 8;");
+                    origBox.getChildren().addAll(origLabel, origText);
+
+                    // Summary section
+                    Label summaryLabel = new Label("✨ AI-Generated Summary:");
+                    summaryLabel.setStyle("-fx-text-fill: #9B7E46; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 0 5 0;");
+
+                    Label summaryText = new Label(summary);
+                    summaryText.setStyle("-fx-text-fill: #e7e9ea; -fx-font-size: 14px; -fx-line-spacing: 3;");
+                    summaryText.setWrapText(true);
+                    summaryText.setMaxWidth(480);
+
+                    VBox summaryBox = new VBox(8);
+                    summaryBox.setStyle("-fx-background-color: #1a1a2e; -fx-padding: 15; " +
+                            "-fx-background-radius: 8; -fx-border-color: #9B7E46; -fx-border-radius: 8; -fx-border-width: 1;");
+                    summaryBox.getChildren().addAll(summaryLabel, summaryText);
+
+                    // Close button
+                    Button okBtn = new Button("Got it!");
+                    okBtn.setStyle("-fx-background-color: #9B7E46; -fx-text-fill: white; " +
+                            "-fx-padding: 10 40; -fx-background-radius: 20; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 14px;");
+                    okBtn.setOnAction(e -> dialog.close());
+
+                    HBox btnBox = new HBox();
+                    btnBox.setAlignment(Pos.CENTER);
+                    btnBox.setPadding(new Insets(10, 0, 0, 0));
+                    btnBox.getChildren().add(okBtn);
+
+                    root.getChildren().addAll(origBox, summaryBox, btnBox);
+                    
+                    // Resize dialog to fit content
+                    dialog.sizeToScene();
+                } else {
+                    Label errorLabel = new Label("❌ Could not generate summary");
+                    errorLabel.setStyle("-fx-text-fill: #A62639; -fx-font-size: 14px;");
+
+                    Button retryBtn = new Button("Close");
+                    retryBtn.setStyle("-fx-background-color: #A62639; -fx-text-fill: white; " +
+                            "-fx-padding: 10 30; -fx-background-radius: 20; -fx-cursor: hand;");
+                    retryBtn.setOnAction(e -> dialog.close());
+
+                    root.getChildren().addAll(errorLabel, retryBtn);
+                }
+            });
+        }).start();
     }
 
     private HBox createImagesPreview(List<String> imagePaths) {
