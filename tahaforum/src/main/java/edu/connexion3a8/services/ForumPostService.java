@@ -2,6 +2,7 @@ package edu.connexion3a8.services;
 
 import edu.connexion3a8.entities.ForumPost;
 import edu.connexion3a8.entities.ForumComment;
+import edu.connexion3a8.tools.BadWordsFilter;
 import edu.connexion3a8.tools.MyConnection;
 
 import java.sql.*;
@@ -869,11 +870,37 @@ public class ForumPostService {
         String categoryError = validateCategory(post.getCategory());
         if (categoryError != null) return categoryError;
 
+        // Check for bad words in title
+        if (BadWordsFilter.containsBadWords(post.getTitle())) {
+            return "Your title contains inappropriate language";
+        }
+
+        // Check for bad words in content
+        if (BadWordsFilter.containsBadWords(post.getContent())) {
+            return "Your post contains inappropriate language";
+        }
+
         // Check for duplicate
         if (isDuplicatePost(post.getUserId(), post.getTitle(), post.getContent())) {
             return "You have already posted this content";
         }
 
         return null; // All valid
+    }
+
+    /**
+     * Validate comment content for bad words
+     */
+    public String validateComment(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return "Comment cannot be empty";
+        }
+        if (content.length() > 5000) {
+            return "Comment must be less than 5000 characters";
+        }
+        if (BadWordsFilter.containsBadWords(content)) {
+            return "Your comment contains inappropriate language";
+        }
+        return null; // Valid
     }
 }

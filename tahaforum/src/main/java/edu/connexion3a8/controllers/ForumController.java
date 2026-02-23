@@ -954,6 +954,13 @@ public class ForumController implements Initializable {
         replyBtn.setOnAction(e -> {
             if (commentArea.getText().trim().isEmpty()) return;
             
+            // Validate comment for bad words
+            String validationError = forumService.validateComment(commentArea.getText().trim());
+            if (validationError != null) {
+                showError(validationError);
+                return;
+            }
+            
             ForumComment comment = new ForumComment(post.getId(), currentUserId, commentArea.getText().trim());
             try {
                 forumService.addComment(comment);
@@ -1122,6 +1129,13 @@ public class ForumController implements Initializable {
         submitBtn.getStyleClass().add("btn-primary");
         submitBtn.setOnAction(e -> {
             if (replyArea.getText().trim().isEmpty()) return;
+            
+            // Validate reply for bad words
+            String validationError = forumService.validateComment(replyArea.getText().trim());
+            if (validationError != null) {
+                showError(validationError);
+                return;
+            }
             
             ForumComment reply = new ForumComment(post.getId(), currentUserId, replyArea.getText().trim());
             reply.setParentCommentId(parent.getId());
