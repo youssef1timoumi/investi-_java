@@ -1,0 +1,276 @@
+/* =========================
+   Modern Dashboard CSS
+   ========================= */
+
+.root {
+    -dark: #000501;
+    -light: #F7F0F5;
+    -blue-gray: #456990;
+    -gold: #9B7E46;
+    -fx-font-family: "Segoe UI", "Inter", sans-serif;
+    -fx-background-color: -light;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    -fx-background-color: #000501;
+    /* Rich Black */
+    -fx-padding: 20 0 20 0;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #F7F0F5;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 12 20 12 20;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+    -fx-border-width: 0 0 0 4;
+    -fx-border-color: transparent;
+    -fx-transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+    -fx-background-color: rgba(247, 240, 245, 0.1);
+}
+
+.nav-button.active {
+    -fx-background-color: rgba(155, 126, 70, 0.2);
+    -fx-text-fill: #9B7E46;
+    /* Gold */
+    -fx-border-color: #9B7E46;
+}
+
+/* Header Styling */
+.header {
+    -fx-background-color: white;
+    -fx-padding: 0 30 0 30;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 10, 0, 0, 2);
+}
+
+.header-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000501;
+}
+
+/* Card Styling */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 15, 0, 0, 5);
+}
+
+.stat-card {
+    -fx-padding: 20;
+    -fx-background-radius: 12;
+}
+
+/* TableView Improvements */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #F8F9FA;
+    -fx-background-radius: 8 8 0 0;
+    -fx-padding: 5;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 10;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #6C757D;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: #F1F3F5;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #F8F9FA;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: rgba(73, 102, 144, 0.1);
+}
+
+.table-row-cell:selected .text {
+    -fx-fill: #456690;
+}
+
+/* Modern Controls */
+.button {
+    -fx-background-radius: 8;
+    -fx-padding: 10 20 10 20;
+    -fx-font-weight: bold;
+}
+
+/* --- Modern E-commerce Styles (HTML Reference) --- */
+.catalog-header {
+    -fx-background-color: -dark;
+    -fx-padding: 40 30;
+    -fx-alignment: CENTER;
+    -fx-border-color: -gold;
+    -fx-border-width: 0 0 3 0;
+}
+
+.catalog-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: 300;
+    -fx-text-fill: -light;
+    -fx-letter-spacing: 1px;
+}
+
+.catalog-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: -light;
+    -fx-opacity: 0.85;
+}
+
+.filters-container {
+    -fx-padding: 20 0;
+    -fx-alignment: CENTER;
+    -fx-spacing: 15;
+}
+
+.filter-button {
+    -fx-background-color: transparent;
+    -fx-border-color: -blue-gray;
+    -fx-border-width: 2;
+    -fx-border-radius: 30;
+    -fx-text-fill: -blue-gray;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 25;
+    -fx-cursor: hand;
+}
+
+.filter-button:hover {
+    -fx-background-color: -blue-gray;
+    -fx-text-fill: -light;
+}
+
+.filter-button.active {
+    -fx-background-color: -blue-gray;
+    -fx-text-fill: -light;
+    -fx-effect: dropshadow(three-pass-box, rgba(69, 105, 144, 0.3), 10, 0, 0, 4);
+}
+
+/* Product Card Redesign */
+.product-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 15, 0, 0, 5);
+    -fx-cursor: hand;
+    -fx-border-color: #f0f0f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+.product-card:hover {
+    -fx-border-color: -gold;
+    -fx-translate-y: -6;
+    -fx-effect: dropshadow(three-pass-box, rgba(69, 105, 144, 0.15), 25, 0, 0, 15);
+}
+
+.product-image-area {
+    -fx-background-color: linear-gradient(to bottom right, -blue-gray, -dark);
+    -fx-background-radius: 12 12 0 0;
+    -fx-min-height: 180;
+    -fx-alignment: CENTER;
+}
+
+.product-image-emoji {
+    -fx-font-size: 48px;
+    -fx-text-fill: -gold;
+}
+
+.product-content-area {
+    -fx-padding: 20;
+    -fx-spacing: 10;
+}
+
+.product-name-label {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -dark;
+}
+
+.product-desc-short {
+    -fx-font-size: 13px;
+    -fx-text-fill: #888;
+    -fx-font-style: italic;
+}
+
+.product-stats-row {
+    -fx-spacing: 15;
+    -fx-padding: 10 0;
+    -fx-border-color: #f0f0f0;
+    -fx-border-width: 1 0 0 0;
+}
+
+.stat-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #888;
+}
+
+.product-price-large {
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -gold;
+}
+
+.product-currency-small {
+    -fx-font-size: 12px;
+    -fx-text-fill: #888;
+    -fx-font-weight: normal;
+}
+
+.badge {
+    -fx-padding: 4 12;
+    -fx-background-radius: 20;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+}
+
+.badge-digital {
+    -fx-background-color: #e3f2fd;
+    -fx-text-fill: -blue-gray;
+}
+
+.badge-physical {
+    -fx-background-color: #fff3e0;
+    -fx-text-fill: -gold;
+}
+
+.badge-active {
+    -fx-background-color: #c8e6c9;
+    -fx-text-fill: #2e7d32;
+}
+
+.badge-inactive {
+    -fx-background-color: #ffcdd2;
+    -fx-text-fill: #c62828;
+}
+
+.empty-state-title {
+    -fx-font-size: 24px;
+    -fx-text-fill: -blue-gray;
+    -fx-font-weight: bold;
+}
+
+.empty-state-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #888;
+}

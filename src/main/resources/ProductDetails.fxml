@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.shape.Rectangle?>
+
+<VBox prefWidth="850.0" prefHeight="600.0" spacing="0" style="-fx-background-color: #ffffff;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.ProductDetailsController">
+   <children>
+      <!-- Header / Top Bar -->
+      <HBox alignment="CENTER_LEFT" prefHeight="70.0" spacing="20.0" style="-fx-background-color: linear-gradient(to right, #6366f1, #a855f7); -fx-padding: 0 30;">
+         <children>
+            <Label style="-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: white;" text="🔍 Détails du Produit" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Button onAction="#closeWindow" style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 8 20; -fx-font-weight: bold; -fx-cursor: hand;" text="Fermer" />
+         </children>
+      </HBox>
+
+      <HBox spacing="40.0" VBox.vgrow="ALWAYS" style="-fx-padding: 40;">
+         <children>
+            <!-- Left Side: Image Preview -->
+            <VBox alignment="TOP_CENTER" spacing="20.0" prefWidth="350.0">
+               <children>
+                  <StackPane style="-fx-background-color: #f8f9fa; -fx-background-radius: 15; -fx-border-color: #e2e8f0; -fx-border-radius: 15; -fx-border-width: 1; -fx-padding: 10;">
+                     <children>
+                        <ImageView fx:id="productImageView" fitHeight="300.0" fitWidth="300.0" preserveRatio="true" />
+                        <Label fx:id="imagePlaceholder" text="Pas d'image" style="-fx-text-fill: #94a3b8; -fx-font-weight: bold;" />
+                     </children>
+                  </StackPane>
+                  
+                  <VBox alignment="CENTER" spacing="5.0" style="-fx-background-color: #f1f5f9; -fx-background-radius: 10; -fx-padding: 15;">
+                     <children>
+                        <Label fx:id="statusLabel" text="PUBLISHED" style="-fx-padding: 5 15; -fx-background-radius: 20; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12;" />
+                        <Label fx:id="categoryLabel" text="Catégorie: 1" style="-fx-text-fill: #64748b; -fx-font-size: 13;" />
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+
+            <!-- Right Side: Details -->
+            <VBox spacing="25.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label fx:id="nameLabel" style="-fx-font-size: 32; -fx-font-weight: 800; -fx-text-fill: #1e293b;" text="Nom du Produit" wrapText="true" />
+                        <Label fx:id="priceLabel" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #6366f1;" text="0.00 TND" />
+                     </children>
+                  </VBox>
+
+                  <Separator style="-fx-opacity: 0.5;" />
+
+                  <VBox spacing="10.0">
+                     <children>
+                        <Label style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #475569;" text="Description" />
+                        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" prefHeight="180.0">
+                           <content>
+                              <Label fx:id="descriptionLabel" lineSpacing="5.0" style="-fx-font-size: 15; -fx-text-fill: #64748b;" text="Aucune description fournie pour ce produit." wrapText="true" />
+                           </content>
+                        </ScrollPane>
+                     </children>
+                  </VBox>
+
+                  <HBox spacing="15.0" alignment="BOTTOM_RIGHT" VBox.vgrow="ALWAYS">
+                     <children>
+                        <VBox spacing="5.0">
+                           <children>
+                              <Label fx:id="salesLabel" style="-fx-text-fill: #94a3b8; -fx-font-size: 12;" text="Ventes: 0" />
+                              <Label fx:id="viewsLabel" style="-fx-text-fill: #94a3b8; -fx-font-size: 12;" text="Vues: 0" />
+                           </children>
+                        </VBox>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Button onAction="#closeWindow" prefHeight="45.0" prefWidth="150.0" style="-fx-background-color: #6366f1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand;" text="Retour au Catalogue" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </children>
+</VBox>
