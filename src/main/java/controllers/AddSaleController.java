@@ -31,6 +31,7 @@ public class AddSaleController implements Initializable {
     private Consumer<Void> onSaleCreated;
     private Runnable onCancel;
     private Product product;
+    private Sale existingSale;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -50,6 +51,24 @@ public class AddSaleController implements Initializable {
         }
     }
 
+    public void setSaleData(Sale s) {
+        this.existingSale = s;
+        if (s != null) {
+            formTitle.setText("Update Sale");
+            saveBtn.setText("Save Changes");
+
+            referenceField.setText(s.getReference());
+            referenceField.setEditable(false); // Reference shouldn't change
+            customerIdField.setText(String.valueOf(s.getCustomerId()));
+            amountField.setText(String.valueOf(s.getTotalAmount()));
+            currencyField.setText(s.getCurrency());
+            paymentMethodCombo.setValue(s.getPaymentMethod());
+            shippingField.setText(s.getShippingAddress());
+            billingField.setText(s.getBillingAddress());
+            notesField.setText(s.getNotes());
+        }
+    }
+
     public void setOnSaleCreated(Consumer<Void> onSaleCreated) {
         this.onSaleCreated = onSaleCreated;
     }
@@ -64,21 +83,26 @@ public class AddSaleController implements Initializable {
             return;
 
         try {
-            Sale s = new Sale();
+            Sale s = (existingSale != null) ? existingSale : new Sale();
             s.setReference(referenceField.getText());
             s.setCustomerId(Long.parseLong(customerIdField.getText()));
-            s.setProductId(product != null ? product.getId() : 0);
+            s.setProductId(
+                    product != null ? product.getId() : (existingSale != null ? existingSale.getProductId() : 0));
             s.setTotalAmount(Double.parseDouble(amountField.getText()));
             s.setCurrency(currencyField.getText());
-            s.setStatus("paid");
             s.setPaymentMethod(paymentMethodCombo.getValue());
-            s.setPaymentStatus("paid");
-            s.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase());
             s.setShippingAddress(shippingField.getText());
             s.setBillingAddress(billingField.getText());
             s.setNotes(notesField.getText());
 
-            saleService.create(s);
+            if (existingSale != null) {
+                saleService.update(s);
+            } else {
+                s.setStatus("paid");
+                s.setPaymentStatus("paid");
+                s.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase());
+                saleService.create(s);
+            }
 
             if (onSaleCreated != null) {
                 onSaleCreated.accept(null);

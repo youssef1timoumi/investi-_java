@@ -116,6 +116,22 @@
                 </HBox>
             </HBox>
 
+            <!-- Sales History Header -->
+            <HBox fx:id="historyHeader" alignment="CENTER_LEFT" spacing="20" visible="false" managed="false">
+                <HBox spacing="40" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                    <VBox spacing="5">
+                        <Label styleClass="title-text" text="Sales Overview" />
+                        <Label styleClass="subtitle-text" text="Track your transactions and business performance." />
+                    </VBox>
+                    <HBox spacing="25" alignment="CENTER_LEFT">
+                        <VBox alignment="CENTER_LEFT">
+                            <Label styleClass="meta-label" text="TOTAL SALES" />
+                            <Label fx:id="totalSalesCountLabel" styleClass="meta-value" text="0" />
+                        </VBox>
+                    </HBox>
+                </HBox>
+            </HBox>
+
             <VBox VBox.vgrow="ALWAYS">
                 <padding><javafx.geometry.Insets top="0" bottom="0" left="0" right="0"/></padding>
                 

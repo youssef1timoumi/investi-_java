@@ -31,9 +31,10 @@ public class MainController implements Initializable {
     @FXML
     private VBox cartPage, cartItemsContainer;
     @FXML
-    private HBox mainHeader, filtersContainer, categoryContainer, saleFiltersContainer, saleCategoryContainer;
+    private HBox mainHeader, filtersContainer, categoryContainer, saleFiltersContainer, saleCategoryContainer,
+            historyHeader;
     @FXML
-    private Label cartCountLabel, totalProductsLabel, totalRevenueLabel;
+    private Label cartCountLabel, totalProductsLabel, totalRevenueLabel, totalSalesCountLabel;
     @FXML
     private Button btnAddNewProduct;
     @FXML
@@ -115,6 +116,8 @@ public class MainController implements Initializable {
             // Update stats
             if (totalProductsLabel != null && allProducts != null)
                 totalProductsLabel.setText(String.valueOf(allProducts.size()));
+            if (totalSalesCountLabel != null && allSales != null)
+                totalSalesCountLabel.setText(String.valueOf(allSales.size()));
             if (totalRevenueLabel != null && allSales != null) {
                 double total = allSales.stream().mapToDouble(Sale::getTotalAmount).sum();
                 totalRevenueLabel.setText(String.format("%.2f", total));
@@ -181,6 +184,44 @@ public class MainController implements Initializable {
         switchTab("history", navHistory);
     }
 
+    private void handleEditSale(Sale s) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/add-sale.fxml"));
+            VBox form = loader.load();
+
+            AddSaleController controller = loader.getController();
+            controller.setSaleData(s);
+            controller.setOnSaleCreated(v -> {
+                loadDatabaseData();
+                renderOrders();
+                switchTab("history", navHistory);
+            });
+            controller.setOnCancel(() -> switchTab("history", navHistory));
+
+            addProductPage.getChildren().setAll(form);
+            switchTab("add-sale", navHistory);
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleDeleteSale(Sale s) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Sale");
+        alert.setHeaderText("Are you sure you want to delete this sale record?");
+        alert.setContentText("Reference: " + s.getReference());
+
+        if (alert.showAndWait().get() == ButtonType.OK) {
+            try {
+                new services.SaleService().delete((int) s.getId());
+                loadDatabaseData();
+                renderOrders();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void switchTab(String tab, Button activeBtn) {
         activeTab = tab;
 
@@ -230,12 +271,25 @@ public class MainController implements Initializable {
                 saleFiltersContainer.setVisible(true);
                 saleFiltersContainer.setManaged(true);
             }
+            // Switch Headers
+            if (mainHeader != null) {
+                mainHeader.setVisible(false);
+                mainHeader.setManaged(false);
+            }
+            if (historyHeader != null) {
+                historyHeader.setVisible(true);
+                historyHeader.setManaged(true);
+            }
         } else if (tab.equals("add-product") || tab.equals("add-sale")) {
             addProductPage.setVisible(true);
             addProductPage.setManaged(true);
             if (mainHeader != null) {
                 mainHeader.setVisible(false);
                 mainHeader.setManaged(false);
+            }
+            if (historyHeader != null) {
+                historyHeader.setVisible(false);
+                historyHeader.setManaged(false);
             }
             if (filtersContainer != null) {
                 filtersContainer.setVisible(false);
@@ -252,6 +306,10 @@ public class MainController implements Initializable {
             if (mainHeader != null) {
                 mainHeader.setVisible(true);
                 mainHeader.setManaged(true);
+            }
+            if (historyHeader != null) {
+                historyHeader.setVisible(false);
+                historyHeader.setManaged(false);
             }
             if (filtersContainer != null) {
                 filtersContainer.setVisible(true);
@@ -544,12 +602,26 @@ public class MainController implements Initializable {
             // Footer
             HBox footer = new HBox();
             footer.getStyleClass().add("order-total-box");
+
+            Button editBtn = new Button();
+            editBtn.getStyleClass().addAll("card-action-btn", "edit");
+            editBtn.setGraphic(new FontIcon("fth-edit-2"));
+            editBtn.setOnAction(e -> handleEditSale(s));
+
+            Button deleteBtn = new Button();
+            deleteBtn.getStyleClass().addAll("card-action-btn", "delete");
+            deleteBtn.setGraphic(new FontIcon("fth-trash-2"));
+            deleteBtn.setOnAction(e -> handleDeleteSale(s));
+
+            Region fSpacer = new Region();
+            HBox.setHgrow(fSpacer, Priority.ALWAYS);
+
             Label totalLabel = new Label("Total Paid: ");
             totalLabel.getStyleClass().add("order-total-label");
             Label totalAmount = new Label((s.getCurrency() != null ? s.getCurrency() : "USD") + " "
                     + String.format("%.2f", s.getTotalAmount()));
             totalAmount.getStyleClass().add("order-total-amount");
-            footer.getChildren().addAll(totalLabel, totalAmount);
+            footer.getChildren().addAll(editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
 
             card.getChildren().addAll(header, new Separator(), grid, new Separator(), footer);
             ordersContainer.getChildren().add(card);
