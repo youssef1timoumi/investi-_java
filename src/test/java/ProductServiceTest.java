@@ -31,7 +31,7 @@ public class ProductServiceTest {
     @Order(1)
     public void testCreateProduct() {
         Product p = new Product("Test Product", "Description", "Short", 100.0, "TND", false, null, 1, 1, 1,
-                "published");
+                "published", "image.png", "gradient");
         try {
             int id = ps.create(p);
             this.idProduct = id;
@@ -50,7 +50,8 @@ public class ProductServiceTest {
     @Test
     @Order(2)
     public void testUpdateProduct() throws SQLException {
-        Product p = new Product("Update Test", "Desc", "Short", 50.0, "TND", false, null, 1, 1, 1, "published");
+        Product p = new Product("Update Test", "Desc", "Short", 50.0, "TND", false, null, 1, 1, 1, "published",
+                "image.png", "gradient");
         int id = ps.create(p);
         this.idProduct = id;
 

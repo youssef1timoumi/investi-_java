@@ -14,7 +14,7 @@ public class Main {
         try {
             // 1. Create a Product
             Product p1 = new Product("Smartphone XYZ", "A high-end smartphone", "Latest flagship", 999.99, "TND", false,
-                    null, 1, 1, 1, "published");
+                    null, 1, 1, 1, "published", "default.png", "blue-600");
             int id = ps.create(p1);
             System.out.println("Product created with ID: " + id);
 

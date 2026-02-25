@@ -15,6 +15,8 @@ public class Product {
     private long entrepreneurId;
     private long categoryId;
     private String status;
+    private String image;
+    private String gradient;
     private int viewsCount;
     private int salesCount;
     private Timestamp createdAt;
@@ -25,7 +27,7 @@ public class Product {
 
     public Product(long id, String name, String description, String shortDescription, double price, String currency,
             boolean isDigital, String downloadUrl, long projectId, long entrepreneurId, long categoryId, String status,
-            int viewsCount, int salesCount, Timestamp createdAt, Timestamp updatedAt) {
+            String image, String gradient, int viewsCount, int salesCount, Timestamp createdAt, Timestamp updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -38,6 +40,8 @@ public class Product {
         this.entrepreneurId = entrepreneurId;
         this.categoryId = categoryId;
         this.status = status;
+        this.image = image;
+        this.gradient = gradient;
         this.viewsCount = viewsCount;
         this.salesCount = salesCount;
         this.createdAt = createdAt;
@@ -47,7 +51,7 @@ public class Product {
     // Constructor for creation (without ID and timestamps)
     public Product(String name, String description, String shortDescription, double price, String currency,
             boolean isDigital, String downloadUrl, long projectId, long entrepreneurId, long categoryId,
-            String status) {
+            String status, String image, String gradient) {
         this.name = name;
         this.description = description;
         this.shortDescription = shortDescription;
@@ -59,6 +63,8 @@ public class Product {
         this.entrepreneurId = entrepreneurId;
         this.categoryId = categoryId;
         this.status = status;
+        this.image = image;
+        this.gradient = gradient;
     }
 
     public long getId() {
@@ -157,6 +163,22 @@ public class Product {
         this.status = status;
     }
 
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getGradient() {
+        return gradient;
+    }
+
+    public void setGradient(String gradient) {
+        this.gradient = gradient;
+    }
+
     public int getViewsCount() {
         return viewsCount;
     }
@@ -187,6 +209,14 @@ public class Product {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getCategoryName() {
+        return name; // Or whichever field represents the category name in your UI
+    }
+
+    public String getTitle() {
+        return name;
     }
 
     @Override

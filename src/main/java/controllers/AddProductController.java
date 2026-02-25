@@ -1,179 +1,191 @@
 package controllers;
 
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 import models.Product;
 import services.ProductService;
+
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
+import java.util.ResourceBundle;
 import java.util.UUID;
+import java.util.function.Consumer;
 
-public class AddProductController {
-
-    @FXML
-    private TextField nameTf;
-    @FXML
-    private TextField priceTf;
-    @FXML
-    private TextArea descriptionTa;
-    @FXML
-    private ComboBox<String> statusCb;
-    @FXML
-    private TextField categoryTf;
-    @FXML
-    private ImageView imagePreview;
-    @FXML
-    private TextField imageUrlTf;
-    @FXML
-    private Label placeholderLabel;
-    @FXML
-    private Label titleLabel;
-    @FXML
-    private Button submitBtn;
-
-    public static Product productToEdit = null;
-
-    private final ProductService ps = new ProductService();
-    private File selectedImageFile;
+public class AddProductController implements Initializable {
 
     @FXML
-    void initialize() {
-        statusCb.getItems().addAll("draft", "published", "archived");
-        statusCb.setValue("draft");
+    private TextField nameField, titleField, shortDescField, imageField, priceField;
+    @FXML
+    private TextArea fullDescField;
+    @FXML
+    private ComboBox<String> currencyCombo, categoryCombo, statusCombo, gradientCombo;
+    @FXML
+    private CheckBox digitalCheck;
+    @FXML
+    private Label nameError, priceError;
 
-        // Ensure preview looks good
-        imagePreview.setPreserveRatio(true);
+    private final ProductService productService = new ProductService();
+    private Consumer<Void> onProductAdded;
+    private Runnable onCancel;
+    private File selectedFile;
 
-        if (productToEdit != null) {
-            titleLabel.setText("📝 Modifier le Produit");
-            submitBtn.setText("✓ Mettre à jour le Produit");
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        // Initialize combos
+        currencyCombo.getItems().addAll("USD", "TND", "EUR", "GBP");
+        currencyCombo.setValue("USD");
 
-            nameTf.setText(productToEdit.getName());
-            priceTf.setText(String.valueOf(productToEdit.getPrice()));
-            categoryTf.setText(String.valueOf(productToEdit.getCategoryId()));
-            descriptionTa.setText(productToEdit.getDescription());
-            statusCb.setValue(productToEdit.getStatus());
+        categoryCombo.getItems().addAll("Software", "Analytics", "Web", "Design", "Mobile");
+        categoryCombo.setValue("Software");
 
-            if (productToEdit.getDownloadUrl() != null && !productToEdit.getDownloadUrl().isEmpty()) {
-                imageUrlTf.setText(productToEdit.getDownloadUrl());
-            }
-        }
+        statusCombo.getItems().addAll("published", "draft", "retired");
+        statusCombo.setValue("published");
+
+        gradientCombo.getItems().addAll("blue-600", "orange-600", "pink-600", "purple-600", "slate-600");
+        gradientCombo.setValue("blue-600");
+    }
+
+    public void setOnProductAdded(Consumer<Void> onProductAdded) {
+        this.onProductAdded = onProductAdded;
+    }
+
+    public void setOnCancel(Runnable onCancel) {
+        this.onCancel = onCancel;
     }
 
     @FXML
-    void importImage() {
+    private void handleBrowseImage() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Product Image");
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
 
-        File file = fileChooser.showOpenDialog(nameTf.getScene().getWindow());
-        if (file != null) {
-            selectedImageFile = file;
-            imageUrlTf.setText(file.getAbsolutePath());
-            imagePreview.setImage(new Image(file.toURI().toString()));
-            placeholderLabel.setVisible(false);
+        Stage stage = (Stage) nameField.getScene().getWindow();
+        selectedFile = fileChooser.showOpenDialog(stage);
+
+        if (selectedFile != null) {
+            imageField.setText(selectedFile.getName());
         }
     }
 
     @FXML
-    void saveProduct() {
+    private void handleSave() {
+        if (!validateForm())
+            return;
+
         try {
-            // Basic validation
-            if (nameTf.getText().isEmpty() || priceTf.getText().isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill in the product name and price.");
-                return;
-            }
+            String imagePath = "https://via.placeholder.com/180"; // Default
 
-            String imagePath = "";
-            if (selectedImageFile != null) {
-                try {
-                    String fileName = UUID.randomUUID().toString() + "_" + selectedImageFile.getName();
-                    File destDir = new File("src/main/resources/uploads");
-                    if (!destDir.exists())
-                        destDir.mkdirs();
-
-                    File destFile = new File(destDir, fileName);
-                    Files.copy(selectedImageFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    imagePath = "/uploads/" + fileName;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    showAlert(Alert.AlertType.ERROR, "Upload Error", "Failed to save image: " + e.getMessage());
+            if (selectedFile != null) {
+                // Ensure uploads directory exists
+                Path uploadDir = Paths.get("uploads");
+                if (!Files.exists(uploadDir)) {
+                    Files.createDirectories(uploadDir);
                 }
+
+                // Generative unique filename to avoid overwrites
+                String fileName = UUID.randomUUID().toString() + "_" + selectedFile.getName();
+                Path targetPath = uploadDir.resolve(fileName);
+
+                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                imagePath = targetPath.toAbsolutePath().toUri().toString(); // Store absolute URI
             }
 
-            Product p = (productToEdit != null) ? productToEdit : new Product();
-            p.setName(nameTf.getText());
-            p.setDescription(descriptionTa.getText());
-            p.setShortDescription("");
-            p.setPrice(Double.parseDouble(priceTf.getText().trim()));
-            p.setCurrency("TND");
-            p.setDigital(false);
-            if (!imagePath.isEmpty()) {
-                p.setDownloadUrl(imagePath);
+            Product p = new Product();
+            p.setName(nameField.getText());
+            p.setDescription(fullDescField.getText());
+            p.setShortDescription(shortDescField.getText());
+            p.setPrice(Double.parseDouble(priceField.getText()));
+            p.setCurrency(currencyCombo.getValue());
+            p.setDigital(digitalCheck.isSelected());
+            p.setStatus(statusCombo.getValue());
+            p.setImage(imagePath);
+            p.setGradient(gradientCombo.getValue());
+
+            p.setCategoryId(mapCategoryToId(categoryCombo.getValue()));
+            p.setProjectId(1);
+            p.setEntrepreneurId(1);
+
+            productService.create(p);
+
+            if (onProductAdded != null) {
+                onProductAdded.accept(null);
             }
-            p.setProjectId(1L);
-            p.setEntrepreneurId(1L);
-            p.setCategoryId(categoryTf.getText().isEmpty() ? 1L : Long.parseLong(categoryTf.getText().trim()));
-            p.setStatus(statusCb.getValue());
-
-            if (productToEdit != null) {
-                ps.update(p);
-            } else {
-                ps.create(p);
-            }
-
-            // Success feedback
-            Alert success = new Alert(Alert.AlertType.INFORMATION);
-            success.setTitle(productToEdit != null ? "Product Updated" : "Product Saved");
-            success.setHeaderText(null);
-            success.setContentText("Product '" + p.getName() + "' has been successfully "
-                    + (productToEdit != null ? "updated." : "added."));
-            success.showAndWait();
-
-            productToEdit = null;
-
-            resetForm();
-            navigateShowProducts();
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Input Error",
-                    "Please ensure the price and category ID are valid numbers.");
-        } catch (SQLException e) {
+        } catch (SQLException | NumberFormatException | IOException e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save product: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error", "Could not save product: " + e.getMessage());
         }
     }
 
     @FXML
-    void resetForm() {
-        productToEdit = null;
-        nameTf.clear();
-        priceTf.clear();
-        categoryTf.clear();
-        descriptionTa.clear();
-        imageUrlTf.clear();
-        statusCb.setValue("draft");
-        selectedImageFile = null;
-        imagePreview.setImage(null);
-        placeholderLabel.setVisible(true);
+    private void handleCancel() {
+        if (onCancel != null)
+            onCancel.run();
+    }
+
+    @FXML
+    private void handleBack() {
+        handleCancel();
+    }
+
+    private boolean validateForm() {
+        boolean isValid = true;
+
+        if (nameField.getText().isEmpty()) {
+            nameError.setText("Product name is required");
+            nameError.setVisible(true);
+            nameError.setManaged(true);
+            isValid = false;
+        } else {
+            nameError.setVisible(false);
+            nameError.setManaged(false);
+        }
+
+        try {
+            double price = Double.parseDouble(priceField.getText());
+            if (price < 0) {
+                priceError.setText("Price cannot be negative");
+                priceError.setVisible(true);
+                priceError.setManaged(true);
+                isValid = false;
+            } else {
+                priceError.setVisible(false);
+                priceError.setManaged(false);
+            }
+        } catch (NumberFormatException e) {
+            priceError.setText("Invalid price format");
+            priceError.setVisible(true);
+            priceError.setManaged(true);
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    private long mapCategoryToId(String cat) {
+        return switch (cat) {
+            case "Software" -> 1;
+            case "Analytics" -> 2;
+            case "Web" -> 3;
+            case "Design" -> 4;
+            case "Mobile" -> 5;
+            default -> 1;
+        };
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
-        alert.setHeaderText(null);
         alert.setContentText(content);
-        alert.showAndWait();
-    }
-
-    @FXML
-    void navigateShowProducts() {
-        DashboardController.getInstance().showProducts();
+        alert.show();
     }
 }
