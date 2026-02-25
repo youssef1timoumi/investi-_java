@@ -15,6 +15,11 @@ public class Investment {
     private String status;
     private Date investmentDate;
 
+    // Collaboration & Progress Tracking Fields (Idea 5)
+    private int progressPercentage; // 0 to 100
+    private String latestProgressLog; // What the entrepreneur did lately
+    private int paymentMonthsCompleted; // Investor payments made so far
+
     public Investment() {
     }
 
@@ -100,6 +105,31 @@ public class Investment {
 
     public void setInvestmentDate(Date investmentDate) {
         this.investmentDate = investmentDate;
+    }
+
+    // Getters and Setters for Progress Tracking
+    public int getProgressPercentage() {
+        return progressPercentage;
+    }
+
+    public void setProgressPercentage(int progressPercentage) {
+        this.progressPercentage = progressPercentage;
+    }
+
+    public String getLatestProgressLog() {
+        return latestProgressLog;
+    }
+
+    public void setLatestProgressLog(String latestProgressLog) {
+        this.latestProgressLog = latestProgressLog;
+    }
+
+    public int getPaymentMonthsCompleted() {
+        return paymentMonthsCompleted;
+    }
+
+    public void setPaymentMonthsCompleted(int paymentMonthsCompleted) {
+        this.paymentMonthsCompleted = paymentMonthsCompleted;
     }
 
     @Override

@@ -13,17 +13,26 @@ public class Project {
     private double equityOffered;
     private String status;
     private Date projectDate;
+    private String category; // NEW: Tech, Health, Education, Finance, Other
 
-    public Project() {}
+    public Project() {
+    }
 
     public Project(int entrepreneurId, String title, String description,
-                   double amountRequested, double equityOffered, String status) {
+            double amountRequested, double equityOffered, String status, String category) {
         this.entrepreneurId = entrepreneurId;
         this.title = title;
         this.description = description;
         this.amountRequested = amountRequested;
         this.equityOffered = equityOffered;
         this.status = status;
+        this.category = category;
+    }
+
+    // Legacy constructor without category
+    public Project(int entrepreneurId, String title, String description,
+            double amountRequested, double equityOffered, String status) {
+        this(entrepreneurId, title, description, amountRequested, equityOffered, status, "Other");
     }
 
     public int getProjectId() {
@@ -90,6 +99,14 @@ public class Project {
         this.projectDate = projectDate;
     }
 
+    public String getCategory() {
+        return category != null ? category : "Other";
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
     @Override
     public String toString() {
         return "Project{" +
@@ -99,14 +116,17 @@ public class Project {
                 ", amountRequested=" + amountRequested +
                 ", equityOffered=" + equityOffered +
                 ", status='" + status + '\'' +
+                ", category='" + category + '\'' +
                 ", projectDate=" + projectDate +
                 '}';
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Project)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof Project))
+            return false;
         Project project = (Project) o;
         return projectId == project.projectId;
     }

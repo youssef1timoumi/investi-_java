@@ -52,6 +52,13 @@ public class AddInvestmentController {
 
         try {
             is.addEntity(i);
+
+            // Trigger Email Notification to Entrepreneur
+            edu.collaboration.services.EmailService.sendNewInvestmentOffer(
+                    "entrepreneur@example.com",
+                    "Project ID #" + projectTf.getText(),
+                    total);
+
             showAlert(Alert.AlertType.INFORMATION, "Success", "Investment added successfully");
             closeStage(event);
         } catch (SQLException e) {

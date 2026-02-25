@@ -2,14 +2,18 @@ package edu.collaboration.Controllers.Project;
 
 import edu.collaboration.entities.Project;
 import edu.collaboration.services.ProjectService;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
-public class UpdateProjectController {
+import java.net.URL;
+import java.util.ResourceBundle;
+
+public class UpdateProjectController implements Initializable {
 
     private final ProjectService ps = new ProjectService();
 
@@ -25,8 +29,16 @@ public class UpdateProjectController {
     private TextField equityTf;
     @FXML
     private TextField statusTf;
+    @FXML
+    private ComboBox<String> categoryBox;
 
     private String originalStatus;
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        categoryBox.setItems(FXCollections.observableArrayList(
+                "Tech", "Health", "Education", "Finance", "Other"));
+    }
 
     public void initData(Project p) {
         this.originalStatus = p.getStatus();
@@ -37,18 +49,17 @@ public class UpdateProjectController {
         amountTf.setText(String.valueOf(p.getAmountRequested()));
         equityTf.setText(String.valueOf(p.getEquityOffered()));
         statusTf.setText(p.getStatus());
-        statusTf.setDisable(true); // Status is read-only for Entrepreneur
+        statusTf.setDisable(true);
+        categoryBox.setValue(p.getCategory() != null ? p.getCategory() : "Other");
     }
 
     @FXML
     void updateProject(ActionEvent event) {
-        // LOCKING LOGIC
         if ("FUNDED".equalsIgnoreCase(originalStatus) || "CLOSED".equalsIgnoreCase(originalStatus)) {
             showAlert(Alert.AlertType.ERROR, "Modification Denied",
                     "You cannot edit a project that is FUNDED or CLOSED.");
             return;
         }
-
         if (!validateUpdate())
             return;
 
@@ -59,34 +70,26 @@ public class UpdateProjectController {
             p.setDescription(descTf.getText());
             p.setAmountRequested(Double.parseDouble(amountTf.getText()));
             p.setEquityOffered(Double.parseDouble(equityTf.getText()));
-
-            // RESET LOGIC: Any update requires re-validation
-            p.setStatus("UNDER_REVIEW");
-
-            System.out.println("DEBUG: Controller attempting update for ID " + p.getProjectId());
-            System.out.println("DEBUG: Values - Title: " + p.getTitle() + ", Status: " + p.getStatus());
+            p.setStatus("UNDER_REVIEW"); // Reset for re-validation
+            p.setCategory(categoryBox.getValue());
 
             boolean success = ps.update(p.getProjectId(), p);
-
             if (success) {
-                showAlert(Alert.AlertType.INFORMATION, "Success", "Project updated successfully");
+                showAlert(Alert.AlertType.INFORMATION, "Success",
+                        "Project updated. It will need to be re-validated by admin.");
                 closeStage(event);
             } else {
                 showAlert(Alert.AlertType.ERROR, "Error", "Project update failed.");
             }
-
         } catch (NumberFormatException e) {
             showAlert(Alert.AlertType.ERROR, "Error", "Invalid number format in Amount or Equity fields.");
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Update failed: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
     private boolean validateUpdate() {
         boolean isValid = true;
-        clearErrorStyles();
         StringBuilder errors = new StringBuilder();
+        clearErrorStyles();
 
         if (titleTf.getText().isEmpty()) {
             setErrorStyle(titleTf);
@@ -99,21 +102,15 @@ public class UpdateProjectController {
             isValid = false;
         }
 
-        // Validate Amount
         if (amountTf.getText().isEmpty() || !isNumeric(amountTf.getText())) {
             setErrorStyle(amountTf);
             errors.append("- Amount must be a valid number.\n");
             isValid = false;
-        } else {
-            double amount = Double.parseDouble(amountTf.getText());
-            if (amount <= 0) {
-                setErrorStyle(amountTf);
-                errors.append("- Amount must be positive.\n");
-                isValid = false;
-            }
+        } else if (Double.parseDouble(amountTf.getText()) <= 0) {
+            setErrorStyle(amountTf);
+            errors.append("- Amount must be positive.\n");
+            isValid = false;
         }
-
-        // Validate Equity
         if (equityTf.getText().isEmpty() || !isNumeric(equityTf.getText())) {
             setErrorStyle(equityTf);
             errors.append("- Equity must be a valid number.\n");
@@ -122,21 +119,13 @@ public class UpdateProjectController {
             double equity = Double.parseDouble(equityTf.getText());
             if (equity <= 0 || equity > 100) {
                 setErrorStyle(equityTf);
-                errors.append("- Equity must be between 0 and 100%.\n");
+                errors.append("- Equity must be 0-100%.\n");
                 isValid = false;
             }
         }
 
-        String status = statusTf.getText().toUpperCase();
-        if (!status.equals("OPEN") && !status.equals("FUNDED") && !status.equals("CLOSED")) {
-            setErrorStyle(statusTf);
-            errors.append("- Status must be OPEN, FUNDED, or CLOSED.\n");
-            isValid = false;
-        }
-
-        if (!isValid) {
-            showAlert(Alert.AlertType.ERROR, "Validation Error", "Please correct the following:\n" + errors.toString());
-        }
+        if (!isValid)
+            showAlert(Alert.AlertType.ERROR, "Validation Error", "Please correct:\n" + errors);
         return isValid;
     }
 
@@ -151,7 +140,6 @@ public class UpdateProjectController {
         descTf.getStyleClass().remove("error");
         amountTf.getStyleClass().remove("error");
         equityTf.getStyleClass().remove("error");
-        statusTf.getStyleClass().remove("error");
     }
 
     private boolean isNumeric(String str) {
@@ -164,21 +152,20 @@ public class UpdateProjectController {
     }
 
     private void showAlert(Alert.AlertType type, String title, String msg) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
+        Alert a = new Alert(type);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.showAndWait();
     }
 
     @FXML
-    void goMain(javafx.event.ActionEvent event) {
+    void goMain(ActionEvent event) {
         closeStage(event);
     }
 
     private void closeStage(ActionEvent event) {
         Node source = (Node) event.getSource();
-        Stage stage = (Stage) source.getScene().getWindow();
-        stage.close();
+        ((Stage) source.getScene().getWindow()).close();
     }
 }

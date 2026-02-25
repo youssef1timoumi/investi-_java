@@ -137,6 +137,12 @@ public class InvestmentService implements IService<Investment> {
                 i.setEquityRequested(rs.getDouble("equityRequested"));
                 i.setStatus(rs.getString("status"));
                 i.setInvestmentDate(rs.getDate("investment_date"));
+
+                // Progress Tracking Fields
+                i.setProgressPercentage(rs.getInt("progressPercentage"));
+                i.setLatestProgressLog(rs.getString("latestProgressLog"));
+                i.setPaymentMonthsCompleted(rs.getInt("paymentMonthsCompleted"));
+
                 list.add(i);
             }
         } catch (SQLException e) {
@@ -165,6 +171,12 @@ public class InvestmentService implements IService<Investment> {
                 i.setEquityRequested(rs.getDouble("equityRequested"));
                 i.setStatus(rs.getString("status"));
                 i.setInvestmentDate(rs.getDate("investment_date"));
+
+                // Progress Tracking Fields
+                i.setProgressPercentage(rs.getInt("progressPercentage"));
+                i.setLatestProgressLog(rs.getString("latestProgressLog"));
+                i.setPaymentMonthsCompleted(rs.getInt("paymentMonthsCompleted"));
+
                 list.add(i);
             }
         } catch (SQLException e) {
@@ -193,6 +205,12 @@ public class InvestmentService implements IService<Investment> {
                 i.setEquityRequested(rs.getDouble("equityRequested"));
                 i.setStatus(rs.getString("status"));
                 i.setInvestmentDate(rs.getDate("investment_date"));
+
+                // Progress Tracking Fields
+                i.setProgressPercentage(rs.getInt("progressPercentage"));
+                i.setLatestProgressLog(rs.getString("latestProgressLog"));
+                i.setPaymentMonthsCompleted(rs.getInt("paymentMonthsCompleted"));
+
                 list.add(i);
             }
         } catch (SQLException e) {
@@ -221,6 +239,12 @@ public class InvestmentService implements IService<Investment> {
                 i.setEquityRequested(rs.getDouble("equityRequested"));
                 i.setStatus(rs.getString("status"));
                 i.setInvestmentDate(rs.getDate("investment_date"));
+
+                // Progress Tracking Fields
+                i.setProgressPercentage(rs.getInt("progressPercentage"));
+                i.setLatestProgressLog(rs.getString("latestProgressLog"));
+                i.setPaymentMonthsCompleted(rs.getInt("paymentMonthsCompleted"));
+
                 list.add(i);
             }
         } catch (SQLException e) {
@@ -271,5 +295,47 @@ public class InvestmentService implements IService<Investment> {
                 e.printStackTrace();
             }
         }
+    }
+
+    public boolean updateProgress(int investmentId, int percentage, String log, int payments) {
+        String sql = "UPDATE investment SET progressPercentage = ?, latestProgressLog = ?, paymentMonthsCompleted = ? WHERE investment_id = ?";
+        try {
+            PreparedStatement ps = MyConnection.getInstance().getCnx().prepareStatement(sql);
+            ps.setInt(1, percentage);
+            ps.setString(2, log);
+            ps.setInt(3, payments);
+            ps.setInt(4, investmentId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // ─── NEW: Stats for Admin Dashboard ──────────────────────────────────────
+    public double getTotalInvestedVolume() {
+        try {
+            ResultSet rs = MyConnection.getInstance().getCnx()
+                    .createStatement()
+                    .executeQuery("SELECT SUM(totalAmount) FROM investment WHERE status = 'ACCEPTED'");
+            if (rs.next())
+                return rs.getDouble(1);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return 0;
+    }
+
+    public int getTotalInvestmentCount() {
+        try {
+            ResultSet rs = MyConnection.getInstance().getCnx()
+                    .createStatement()
+                    .executeQuery("SELECT COUNT(*) FROM investment");
+            if (rs.next())
+                return rs.getInt(1);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return 0;
     }
 }

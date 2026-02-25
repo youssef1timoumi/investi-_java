@@ -1,0 +1,290 @@
+/* Root Variables - Premium Light Theme */
+.root {
+    -app-background: #E6E6FA;
+    /* Lavender Mist background */
+    -app-foreground: #000501;
+    /* Black text */
+    -app-card: #FFFFFF;
+    /* Pure white cards for maximum contrast */
+    -app-card-foreground: #000501;
+    /* Black text on cards */
+    -app-primary: #456990;
+    /* Baltic Blue */
+    -app-secondary: #da8a67;
+    /* Faded Copper */
+    -app-accent: #A62639;
+    /* Brown Red */
+    -app-border: #DCD0FF;
+    /* Soft lavender border */
+    -app-muted: #F8F8FF;
+    /* Ghost white for muted areas */
+    -app-muted-foreground: #64748b;
+    /* Soft blue-grey text */
+
+    -app-sidebar: #FFFFFF;
+    /* White sidebar */
+    -app-sidebar-border: #DCD0FF;
+
+    -app-gradient-primary: linear-gradient(to bottom right, #456990, #5d8ab5);
+}
+
+.main-container {
+    -fx-background-color: -app-background;
+}
+
+/* Sidebar */
+.sidebar {
+    -fx-background-color: -app-sidebar;
+    -fx-border-color: -app-sidebar-border;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 24 12;
+    -fx-min-width: 96;
+    -fx-max-width: 96;
+    -fx-alignment: top-center;
+    -fx-spacing: 30;
+}
+
+.sidebar-logo-container {
+    -fx-background-color: -app-gradient-primary;
+    -fx-background-radius: 12;
+    -fx-min-width: 56;
+    -fx-min-height: 56;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(three-pass-box, rgba(69, 105, 144, 0.4), 10, 0, 0, 0);
+}
+
+.sidebar-logo {
+    -fx-icon-size: 28;
+    -fx-icon-color: white;
+}
+
+.nav-container {
+    -fx-spacing: 12;
+    -fx-alignment: top-center;
+}
+
+.nav-btn {
+    -fx-background-color: transparent;
+    -fx-background-radius: 12;
+    -fx-min-width: 48;
+    -fx-min-height: 48;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.nav-btn:hover {
+    -fx-background-color: -app-muted;
+}
+
+.nav-btn.active {
+    -fx-background-color: derive(-app-primary, 90%);
+}
+
+.nav-icon {
+    -fx-icon-size: 20;
+    -fx-icon-color: -app-muted-foreground;
+}
+
+.nav-btn.active .nav-icon {
+    -fx-icon-color: -app-primary;
+}
+
+/* Content Area */
+.content-area {
+    -fx-padding: 40;
+    -fx-background-color: -app-background;
+}
+
+.title-text {
+    -fx-font-size: 36;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-foreground;
+}
+
+.subtitle-text {
+    -fx-font-size: 16;
+    -fx-text-fill: -app-muted-foreground;
+}
+
+/* Project Cards (From product-card template) */
+.project-card {
+    -fx-background-color: -app-card;
+    -fx-border-color: transparent;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-pref-width: 320;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.15), 25, 0, 0, 8);
+    -fx-padding: 24;
+    -fx-spacing: 12;
+    -fx-cursor: hand;
+}
+
+.project-card:hover {
+    -fx-border-color: -app-primary;
+    -fx-effect: dropshadow(three-pass-box, rgba(69, 105, 144, 0.2), 25, 0, 0, 15);
+    -fx-translate-y: -5;
+}
+
+.category-badge {
+    -fx-background-color: -app-primary;
+    -fx-text-fill: white;
+    -fx-padding: 6 12;
+    -fx-background-radius: 8;
+    -fx-font-size: 11;
+    -fx-font-weight: bold;
+}
+
+.ai-recommendation-badge {
+    -fx-background-color: derive(-app-secondary, 80%);
+    -fx-text-fill: -app-secondary;
+    -fx-padding: 6 12;
+    -fx-background-radius: 8;
+    -fx-font-size: 11;
+    -fx-font-weight: bold;
+}
+
+.card-title {
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-card-foreground;
+}
+
+.card-desc {
+    -fx-font-size: 13;
+    -fx-text-fill: -app-muted-foreground;
+    -fx-min-height: 45;
+}
+
+.card-price {
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-primary;
+}
+
+.add-btn {
+    -fx-background-color: -app-primary;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+    -fx-padding: 10 20;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.add-btn:hover {
+    -fx-background-color: derive(-app-primary, -15%);
+}
+
+.ai-btn {
+    -fx-background-color: -app-secondary;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+    -fx-padding: 10 20;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.ai-btn:hover {
+    -fx-background-color: derive(-app-secondary, -15%);
+}
+
+/* ScrollPane Styling */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .thumb {
+    -fx-background-color: -app-border;
+    -fx-background-radius: 5;
+}
+
+/* Details Overlay */
+.detail-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.4);
+    -fx-alignment: center;
+    -fx-padding: 60;
+}
+
+.detail-card {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 32;
+    -fx-background-radius: 32;
+    -fx-max-width: 900;
+    -fx-max-height: 700;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 40, 0, 0, 20);
+    -fx-spacing: 20;
+}
+
+.close-detail-btn {
+    -fx-background-color: -app-muted;
+    -fx-background-radius: 50;
+    -fx-padding: 10;
+    -fx-cursor: hand;
+}
+
+.close-detail-btn:hover {
+    -fx-background-color: rgba(239, 68, 68, 0.2);
+}
+
+.detail-title {
+    -fx-font-size: 32;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-foreground;
+}
+
+.meta-grid {
+    -fx-hgap: 20;
+    -fx-vgap: 20;
+    -fx-padding: 10 0;
+}
+
+.meta-item {
+    -fx-background-color: derive(-app-background, -2%);
+    -fx-background-radius: 12;
+    -fx-padding: 15;
+    -fx-min-width: 120;
+}
+
+.meta-label {
+    -fx-font-size: 11;
+    -fx-text-fill: -app-muted-foreground;
+    -fx-font-weight: bold;
+}
+
+.meta-value {
+    -fx-font-size: 16;
+    -fx-text-fill: -app-foreground;
+    -fx-font-weight: bold;
+}
+
+/* Progress Tracking Page */
+.progress-card {
+    -fx-background-color: -app-card;
+    -fx-border-radius: 16;
+    -fx-background-radius: 16;
+    -fx-padding: 30;
+    -fx-spacing: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 10, 0, 0, 5);
+}
+
+.progress-bar {
+    -fx-accent: -app-primary;
+}
+
+.progress-title {
+    -fx-font-size: 24;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-foreground;
+}
+
+.progress-log-box {
+    -fx-background-color: -app-muted;
+    -fx-padding: 15;
+    -fx-background-radius: 8;
+    -fx-text-fill: -app-muted-foreground;
+}
