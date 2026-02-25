@@ -37,6 +37,12 @@ public class AddProductController implements Initializable {
     private Consumer<Void> onProductAdded;
     private Runnable onCancel;
     private File selectedFile;
+    private Product existingProduct;
+
+    @FXML
+    private Button saveBtn;
+    @FXML
+    private Label formTitle;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -52,6 +58,41 @@ public class AddProductController implements Initializable {
 
         gradientCombo.getItems().addAll("blue-600", "orange-600", "pink-600", "purple-600", "slate-600");
         gradientCombo.setValue("blue-600");
+    }
+
+    public void setProductData(Product p) {
+        this.existingProduct = p;
+        if (p != null) {
+            nameField.setText(p.getName());
+            if (titleField != null)
+                titleField.setText(p.getName()); // titleField might be used for something else now?
+            shortDescField.setText(p.getShortDescription());
+            fullDescField.setText(p.getDescription());
+            priceField.setText(String.valueOf(p.getPrice()));
+            currencyCombo.setValue(p.getCurrency());
+            digitalCheck.setSelected(p.isDigital());
+            statusCombo.setValue(p.getStatus());
+            gradientCombo.setValue(p.getGradient());
+            imageField.setText(p.getImage() != null ? "Existing Image" : "");
+
+            categoryCombo.setValue(mapIdToCategory(p.getCategoryId()));
+
+            if (saveBtn != null)
+                saveBtn.setText("Update Product");
+            if (formTitle != null)
+                formTitle.setText("Edit Product");
+        }
+    }
+
+    private String mapIdToCategory(long id) {
+        return switch ((int) id) {
+            case 1 -> "Software";
+            case 2 -> "Analytics";
+            case 3 -> "Web";
+            case 4 -> "Design";
+            case 5 -> "Mobile";
+            default -> "Software";
+        };
     }
 
     public void setOnProductAdded(Consumer<Void> onProductAdded) {
@@ -83,7 +124,7 @@ public class AddProductController implements Initializable {
             return;
 
         try {
-            String imagePath = "https://via.placeholder.com/180"; // Default
+            String imagePath = existingProduct != null ? existingProduct.getImage() : "https://via.placeholder.com/180";
 
             if (selectedFile != null) {
                 // Ensure uploads directory exists
@@ -97,10 +138,10 @@ public class AddProductController implements Initializable {
                 Path targetPath = uploadDir.resolve(fileName);
 
                 Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-                imagePath = targetPath.toAbsolutePath().toUri().toString(); // Store absolute URI
+                imagePath = targetPath.toAbsolutePath().toUri().toString();
             }
 
-            Product p = new Product();
+            Product p = existingProduct != null ? existingProduct : new Product();
             p.setName(nameField.getText());
             p.setDescription(fullDescField.getText());
             p.setShortDescription(shortDescField.getText());
@@ -115,7 +156,11 @@ public class AddProductController implements Initializable {
             p.setProjectId(1);
             p.setEntrepreneurId(1);
 
-            productService.create(p);
+            if (existingProduct == null) {
+                productService.create(p);
+            } else {
+                productService.update(p);
+            }
 
             if (onProductAdded != null) {
                 onProductAdded.accept(null);

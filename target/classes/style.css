@@ -10,6 +10,7 @@
     -app-border: #e2e8f0;
     -app-muted: #f1f5f9;
     -app-muted-foreground: #64748b;
+    -app-primary-soft: rgba(69, 105, 144, 0.1);
 
     -app-sidebar: #ffffff;
     -app-sidebar-border: #e2e8f0;
@@ -388,20 +389,45 @@
 }
 
 .order-grid {
-    -fx-hgap: 30;
+    -fx-hgap: 15;
     -fx-vgap: 15;
+    -fx-padding: 5 0;
+}
+
+.grid-item-box {
+    -fx-background-color: #f8fafc;
+    /* derive(-app-background, -1%) */
+    -fx-background-radius: 10;
+    -fx-padding: 12 16;
+    -fx-spacing: 12;
+    -fx-alignment: center_left;
+    -fx-border-color: #f1f5f9;
+    -fx-border-radius: 10;
+}
+
+.grid-item-box:hover {
+    -fx-background-color: #ffffff;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 5, 0, 0, 2);
+    -fx-border-color: -app-primary-soft;
+}
+
+.grid-icon {
+    -fx-icon-color: -app-primary;
+    -fx-icon-size: 16;
 }
 
 .grid-label {
-    -fx-font-size: 11;
+    -fx-font-size: 10;
     -fx-text-fill: -app-muted-foreground;
     -fx-font-weight: bold;
     -fx-text-transform: uppercase;
+    -fx-letter-spacing: 0.5;
 }
 
 .grid-value {
-    -fx-font-size: 14;
+    -fx-font-size: 13;
     -fx-text-fill: -app-foreground;
+    -fx-font-weight: bold;
 }
 
 .order-total-box {
@@ -449,7 +475,7 @@
 .form-container {
     -fx-background-color: white;
     -fx-background-radius: 24;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 20, 0, 0, 10);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 20, 0, 0, 10);
     -fx-padding: 40;
 }
 
@@ -457,13 +483,16 @@
     -fx-font-family: 'Outfit';
     -fx-font-size: 14px;
     -fx-font-weight: 600;
-    -fx-text-fill: #4b5563; /* Slate 600 */
+    -fx-text-fill: #4b5563;
+    /* Slate 600 */
 }
 
 .form-input {
-    -fx-background-color: #f9fafb; /* Gray 50 */
+    -fx-background-color: #f9fafb;
+    /* Gray 50 */
     -fx-background-radius: 12;
-    -fx-border-color: #e5e7eb; /* Gray 200 */
+    -fx-border-color: #e5e7eb;
+    /* Gray 200 */
     -fx-border-radius: 12;
     -fx-padding: 12 16;
     -fx-font-family: 'Outfit';
@@ -488,7 +517,8 @@
 }
 
 .error-text {
-    -fx-text-fill: #ef4444; /* Red 500 */
+    -fx-text-fill: #ef4444;
+    /* Red 500 */
     -fx-font-size: 12px;
     -fx-font-weight: 500;
 }
@@ -521,4 +551,102 @@
 
 .secondary-btn:hover {
     -fx-background-color: #e5e7eb;
+}
+
+/* Window & Title Bar */
+.window-root {
+    -fx-background-color: -app-background;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1;
+}
+
+.title-bar {
+    -fx-background-color: white;
+    -fx-border-color: -app-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-cursor: move;
+    -fx-min-height: 40;
+}
+
+.title-bar-icon {
+    -fx-icon-size: 16;
+    -fx-icon-color: -app-primary;
+}
+
+.title-bar-text {
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-muted-foreground;
+}
+
+.window-control-btn {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-min-width: 32;
+    -fx-min-height: 28;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.window-control-btn .ikonli-font-icon {
+    -fx-icon-size: 14;
+    -fx-icon-color: -app-muted-foreground;
+}
+
+.window-control-btn:hover {
+    -fx-background-color: -app-muted;
+}
+
+.window-control-btn.close:hover {
+    -fx-background-color: #ef4444;
+}
+
+.window-control-btn.close:hover .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+/* Card Action Buttons */
+.card-action-btn {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.card-action-btn .ikonli-font-icon {
+    -fx-icon-size: 16;
+}
+
+.card-action-btn.edit {
+    -fx-background-color: rgba(79, 70, 229, 0.05);
+}
+
+.card-action-btn.edit .ikonli-font-icon {
+    -fx-icon-color: #4f46e5;
+}
+
+.card-action-btn.edit:hover {
+    -fx-background-color: #4f46e5;
+}
+
+.card-action-btn.edit:hover .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.card-action-btn.delete {
+    -fx-background-color: rgba(219, 39, 119, 0.05);
+}
+
+.card-action-btn.delete .ikonli-font-icon {
+    -fx-icon-color: #db2777;
+}
+
+.card-action-btn.delete:hover {
+    -fx-background-color: #db2777;
+}
+
+.card-action-btn.delete:hover .ikonli-font-icon {
+    -fx-icon-color: white;
 }

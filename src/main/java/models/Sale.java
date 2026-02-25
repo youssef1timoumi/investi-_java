@@ -6,6 +6,7 @@ public class Sale {
     private long id;
     private String reference;
     private long customerId;
+    private long productId;
     private double totalAmount;
     private String currency;
     private String status;
@@ -21,12 +22,14 @@ public class Sale {
     public Sale() {
     }
 
-    public Sale(long id, String reference, long customerId, double totalAmount, String currency, String status,
+    public Sale(long id, String reference, long customerId, long productId, double totalAmount, String currency,
+            String status,
             String paymentMethod, String paymentStatus, String transactionId, String shippingAddress,
             String billingAddress, String notes, Timestamp createdAt, Timestamp updatedAt) {
         this.id = id;
         this.reference = reference;
         this.customerId = customerId;
+        this.productId = productId;
         this.totalAmount = totalAmount;
         this.currency = currency;
         this.status = status;
@@ -41,11 +44,12 @@ public class Sale {
     }
 
     // Constructor for creation
-    public Sale(String reference, long customerId, double totalAmount, String currency, String status,
+    public Sale(String reference, long customerId, long productId, double totalAmount, String currency, String status,
             String paymentMethod, String paymentStatus, String transactionId, String shippingAddress,
             String billingAddress, String notes) {
         this.reference = reference;
         this.customerId = customerId;
+        this.productId = productId;
         this.totalAmount = totalAmount;
         this.currency = currency;
         this.status = status;
@@ -79,6 +83,14 @@ public class Sale {
 
     public void setCustomerId(long customerId) {
         this.customerId = customerId;
+    }
+
+    public long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(long productId) {
+        this.productId = productId;
     }
 
     public double getTotalAmount() {

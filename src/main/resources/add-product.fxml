@@ -7,84 +7,75 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 <?import javafx.geometry.Insets?>
 
-<VBox spacing="30" styleClass="form-page" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.AddProductController">
+<VBox styleClass="form-page" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.AddProductController">
     <stylesheets>
         <URL value="@style.css" />
     </stylesheets>
 
-    <HBox alignment="CENTER_LEFT" spacing="20">
-        <Button styleClass="nav-btn" onAction="#handleBack">
-            <graphic>
-                <FontIcon iconLiteral="fth-arrow-left" styleClass="nav-icon" />
-            </graphic>
-        </Button>
-        <VBox spacing="5">
-            <Label styleClass="title-text" text="Create New Product" />
-            <Label styleClass="subtitle-text" text="Fill in the details to list a new digital asset." />
-        </VBox>
-    </HBox>
+    
 
-    <ScrollPane fitToWidth="true" styleClass="form-scroll" VBox.vgrow="ALWAYS">
-        <StackPane>
-            <VBox alignment="CENTER" maxWidth="900" spacing="40" styleClass="form-container">
-                <padding>
-                    <Insets top="20" right="60" bottom="40" left="60" />
-                </padding>
+    <StackPane alignment="TOP_CENTER" VBox.vgrow="ALWAYS">
+        <VBox alignment="TOP_CENTER" maxWidth="900" spacing="20" styleClass="form-container">
+            <padding>
+                <Insets top="0" right="60" bottom="20" left="60" />
+            </padding>
 
-            <GridPane hgap="30" vgap="25">
+            <Label fx:id="formTitle" styleClass="title-text" text="Create New Product" />
+
+            <GridPane hgap="30" vgap="15">
                 <columnConstraints>
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 </columnConstraints>
 
                 <!-- Name & Title -->
-                <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
                     <Label styleClass="form-label" text="Product Name" />
                     <TextField fx:id="nameField" promptText="e.g. Premium Analytics Dashboard" styleClass="form-input" />
                     <Label fx:id="nameError" styleClass="error-text" visible="false" managed="false" />
                 </VBox>
 
-                <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                     <Label styleClass="form-label" text="Display Title" />
                     <TextField fx:id="titleField" promptText="e.g. Analytics Pro" styleClass="form-input" />
                 </VBox>
 
                 <!-- Description -->
-                <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
                     <Label styleClass="form-label" text="Short Description" />
                     <TextField fx:id="shortDescField" promptText="Brief catchphrase for the product card" styleClass="form-input" />
                 </VBox>
 
-                <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
                     <Label styleClass="form-label" text="Full Description" />
-                    <TextArea fx:id="fullDescField" prefHeight="120" promptText="Detailed information about the product..." styleClass="form-input, text-area" wrapText="true" />
+                    <TextArea fx:id="fullDescField" prefHeight="80" promptText="Detailed information about the product..." styleClass="form-input, text-area" wrapText="true" />
                 </VBox>
 
                 <!-- Price & Currency -->
-                <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="3">
                     <Label styleClass="form-label" text="Price" />
                     <TextField fx:id="priceField" promptText="0.00" styleClass="form-input" />
                     <Label fx:id="priceError" styleClass="error-text" visible="false" managed="false" />
                 </VBox>
 
-                <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
                     <Label styleClass="form-label" text="Currency" />
                     <ComboBox fx:id="currencyCombo" maxWidth="Infinity" styleClass="form-input" />
                 </VBox>
 
                 <!-- Category & Status -->
-                <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="4">
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="4">
                     <Label styleClass="form-label" text="Category" />
                     <ComboBox fx:id="categoryCombo" maxWidth="Infinity" styleClass="form-input" />
                 </VBox>
 
-                <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="4">
                     <Label styleClass="form-label" text="Status" />
                     <ComboBox fx:id="statusCombo" maxWidth="Infinity" styleClass="form-input" />
                 </VBox>
 
                 <!-- Image & Gradient -->
-                <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="5">
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="5">
                     <Label styleClass="form-label" text="Product Image" />
                     <HBox spacing="10">
                         <TextField fx:id="imageField" editable="false" promptText="Select an image..." styleClass="form-input" HBox.hgrow="ALWAYS" />
@@ -96,7 +87,7 @@
                     </HBox>
                 </VBox>
 
-                <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="5">
                     <Label styleClass="form-label" text="Gradient Style" />
                     <ComboBox fx:id="gradientCombo" maxWidth="Infinity" styleClass="form-input" />
                 </VBox>
@@ -109,9 +100,8 @@
 
             <HBox alignment="CENTER_RIGHT" spacing="15" styleClass="form-actions">
                 <Button onAction="#handleCancel" styleClass="secondary-btn" text="Cancel" />
-                <Button onAction="#handleSave" styleClass="primary-btn" text="Create Product" />
+                <Button fx:id="saveBtn" onAction="#handleSave" styleClass="primary-btn" text="Create Product" />
             </HBox>
         </VBox>
     </StackPane>
-</ScrollPane>
 </VBox>
