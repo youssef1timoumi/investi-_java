@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.web.*;
 import javafx.scene.image.*;
 import javafx.scene.text.TextFlow;
 import javafx.scene.paint.Color;
@@ -14,7 +15,13 @@ import models.Sale;
 import services.ProductService;
 import services.SaleService;
 import org.kordamp.ikonli.javafx.FontIcon;
+import javafx.application.Platform;
 import javafx.stage.Stage;
+import javafx.concurrent.Worker;
+import com.stripe.Stripe;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionCreateParams;
+import com.stripe.exception.StripeException;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -700,13 +707,57 @@ public class MainController implements Initializable {
                 payBtn.setGraphic(new FontIcon("fth-credit-card"));
                 payBtn.setOnAction(e -> {
                     try {
-                        s.setStatus("Paid");
-                        s.setPaymentStatus("Paid");
-                        saleService.update(s);
-                        loadDatabaseData();
-                        renderOrders();
-                    } catch (SQLException ex) {
+                        // --- Stripe API Integration ---
+                        String secretKey = "sk_test_51T5BAlB0ojdtmLx7CEyWmjYOrmyQG6RuoSOovrjpDBM5UflCjV2M9AxP3YsTCiKcJwK2nRhSui3eGt0DsDEFEb1q00ztnxrFpe";
+                        Stripe.apiKey = secretKey;
+
+                        // Stripe amount is in cents, so multiply by 100
+                        long amountInCents = Math.round(s.getTotalAmount() * 100);
+
+                        // Note: If TND is not supported on your Stripe account, using "usd" for
+                        // testing.
+                        String currency = s.getCurrency().toLowerCase();
+                        if (currency.equals("tnd"))
+                            currency = "usd";
+
+                        SessionCreateParams params = SessionCreateParams.builder()
+                                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                                .setMode(SessionCreateParams.Mode.PAYMENT)
+                                .setSuccessUrl("https://example.com/success")
+                                .setCancelUrl("https://example.com/cancel")
+                                .addLineItem(
+                                        SessionCreateParams.LineItem.builder()
+                                                .setQuantity(1L)
+                                                .setPriceData(
+                                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                                .setCurrency(currency)
+                                                                .setUnitAmount(amountInCents)
+                                                                .setProductData(
+                                                                        SessionCreateParams.LineItem.PriceData.ProductData
+                                                                                .builder()
+                                                                                .setName("Payment for Order "
+                                                                                        + s.getReference())
+                                                                                .build())
+                                                                .build())
+                                                .build())
+                                .build();
+
+                        Session session = Session.create(params);
+                        String paymentUrl = session.getUrl();
+
+                        System.out.println("DEBUG Stripe Session URL: " + paymentUrl);
+
+                        // Open payment page in embedded WebView
+                        openPaymentWebView(paymentUrl, s);
+
+                    } catch (StripeException ex) {
                         ex.printStackTrace();
+                        showAlert(Alert.AlertType.ERROR, "Payment Error",
+                                "Stripe Error: " + ex.getMessage());
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        showAlert(Alert.AlertType.ERROR, "Payment Error",
+                                "An unexpected error occurred: " + ex.getMessage());
                     }
                 });
                 footer.getChildren().addAll(payBtn, editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
@@ -740,6 +791,95 @@ public class MainController implements Initializable {
 
         grid.add(box, col, row, colSpan, 1);
         GridPane.setHgrow(box, Priority.ALWAYS);
+    }
+
+    /**
+     * Opens the Paymee payment gateway in an embedded WebView dialog.
+     * Automatically detects payment completion by watching for the return_url
+     * redirect.
+     */
+    private void openPaymentWebView(String paymentUrl, Sale sale) {
+        Stage payStage = new Stage();
+        payStage.setTitle("💳  Paiement par Carte — Paymee");
+        payStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        payStage.setResizable(true);
+
+        // --- WebView setup ---
+        WebView webView = new WebView();
+        WebEngine engine = webView.getEngine();
+        webView.setPrefSize(900, 650);
+
+        // Loading indicator
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setMaxWidth(Double.MAX_VALUE);
+        progressBar.progressProperty().bind(engine.getLoadWorker().progressProperty());
+        progressBar.visibleProperty().bind(
+                engine.getLoadWorker().stateProperty().isEqualTo(
+                        Worker.State.RUNNING));
+
+        // Status label
+        Label statusLabel = new Label("Chargement de la page de paiement...");
+        statusLabel.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 12px; -fx-padding: 4 8;");
+        statusLabel.textProperty().bind(engine.locationProperty());
+
+        // Watch for redirect to Stripe success/cancel URLs
+        engine.locationProperty().addListener((obs, oldUrl, newUrl) -> {
+            if (newUrl != null && (newUrl.contains("example.com/success") || newUrl.contains("example.com/cancel"))) {
+                // Payment completed or cancelled
+                payStage.close();
+
+                if (newUrl.contains("success")) {
+                    Platform.runLater(() -> {
+                        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                        confirm.setTitle("Paiement Stripe");
+                        confirm.setHeaderText("Paiement effectué ?");
+                        confirm.setContentText("Avez-vous complété le paiement par carte avec succès ?");
+                        confirm.getButtonTypes().setAll(
+                                new ButtonType("Oui, marquer comme Payé", ButtonBar.ButtonData.YES),
+                                new ButtonType("Non / Annulé", ButtonBar.ButtonData.NO));
+
+                        confirm.showAndWait().ifPresent(btn -> {
+                            if (btn.getButtonData() == ButtonBar.ButtonData.YES) {
+                                try {
+                                    sale.setStatus("Paid");
+                                    sale.setPaymentStatus("Paid");
+                                    saleService.update(sale);
+                                    loadDatabaseData();
+                                    renderOrders();
+                                    showAlert(Alert.AlertType.INFORMATION, "Paiement confirmé",
+                                            "La vente a été marquée comme payée avec Stripe.");
+                                } catch (SQLException ex) {
+                                    ex.printStackTrace();
+                                    showAlert(Alert.AlertType.ERROR, "Erreur",
+                                            "Impossible de mettre à jour le statut : " + ex.getMessage());
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+        });
+
+        // Top bar with back/close button
+        Button closeBtn = new Button("✕  Annuler le paiement");
+        closeBtn.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold;" +
+                        "-fx-background-radius: 6; -fx-padding: 6 16; -fx-cursor: hand;");
+        closeBtn.setOnAction(ev -> payStage.close());
+
+        HBox topBar = new HBox(10, closeBtn);
+        topBar.setStyle("-fx-background-color: #1e293b; -fx-padding: 10 16;");
+        topBar.setAlignment(Pos.CENTER_LEFT);
+
+        VBox root = new VBox(topBar, progressBar, webView);
+        VBox.setVgrow(webView, Priority.ALWAYS);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, 920, 700);
+        payStage.setScene(scene);
+
+        // Load the Paymee gateway page
+        engine.load(paymentUrl);
+        payStage.show();
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {
