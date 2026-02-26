@@ -279,6 +279,7 @@
 
 .detail-content {
     -fx-spacing: 25;
+    -fx-padding: 30;
 }
 
 .detail-header {
@@ -649,4 +650,62 @@
 
 .card-action-btn.delete:hover .ikonli-font-icon {
     -fx-icon-color: white;
+}
+
+/* QR Button */
+.card-action-btn.qr {
+    -fx-background-color: rgba(16, 185, 129, 0.05);
+}
+
+.card-action-btn.qr .ikonli-font-icon {
+    -fx-icon-color: #10b981;
+}
+
+.card-action-btn.qr:hover {
+    -fx-background-color: #10b981;
+}
+
+.card-action-btn.qr:hover .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+/* Product Details Overlay - Description & Price */
+.detail-desc-section {
+    -fx-padding: 16 0 8 0;
+}
+
+.detail-section-label {
+    -fx-font-size: 10;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-muted-foreground;
+}
+
+.detail-description {
+    -fx-font-size: 14;
+    -fx-text-fill: -app-muted-foreground;
+    -fx-line-spacing: 6;
+}
+
+.detail-footer {
+    -fx-padding: 16 0 0 0;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1 0 0 0;
+}
+
+.detail-price-pill {
+    -fx-background-color: -app-primary-soft;
+    -fx-background-radius: 40;
+    -fx-padding: 10 22;
+}
+
+.detail-currency {
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-primary;
+}
+
+.detail-price {
+    -fx-font-size: 24;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-primary;
 }

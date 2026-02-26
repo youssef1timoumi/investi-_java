@@ -45,7 +45,7 @@ public class Main {
             System.out.println("--- Sale Tests ---");
             SaleService ss = new SaleService();
             // 1. Create a Sale
-            Sale s1 = new Sale("REF-2024-001", 123L, 150.50, "TND", "pending", "Credit Card", "unpaid", null,
+            Sale s1 = new Sale("REF-2024-001", 123L, 1L, 150.50, "TND", "pending", "Credit Card", "unpaid", null,
                     "123 Main St", "123 Main St", "Test sale");
             int saleId = ss.create(s1);
             System.out.println("Sale created with ID: " + saleId);

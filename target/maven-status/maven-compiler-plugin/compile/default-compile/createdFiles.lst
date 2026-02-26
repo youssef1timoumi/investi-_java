@@ -1,7 +1,6 @@
 models\Sale.class
 services\IService.class
 services\SaleService.class
-test\Main.class
 utils\MyDatabase.class
 services\ProductService.class
 test\MainFx.class

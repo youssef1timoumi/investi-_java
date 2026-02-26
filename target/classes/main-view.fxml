@@ -141,6 +141,12 @@
                     <VBox.margin><javafx.geometry.Insets top="30" bottom="30" /></VBox.margin>
                     <HBox fx:id="categoryContainer" styleClass="category-container" spacing="15" />
                     <Region HBox.hgrow="ALWAYS" />
+                    <Button onAction="#handleQRSearch" styleClass="secondary-btn">
+                        <graphic>
+                            <FontIcon iconLiteral="fth-maximize" styleClass="nav-icon" />
+                        </graphic>
+                        <tooltip><Tooltip text="Search by QR Code" /></tooltip>
+                    </Button>
                     <Button fx:id="btnAddNewProduct" onAction="#handleNewProduct" styleClass="primary-btn">
                         <graphic>
                             <FontIcon iconLiteral="fth-plus" styleClass="nav-icon" />
@@ -192,8 +198,7 @@
             </VBox>
             
             <!-- Right: Content -->
-            <ScrollPane styleClass="detail-content-scroll" fitToWidth="true" HBox.hgrow="ALWAYS">
-                <VBox styleClass="detail-content">
+            <VBox styleClass="detail-content" HBox.hgrow="ALWAYS" spacing="0">
                     <HBox alignment="CENTER_LEFT" spacing="15">
                         <VBox spacing="5" HBox.hgrow="ALWAYS">
                             <Label fx:id="detailTitle" styleClass="detail-title" text="Product Title" />
@@ -220,41 +225,31 @@
                         </columnConstraints>
                         
                         <VBox styleClass="meta-item" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                            <Label styleClass="meta-label" text="PROJECT ID" />
-                            <Label fx:id="detailProjectId" styleClass="meta-value" text="#000" />
-                        </VBox>
-                        <VBox styleClass="meta-item" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                            <Label styleClass="meta-label" text="CREATOR ID" />
-                            <Label fx:id="detailEntrepreneurId" styleClass="meta-value" text="#000" />
-                        </VBox>
-                        <VBox styleClass="meta-item" GridPane.columnIndex="2" GridPane.rowIndex="0">
                             <Label styleClass="meta-label" text="VIEWS" />
                             <Label fx:id="detailViews" styleClass="meta-value" text="0" />
                         </VBox>
-                        <VBox styleClass="meta-item" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <VBox styleClass="meta-item" GridPane.columnIndex="1" GridPane.rowIndex="0">
                             <Label styleClass="meta-label" text="SALES" />
                             <Label fx:id="detailSales" styleClass="meta-value" text="0" />
                         </VBox>
-                        <VBox styleClass="meta-item" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <VBox styleClass="meta-item" GridPane.columnIndex="2" GridPane.rowIndex="0">
                             <Label styleClass="meta-label" text="CREATED" />
                             <Label fx:id="detailCreated" styleClass="meta-value" text="2024-01-01" />
                         </VBox>
                     </GridPane>
                     
-                    <TextFlow fx:id="detailFullDesc" />
+                    <VBox styleClass="detail-desc-section" spacing="8">
+                        <Label styleClass="detail-section-label" text="DESCRIPTION" />
+                        <TextFlow fx:id="detailFullDesc" styleClass="detail-full-desc-flow" />
+                    </VBox>
                     
-                    <Region VBox.vgrow="ALWAYS" />
-                    
-                    <HBox styleClass="detail-footer">
-                        <VBox styleClass="detail-price-box">
+                    <HBox styleClass="detail-footer" alignment="CENTER_LEFT" spacing="20">
+                        <HBox styleClass="detail-price-pill" alignment="CENTER_LEFT" spacing="10">
                             <Label fx:id="detailCurrency" styleClass="detail-currency" text="USD" />
                             <Label fx:id="detailPrice" styleClass="detail-price" text="0.00" />
-                        </VBox>
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Button fx:id="buyButton" styleClass="buy-btn" text="Get Access Now" />
+                        </HBox>
                     </HBox>
-                </VBox>
-            </ScrollPane>
+            </VBox>
         </HBox>
     </VBox>
     

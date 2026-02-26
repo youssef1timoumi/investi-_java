@@ -48,13 +48,8 @@
                     <TextField fx:id="currencyField" editable="false" styleClass="form-input" />
                 </VBox>
 
-                <!-- Customer & Payment -->
-                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2">
-                    <Label styleClass="form-label" text="Customer ID" />
-                    <TextField fx:id="customerIdField" promptText="1" styleClass="form-input" />
-                </VBox>
-
-                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                <!-- Payment -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
                     <Label styleClass="form-label" text="Payment Method" />
                     <ComboBox fx:id="paymentMethodCombo" maxWidth="Infinity" styleClass="form-input" />
                 </VBox>

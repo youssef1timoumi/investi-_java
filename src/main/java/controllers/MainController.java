@@ -18,8 +18,9 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.*;
+import java.io.File;
+import utils.QRCodeUtils;
 import java.util.stream.Collectors;
 
 public class MainController implements Initializable {
@@ -61,11 +62,9 @@ public class MainController implements Initializable {
     @FXML
     private Label detailTitle, detailShortDesc, detailStatus, detailPrice, detailCurrency;
     @FXML
-    private Label detailProjectId, detailEntrepreneurId, detailViews, detailSales, detailCreated;
+    private Label detailViews, detailSales, detailCreated;
     @FXML
     private TextFlow detailFullDesc;
-    @FXML
-    private Button buyButton;
 
     // Order History Page
     @FXML
@@ -403,15 +402,17 @@ public class MainController implements Initializable {
         desc.getStyleClass().add("card-desc");
         desc.setWrapText(true);
 
-        HBox footer = new HBox();
+        VBox footer = new VBox(10);
         footer.getStyleClass().add("card-footer");
-        footer.setAlignment(Pos.CENTER_LEFT);
 
+        HBox priceBox = new HBox();
+        priceBox.setAlignment(Pos.CENTER_LEFT);
         Label price = new Label("$" + p.getPrice());
         price.getStyleClass().add("card-price");
+        priceBox.getChildren().add(price);
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox actionBox = new HBox(8);
+        actionBox.setAlignment(Pos.CENTER_RIGHT);
 
         Button buyBtn = new Button("Buy");
         buyBtn.getStyleClass().add("add-btn");
@@ -438,7 +439,16 @@ public class MainController implements Initializable {
             handleDeleteProduct(p);
         });
 
-        footer.getChildren().addAll(price, spacer, editBtn, deleteBtn, buyBtn);
+        Button qrBtn = new Button();
+        qrBtn.getStyleClass().addAll("card-action-btn", "qr");
+        qrBtn.setGraphic(new FontIcon("fth-maximize"));
+        qrBtn.setOnAction(e -> {
+            e.consume();
+            showQRCodeDialog(p);
+        });
+
+        actionBox.getChildren().addAll(qrBtn, editBtn, deleteBtn, buyBtn);
+        footer.getChildren().addAll(priceBox, actionBox);
         content.getChildren().addAll(title, desc, footer);
         card.getChildren().addAll(imgContainer, content);
 
@@ -447,6 +457,74 @@ public class MainController implements Initializable {
 
     private void handleBuyProduct(Product p) {
         openSaleForm(p);
+    }
+
+    private void showQRCodeDialog(Product p) {
+        String qrData = String.format("ID: %d\nName: %s\nPrice: %.2f %s",
+                p.getId(), p.getName(), p.getPrice(), p.getCurrency());
+
+        Image qrImage = QRCodeUtils.generateQRCode(qrData, 250, 250);
+
+        if (qrImage != null) {
+            Alert alert = new Alert(Alert.AlertType.NONE); // Use NONE to avoid default icons
+            alert.setTitle("QR Code");
+            alert.getButtonTypes().add(ButtonType.CLOSE);
+
+            ImageView iv = new ImageView(qrImage);
+            iv.setPreserveRatio(true);
+
+            StackPane container = new StackPane(iv);
+            container.setPadding(new javafx.geometry.Insets(10));
+            container.setAlignment(Pos.CENTER);
+
+            alert.getDialogPane().setContent(container);
+            alert.getDialogPane().setHeaderText(null);
+            alert.getDialogPane().setGraphic(null);
+
+            alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleQRSearch() {
+        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+        fileChooser.setTitle("Select QR Code Image");
+        fileChooser.getExtensionFilters().add(
+                new javafx.stage.FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
+
+        File file = fileChooser.showOpenDialog(rootStack.getScene().getWindow());
+        if (file != null) {
+            String decodedText = QRCodeUtils.decodeQRCode(file);
+            if (decodedText != null) {
+                System.out.println("Decoded QR: " + decodedText);
+                // Simple search logic: look for the ID in the decoded text
+                try {
+                    String[] lines = decodedText.split("\n");
+                    if (lines.length > 0 && lines[0].startsWith("ID: ")) {
+                        long id = Long.parseLong(lines[0].replace("ID: ", "").trim());
+
+                        List<Product> results = allProducts.stream()
+                                .filter(prod -> prod.getId() == id)
+                                .collect(Collectors.toList());
+
+                        if (!results.isEmpty()) {
+                            productGrid.getChildren().clear();
+                            results.forEach(prod -> productGrid.getChildren().add(createProductCard(prod)));
+                        } else {
+                            showAlert(Alert.AlertType.WARNING, "Not Found",
+                                    "No product matching this QR code was found.");
+                        }
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Invalid QR",
+                                "This QR code does not contain valid product information.");
+                    }
+                } catch (Exception e) {
+                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to process QR code content.");
+                }
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Decoding Failed", "Could not read QR code from the selected image.");
+            }
+        }
     }
 
     private void openSaleForm(Product p) {
@@ -503,8 +581,6 @@ public class MainController implements Initializable {
         detailStatus.setText(p.getStatus());
         detailPrice.setText(String.valueOf(p.getPrice()));
         detailCurrency.setText(p.getCurrency());
-        detailProjectId.setText("#" + p.getProjectId());
-        detailEntrepreneurId.setText("#" + p.getEntrepreneurId());
         detailViews.setText(String.valueOf(p.getViewsCount()));
         detailSales.setText(String.valueOf(p.getSalesCount()));
 
@@ -583,11 +659,7 @@ public class MainController implements Initializable {
             grid.getColumnConstraints().addAll(c1, c2, c3);
 
             int r = 0;
-            addDetailItem(grid, 0, r, 1, "fth-user", "Customer ID", "#" + s.getCustomerId());
-            addDetailItem(grid, 1, r, 1, "fth-package", "Product ID", "#" + s.getProductId());
-            addDetailItem(grid, 2, r++, 1, "fth-credit-card", "Payment Method", s.getPaymentMethod());
-
-            addDetailItem(grid, 0, r, 1, "fth-hash", "Transaction ID", s.getTransactionId());
+            addDetailItem(grid, 0, r, 1, "fth-credit-card", "Payment Method", s.getPaymentMethod());
             addDetailItem(grid, 1, r, 1, "fth-info", "Payment Status", s.getPaymentStatus());
             addDetailItem(grid, 2, r++, 1, "fth-refresh-cw", "Last Updated",
                     s.getUpdatedAt() != null ? s.getUpdatedAt().toLocalDateTime().toLocalDate().toString() : "N/A");
@@ -621,7 +693,26 @@ public class MainController implements Initializable {
             Label totalAmount = new Label((s.getCurrency() != null ? s.getCurrency() : "USD") + " "
                     + String.format("%.2f", s.getTotalAmount()));
             totalAmount.getStyleClass().add("order-total-amount");
-            footer.getChildren().addAll(editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
+
+            if (!s.getStatus().equalsIgnoreCase("Paid") && !s.getStatus().equalsIgnoreCase("Completed")) {
+                Button payBtn = new Button("Pay");
+                payBtn.getStyleClass().add("add-btn"); // using the same template style
+                payBtn.setGraphic(new FontIcon("fth-credit-card"));
+                payBtn.setOnAction(e -> {
+                    try {
+                        s.setStatus("Paid");
+                        s.setPaymentStatus("Paid");
+                        saleService.update(s);
+                        loadDatabaseData();
+                        renderOrders();
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
+                });
+                footer.getChildren().addAll(payBtn, editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
+            } else {
+                footer.getChildren().addAll(editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
+            }
 
             card.getChildren().addAll(header, new Separator(), grid, new Separator(), footer);
             ordersContainer.getChildren().add(card);
@@ -649,6 +740,14 @@ public class MainController implements Initializable {
 
         grid.add(box, col, row, colSpan, 1);
         GridPane.setHgrow(box, Priority.ALWAYS);
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.show();
     }
 
     private String mapTailwindGradient(String tw) {

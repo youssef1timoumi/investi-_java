@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 public class AddSaleController implements Initializable {
 
     @FXML
-    private TextField productNameField, referenceField, amountField, currencyField, customerIdField, shippingField,
+    private TextField productNameField, referenceField, amountField, currencyField, shippingField,
             billingField;
     @FXML
     private ComboBox<String> paymentMethodCombo;
@@ -59,7 +59,6 @@ public class AddSaleController implements Initializable {
 
             referenceField.setText(s.getReference());
             referenceField.setEditable(false); // Reference shouldn't change
-            customerIdField.setText(String.valueOf(s.getCustomerId()));
             amountField.setText(String.valueOf(s.getTotalAmount()));
             currencyField.setText(s.getCurrency());
             paymentMethodCombo.setValue(s.getPaymentMethod());
@@ -85,7 +84,7 @@ public class AddSaleController implements Initializable {
         try {
             Sale s = (existingSale != null) ? existingSale : new Sale();
             s.setReference(referenceField.getText());
-            s.setCustomerId(Long.parseLong(customerIdField.getText()));
+            s.setCustomerId(1L);
             s.setProductId(
                     product != null ? product.getId() : (existingSale != null ? existingSale.getProductId() : 0));
             s.setTotalAmount(Double.parseDouble(amountField.getText()));
@@ -98,8 +97,8 @@ public class AddSaleController implements Initializable {
             if (existingSale != null) {
                 saleService.update(s);
             } else {
-                s.setStatus("paid");
-                s.setPaymentStatus("paid");
+                s.setStatus("unpaid");
+                s.setPaymentStatus("unpaid");
                 s.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase());
                 saleService.create(s);
             }
@@ -120,16 +119,6 @@ public class AddSaleController implements Initializable {
     }
 
     private boolean validateForm() {
-        if (customerIdField.getText().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validation", "Customer ID is required");
-            return false;
-        }
-        try {
-            Long.parseLong(customerIdField.getText());
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.WARNING, "Validation", "Customer ID must be a number");
-            return false;
-        }
         return true;
     }
 
