@@ -1,6 +1,7 @@
 package edu.connections3a8.services;
 
 import edu.connections3a8.entities.Course;
+import edu.connections3a8.entities.CourseInteraction;
 import edu.connections3a8.interfaces.ICourse;
 import edu.connections3a8.tools.MyConnection;
 
@@ -236,4 +237,98 @@ public class CouseService implements ICourse {
         course.setThumbnailUrl(rs.getString("thumbnail_url"));
         return course;
     }
+
+    /* ===== COURSE INTERACTIONS ===== */
+
+    public void addCourseInteraction(CourseInteraction interaction) throws SQLException {
+        // Remove existing interaction of same type
+        String deleteQuery = "DELETE FROM course_interactions WHERE user_id = ? AND course_id = ? AND interaction_type = ?";
+        PreparedStatement deletePst = cnx.prepareStatement(deleteQuery);
+        deletePst.setInt(1, interaction.getUserId());
+        deletePst.setLong(2, interaction.getCourseId());
+        deletePst.setString(3, interaction.getInteractionType());
+        deletePst.executeUpdate();
+
+        // Add new interaction
+        String query = "INSERT INTO course_interactions (user_id, course_id, interaction_type, report_reason) VALUES (?, ?, ?, ?)";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, interaction.getUserId());
+        pst.setLong(2, interaction.getCourseId());
+        pst.setString(3, interaction.getInteractionType());
+        pst.setString(4, interaction.getReportReason());
+        pst.executeUpdate();
+    }
+
+    public void removeCourseInteraction(int userId, long courseId, String interactionType) throws SQLException {
+        String query = "DELETE FROM course_interactions WHERE user_id = ? AND course_id = ? AND interaction_type = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        pst.setLong(2, courseId);
+        pst.setString(3, interactionType);
+        pst.executeUpdate();
+    }
+
+    public int getCourseInteractionCount(long courseId, String interactionType) throws SQLException {
+        String query = "SELECT COUNT(*) FROM course_interactions WHERE course_id = ? AND interaction_type = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, courseId);
+        pst.setString(2, interactionType);
+        
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1);
+        }
+        return 0;
+    }
+
+    public boolean hasUserInteracted(int userId, long courseId, String interactionType) throws SQLException {
+        String query = "SELECT COUNT(*) FROM course_interactions WHERE user_id = ? AND course_id = ? AND interaction_type = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        pst.setLong(2, courseId);
+        pst.setString(3, interactionType);
+        
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+        return false;
+    }
+
+    /* ===== COURSE-QUIZ LINKING ===== */
+
+    public void linkQuizToCourse(long courseId, long quizId, int order, boolean isRequired) throws SQLException {
+        String query = "INSERT INTO course_quizzes (course_id, quiz_id, quiz_order, is_required) VALUES (?, ?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE quiz_order = ?, is_required = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, courseId);
+        pst.setLong(2, quizId);
+        pst.setInt(3, order);
+        pst.setBoolean(4, isRequired);
+        pst.setInt(5, order);
+        pst.setBoolean(6, isRequired);
+        pst.executeUpdate();
+    }
+
+    public void unlinkQuizFromCourse(long courseId, long quizId) throws SQLException {
+        String query = "DELETE FROM course_quizzes WHERE course_id = ? AND quiz_id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, courseId);
+        pst.setLong(2, quizId);
+        pst.executeUpdate();
+    }
+
+    public List<Long> getQuizIdsForCourse(long courseId) throws SQLException {
+        List<Long> quizIds = new ArrayList<>();
+        String query = "SELECT quiz_id FROM course_quizzes WHERE course_id = ? ORDER BY quiz_order ASC";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, courseId);
+        
+        ResultSet rs = pst.executeQuery();
+        while (rs.next()) {
+            quizIds.add(rs.getLong("quiz_id"));
+        }
+        return quizIds;
+    }
 }
+

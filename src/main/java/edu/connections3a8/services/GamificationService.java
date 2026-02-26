@@ -494,4 +494,137 @@ public class GamificationService implements IGamification {
         transaction.setCreatedAt(rs.getTimestamp("created_at"));
         return transaction;
     }
+
+    /* ===== QUESTION MANAGEMENT ===== */
+
+    public long addQuestion(Question question) throws SQLException {
+        String query = "INSERT INTO questions (quiz_id, question_text) VALUES (?, ?)";
+        
+        PreparedStatement pst = cnx.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+        pst.setLong(1, question.getQuizId());
+        pst.setString(2, question.getQuestionText());
+        
+        pst.executeUpdate();
+        
+        ResultSet rs = pst.getGeneratedKeys();
+        if (rs.next()) {
+            return rs.getLong(1);
+        }
+        return 0;
+    }
+
+    public void addQuestionOption(QuestionOption option) throws SQLException {
+        String query = "INSERT INTO question_options (question_id, option_text, is_correct, option_order) " +
+                "VALUES (?, ?, ?, ?)";
+        
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, option.getQuestionId());
+        pst.setString(2, option.getOptionText());
+        pst.setBoolean(3, option.isCorrect());
+        pst.setInt(4, option.getOptionOrder());
+        
+        pst.executeUpdate();
+    }
+
+    public void updateQuestion(Question question, long id) throws SQLException {
+        String query = "UPDATE questions SET quiz_id = ?, question_text = ? WHERE id = ?";
+        
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, question.getQuizId());
+        pst.setString(2, question.getQuestionText());
+        pst.setLong(3, id);
+        
+        pst.executeUpdate();
+    }
+
+    public void deleteQuestion(long id) throws SQLException {
+        // Options will be deleted automatically due to CASCADE
+        String query = "DELETE FROM questions WHERE id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, id);
+        pst.executeUpdate();
+    }
+
+    public void deleteQuestionOption(long id) throws SQLException {
+        String query = "DELETE FROM question_options WHERE id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, id);
+        pst.executeUpdate();
+    }
+
+    public Question getQuestionById(long id) throws SQLException {
+        String query = "SELECT * FROM questions WHERE id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, id);
+        
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            Question question = mapResultSetToQuestion(rs);
+            question.setOptions(getQuestionOptions(id));
+            return question;
+        }
+        return null;
+    }
+
+    public List<Question> getQuestionsByQuizId(long quizId) throws SQLException {
+        List<Question> questions = new ArrayList<>();
+        String query = "SELECT * FROM questions WHERE quiz_id = ? ORDER BY id ASC";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, quizId);
+        
+        ResultSet rs = pst.executeQuery();
+        while (rs.next()) {
+            Question question = mapResultSetToQuestion(rs);
+            question.setOptions(getQuestionOptions(question.getId()));
+            questions.add(question);
+        }
+        return questions;
+    }
+
+    public List<QuestionOption> getQuestionOptions(long questionId) throws SQLException {
+        List<QuestionOption> options = new ArrayList<>();
+        String query = "SELECT * FROM question_options WHERE question_id = ? ORDER BY option_order ASC";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, questionId);
+        
+        ResultSet rs = pst.executeQuery();
+        while (rs.next()) {
+            options.add(mapResultSetToQuestionOption(rs));
+        }
+        return options;
+    }
+
+    public int getQuestionCountByQuizId(long quizId) throws SQLException {
+        String query = "SELECT COUNT(*) FROM questions WHERE quiz_id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, quizId);
+        
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1);
+        }
+        return 0;
+    }
+
+    private Question mapResultSetToQuestion(ResultSet rs) throws SQLException {
+        Question question = new Question();
+        question.setId(rs.getLong("id"));
+        question.setQuizId(rs.getLong("quiz_id"));
+        question.setQuestionText(rs.getString("question_text"));
+        question.setCreatedAt(rs.getTimestamp("created_at"));
+        question.setUpdatedAt(rs.getTimestamp("updated_at"));
+        return question;
+    }
+
+    private QuestionOption mapResultSetToQuestionOption(ResultSet rs) throws SQLException {
+        QuestionOption option = new QuestionOption();
+        option.setId(rs.getLong("id"));
+        option.setQuestionId(rs.getLong("question_id"));
+        option.setOptionText(rs.getString("option_text"));
+        option.setCorrect(rs.getBoolean("is_correct"));
+        option.setOptionOrder(rs.getInt("option_order"));
+        option.setCreatedAt(rs.getTimestamp("created_at"));
+        return option;
+    }
+
 }

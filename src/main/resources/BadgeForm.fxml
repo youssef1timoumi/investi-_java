@@ -79,6 +79,8 @@
                     styleClass="btn, btn-primary, action-btn" prefWidth="140" fx:id="addBtn"/>
             <Button text="🗑️ Clear Form" onAction="#handleClearForm"
                     styleClass="btn, btn-secondary, action-btn" prefWidth="140" fx:id="clearBtn"/>
+            <Button text="📊 Statistics" onAction="#handleStatistics"
+                    styleClass="btn, btn-secondary, action-btn" prefWidth="140" style="-fx-background-color: #9B7E46;"/>
             <Button text="👁️ View All" onAction="#handleViewAll"
                     styleClass="btn, btn-secondary, action-btn" prefWidth="140" fx:id="viewBtn"/>
             <Button text="← Back" onAction="#handleBack" 

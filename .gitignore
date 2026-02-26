@@ -36,3 +36,15 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+
+### Media Files ###
+# Exclude uploaded course media files (videos and PDFs can be large)
+media/courses/*
+# But keep the README
+!media/courses/README.md
+
+# Exclude uploaded thumbnail images
+media/thumbnails/*
+# But keep the README
+!media/thumbnails/README.md

@@ -63,8 +63,13 @@
 
         <!-- Content URL -->
         <Label text="Content URL:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <TextField fx:id="contentUrlField" promptText="https://example.com/course" styleClass="modern-text-field"
-                   GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <TextField fx:id="contentUrlField" promptText="https://example.com/course or local file path" 
+                       styleClass="modern-text-field" HBox.hgrow="ALWAYS"/>
+            <Button text="📁 Browse" onAction="#handleBrowseFile" 
+                    styleClass="btn, btn-secondary" 
+                    style="-fx-font-size: 12px; -fx-padding: 8 16 8 16;"/>
+        </HBox>
 
         <!-- Content Type -->
         <Label text="Content Type:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
@@ -98,8 +103,13 @@
 
         <!-- Thumbnail URL -->
         <Label text="Thumbnail URL:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
-        <TextField fx:id="thumbnailField" promptText="https://example.com/image.jpg" styleClass="modern-text-field"
-                   GridPane.columnIndex="1" GridPane.rowIndex="10"/>
+        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="10">
+            <TextField fx:id="thumbnailField" promptText="https://example.com/image.jpg or local file path" 
+                       styleClass="modern-text-field" HBox.hgrow="ALWAYS"/>
+            <Button text="🖼️ Browse" onAction="#handleBrowseThumbnail" 
+                    styleClass="btn, btn-secondary" 
+                    style="-fx-font-size: 12px; -fx-padding: 8 16 8 16;"/>
+        </HBox>
     </GridPane>
     </VBox>
 
@@ -111,6 +121,8 @@
                 styleClass="btn, btn-primary" prefWidth="130"/>
         <Button text="Clear Form" onAction="#handleClearForm" 
                 styleClass="btn, btn-secondary" prefWidth="130"/>
+        <Button text="Statistics" onAction="#handleStatistics" 
+                styleClass="btn, btn-secondary" prefWidth="130" style="-fx-background-color: #9B7E46;"/>
         <Button text="View All" onAction="#handleViewAll" 
                 styleClass="btn, btn-secondary" prefWidth="130"/>
         <Button text="Back" onAction="#handleBack" 

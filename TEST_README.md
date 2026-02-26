@@ -89,6 +89,17 @@ Tests for UserQuiz entity:
 - ✅ Failing Quiz Scenario
 - ✅ Multiple Quiz Attempts
 
+#### 8. QuestionTest
+Tests for Question entity:
+- ✅ Default Constructor
+- ✅ Parameterized Constructor
+- ✅ All Getters and Setters (ID, Quiz ID, Question Text, Options, Correct Answer)
+- ✅ Equals Method
+- ✅ HashCode Method
+- ✅ ToString Method
+- ✅ Correct Answer Validation (1-4 range)
+- ✅ Complete Question Setup
+
 ### Service Tests (Integration Tests)
 
 #### 1. CourseServiceTest

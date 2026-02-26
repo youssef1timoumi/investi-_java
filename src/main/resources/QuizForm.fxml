@@ -57,20 +57,20 @@
         <TextField fx:id="pointsRewardField" promptText="100" styleClass="modern-text-field"
                    GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
-        <!-- Question Count -->
-        <Label text="Question Count:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-        <TextField fx:id="questionCountField" promptText="10" styleClass="modern-text-field"
-                   GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-
         <!-- Difficulty Level -->
-        <Label text="Difficulty:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <Label text="Difficulty:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
         <ComboBox fx:id="difficultyCombo" promptText="Select difficulty" styleClass="modern-combo"
-                  GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="200"/>
+                  GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="200"/>
 
         <!-- Category -->
-        <Label text="Category:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <Label text="Category:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
         <TextField fx:id="categoryField" promptText="programming, database, web..." styleClass="modern-text-field"
-                   GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                   GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+        <!-- Related Course -->
+        <Label text="Related Course:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <ComboBox fx:id="courseCombo" promptText="Select course (optional)" styleClass="modern-combo"
+                  GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="400"/>
 
         <!-- Time Limit -->
         <Label text="Time Limit (sec):" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
@@ -96,6 +96,10 @@
                 styleClass="btn, btn-primary" prefWidth="130"/>
         <Button text="Clear Form" onAction="#handleClearForm" 
                 styleClass="btn, btn-secondary" prefWidth="130"/>
+        <Button fx:id="manageQuestionsBtn" text="Manage Questions" onAction="#handleManageQuestions" 
+                styleClass="btn, btn-secondary" prefWidth="160" disable="true"/>
+        <Button text="Statistics" onAction="#handleStatistics" 
+                styleClass="btn, btn-secondary" prefWidth="130" style="-fx-background-color: #9B7E46;"/>
         <Button text="View All" onAction="#handleViewAll" 
                 styleClass="btn, btn-secondary" prefWidth="130"/>
         <Button text="Back" onAction="#handleBack" 

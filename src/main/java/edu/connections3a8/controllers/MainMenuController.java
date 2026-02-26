@@ -32,6 +32,11 @@ public class MainMenuController {
     }
 
     @FXML
+    private void openCourseCatalog() {
+        loadView("/CourseCatalogView.fxml", "Course Catalog");
+    }
+
+    @FXML
     private void openUserView() {
         // TODO: Create User view
         showComingSoon("User Management");
@@ -68,11 +73,13 @@ public class MainMenuController {
             Parent view = loader.load();
             
             // Wire up the buttons programmatically
+            javafx.scene.control.Button browseCatalogBtn = (javafx.scene.control.Button) view.lookup("#browseCatalogBtn");
             javafx.scene.control.Button coursesBtn = (javafx.scene.control.Button) view.lookup("#coursesBtn");
             javafx.scene.control.Button quizzesBtn = (javafx.scene.control.Button) view.lookup("#quizzesBtn");
             javafx.scene.control.Button badgesBtn = (javafx.scene.control.Button) view.lookup("#badgesBtn");
             javafx.scene.control.Button usersBtn = (javafx.scene.control.Button) view.lookup("#usersBtn");
             
+            if (browseCatalogBtn != null) browseCatalogBtn.setOnAction(e -> openCourseCatalog());
             if (coursesBtn != null) coursesBtn.setOnAction(e -> openCourseForm());
             if (quizzesBtn != null) quizzesBtn.setOnAction(e -> openQuizForm());
             if (badgesBtn != null) badgesBtn.setOnAction(e -> openBadgeForm());

@@ -22,6 +22,12 @@
     
     <!-- Menu Buttons -->
     <VBox spacing="15" alignment="CENTER" maxWidth="300">
+        <Button fx:id="browseCatalogBtn" text="📚 Browse Course Catalog" 
+                style="-fx-background-color: #28A745; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 15px; -fx-background-radius: 8px; -fx-cursor: hand; -fx-font-weight: bold;"
+                prefWidth="280"/>
+        
+        <Separator style="-fx-background-color: #F7F0F5; -fx-opacity: 0.3;" prefWidth="280"/>
+        
         <Button fx:id="coursesBtn" text="📚 Manage Courses" 
                 style="-fx-background-color: #456990; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 15px; -fx-background-radius: 8px; -fx-cursor: hand;"
                 prefWidth="280"/>

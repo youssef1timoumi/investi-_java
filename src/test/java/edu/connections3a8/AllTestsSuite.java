@@ -21,6 +21,7 @@ import org.junit.platform.suite.api.Suite;
     PointTransactionTest.class,
     UserBadgeTest.class,
     UserQuizTest.class,
+    QuestionTest.class,
     
     // Service Tests (Integration Tests)
     CourseServiceTest.class,

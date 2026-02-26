@@ -523,3 +523,36 @@
     -fx-background-color: rgba(200, 168, 78, 0.25);
     -fx-effect: dropshadow(gaussian, rgba(200,168,78,0.15), 6, 0, 0, 2);
 }
+
+
+/* ===== SCROLL BAR FIX (Suppress JavaFX ClassCastException warnings) ===== */
+.scroll-bar:vertical > .increment-button > .increment-arrow,
+.scroll-bar:vertical > .decrement-button > .decrement-arrow,
+.scroll-bar:horizontal > .increment-button > .increment-arrow,
+.scroll-bar:horizontal > .decrement-button > .decrement-arrow {
+    -fx-effect: null;
+}
+
+.scroll-bar > .increment-button,
+.scroll-bar > .decrement-button {
+    -fx-effect: null;
+}
+
+.scroll-bar > .track,
+.scroll-bar > .thumb {
+    -fx-effect: null;
+}
+
+
+/* ===== SEPARATOR FIX (Suppress JavaFX ClassCastException warnings) ===== */
+.separator:horizontal .line {
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1 0 0 0;
+    -fx-background-color: transparent;
+}
+
+.separator:vertical .line {
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 0 0 0 1;
+    -fx-background-color: transparent;
+}

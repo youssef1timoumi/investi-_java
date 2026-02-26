@@ -6,13 +6,25 @@ import javafx.animation.*;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -193,6 +205,103 @@ public class CourseController {
             } else {
                 autoModeBtn.getStyleClass().remove("auto-mode-active");
                 autoModeBtn.setText("⏰ Auto");
+            }
+        }
+    }
+
+    @FXML
+    private void handleBrowseFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Course Media");
+        
+        // Set extension filters
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("All Media", "*.mp4", "*.avi", "*.mkv", "*.pdf"),
+            new FileChooser.ExtensionFilter("Video Files", "*.mp4", "*.avi", "*.mkv", "*.mov", "*.wmv", "*.flv"),
+            new FileChooser.ExtensionFilter("PDF Files", "*.pdf")
+        );
+        
+        // Show open file dialog
+        Stage stage = (Stage) contentUrlField.getScene().getWindow();
+        File selectedFile = fileChooser.showOpenDialog(stage);
+        
+        if (selectedFile != null) {
+            try {
+                // Create media directory if it doesn't exist
+                Path mediaDir = Paths.get("media", "courses");
+                Files.createDirectories(mediaDir);
+                
+                // Generate unique filename to avoid conflicts
+                String originalFileName = selectedFile.getName();
+                String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                String timestamp = String.valueOf(System.currentTimeMillis());
+                String newFileName = "course_" + timestamp + fileExtension;
+                
+                // Copy file to media directory
+                Path targetPath = mediaDir.resolve(newFileName);
+                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                
+                // Set the relative path in the content URL field
+                String relativePath = "media/courses/" + newFileName;
+                contentUrlField.setText(relativePath);
+                
+                // Auto-detect content type
+                if (fileExtension.toLowerCase().matches("\\.(mp4|avi|mkv|mov|wmv|flv)")) {
+                    contentTypeCombo.setValue("video");
+                } else if (fileExtension.toLowerCase().equals(".pdf")) {
+                    contentTypeCombo.setValue("pdf");
+                }
+                
+                showSuccess("File uploaded successfully: " + originalFileName);
+                
+            } catch (IOException e) {
+                showError("Error uploading file: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @FXML
+    private void handleBrowseThumbnail() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Course Thumbnail");
+        
+        // Set extension filters for images only
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"),
+            new FileChooser.ExtensionFilter("PNG Images", "*.png"),
+            new FileChooser.ExtensionFilter("JPEG Images", "*.jpg", "*.jpeg")
+        );
+        
+        // Show open file dialog
+        Stage stage = (Stage) thumbnailField.getScene().getWindow();
+        File selectedFile = fileChooser.showOpenDialog(stage);
+        
+        if (selectedFile != null) {
+            try {
+                // Create thumbnails directory if it doesn't exist
+                Path thumbnailDir = Paths.get("media", "thumbnails");
+                Files.createDirectories(thumbnailDir);
+                
+                // Generate unique filename to avoid conflicts
+                String originalFileName = selectedFile.getName();
+                String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                String timestamp = String.valueOf(System.currentTimeMillis());
+                String newFileName = "thumb_" + timestamp + fileExtension;
+                
+                // Copy file to thumbnails directory
+                Path targetPath = thumbnailDir.resolve(newFileName);
+                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                
+                // Set the relative path in the thumbnail field
+                String relativePath = "media/thumbnails/" + newFileName;
+                thumbnailField.setText(relativePath);
+                
+                showSuccess("Thumbnail uploaded successfully: " + originalFileName);
+                
+            } catch (IOException e) {
+                showError("Error uploading thumbnail: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
@@ -673,6 +782,246 @@ public class CourseController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @FXML
+    private void handleStatistics() {
+        openStatisticsDialog();
+    }
+
+    private void openStatisticsDialog() {
+        Stage dialog = new Stage();
+        dialog.setTitle("Course Statistics");
+        
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(25));
+        root.setStyle("-fx-background-color: #F7F0F5;");
+        
+        Label titleLabel = new Label("📊 Course Statistics");
+        titleLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #000501;");
+        
+        HBox selectorBox = new HBox(15);
+        selectorBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label selectLabel = new Label("Select Statistic:");
+        selectLabel.setStyle("-fx-font-weight: 600; -fx-text-fill: #000501; -fx-font-size: 14px;");
+        
+        ComboBox<String> statsCombo = new ComboBox<>();
+        statsCombo.setItems(FXCollections.observableArrayList(
+            "Total Courses",
+            "Courses by Difficulty",
+            "Courses by Category",
+            "Courses by Status",
+            "Average Reward Points",
+            "Average Duration",
+            "Courses by Language"
+        ));
+        statsCombo.setPromptText("Choose a statistic...");
+        statsCombo.setPrefWidth(300);
+        statsCombo.setStyle("-fx-font-size: 13px;");
+        
+        selectorBox.getChildren().addAll(selectLabel, statsCombo);
+        
+        VBox resultsContainer = new VBox(15);
+        resultsContainer.setPadding(new Insets(20));
+        resultsContainer.setStyle("-fx-background-color: white; -fx-background-radius: 10px; -fx-border-color: #456990; -fx-border-width: 2px; -fx-border-radius: 10px;");
+        resultsContainer.setPrefHeight(400);
+        
+        ScrollPane scrollPane = new ScrollPane(resultsContainer);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+        
+        Label initialLabel = new Label("Select a statistic to view data");
+        initialLabel.setStyle("-fx-text-fill: #6B7280; -fx-font-style: italic; -fx-font-size: 14px;");
+        resultsContainer.getChildren().add(initialLabel);
+        
+        statsCombo.setOnAction(e -> {
+            String selected = statsCombo.getValue();
+            if (selected != null) {
+                displayCourseStatistic(selected, resultsContainer);
+            }
+        });
+        
+        Button closeBtn = new Button("Close");
+        closeBtn.setStyle("-fx-background-color: #456990; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8px; -fx-padding: 10 30 10 30; -fx-cursor: hand; -fx-font-size: 13px;");
+        closeBtn.setOnAction(e -> dialog.close());
+        
+        HBox closeBox = new HBox(closeBtn);
+        closeBox.setAlignment(Pos.CENTER);
+        
+        root.getChildren().addAll(titleLabel, new Separator(), selectorBox, scrollPane, closeBox);
+        
+        Scene scene = new Scene(root, 650, 600);
+        dialog.setScene(scene);
+        dialog.show();
+    }
+
+    private void displayCourseStatistic(String statType, VBox container) {
+        container.getChildren().clear();
+        
+        try {
+            List<Course> allCourses = courseService.getAllCourses();
+            
+            switch (statType) {
+                case "Total Courses":
+                    displayTotalCourses(container, allCourses);
+                    break;
+                case "Courses by Difficulty":
+                    displayCoursesByDifficulty(container, allCourses);
+                    break;
+                case "Courses by Category":
+                    displayCoursesByCategory(container, allCourses);
+                    break;
+                case "Courses by Status":
+                    displayCoursesByStatus(container, allCourses);
+                    break;
+                case "Average Reward Points":
+                    displayAverageRewardPoints(container, allCourses);
+                    break;
+                case "Average Duration":
+                    displayAverageDuration(container, allCourses);
+                    break;
+                case "Courses by Language":
+                    displayCoursesByLanguage(container, allCourses);
+                    break;
+            }
+            
+        } catch (SQLException e) {
+            Label errorLabel = new Label("Error loading statistics: " + e.getMessage());
+            errorLabel.setStyle("-fx-text-fill: #DC3545; -fx-font-size: 13px;");
+            container.getChildren().add(errorLabel);
+        }
+    }
+
+    private void displayTotalCourses(VBox container, List<Course> courses) {
+        Label statLabel = new Label("Total Courses: " + courses.size());
+        statLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #456990;");
+        
+        Label descLabel = new Label("Total number of courses in the system");
+        descLabel.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 13px;");
+        
+        container.getChildren().addAll(statLabel, descLabel);
+    }
+
+    private void displayCoursesByDifficulty(VBox container, List<Course> courses) {
+        Label titleLabel = new Label("Courses by Difficulty Level");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000501;");
+        
+        java.util.Map<String, Long> difficultyCount = courses.stream()
+            .collect(Collectors.groupingBy(Course::getDifficultyLevel, Collectors.counting()));
+        
+        VBox statsBox = new VBox(10);
+        for (java.util.Map.Entry<String, Long> entry : difficultyCount.entrySet()) {
+            HBox row = createCourseStatRow(entry.getKey(), entry.getValue().intValue(), courses.size());
+            statsBox.getChildren().add(row);
+        }
+        
+        container.getChildren().addAll(titleLabel, new Separator(), statsBox);
+    }
+
+    private void displayCoursesByCategory(VBox container, List<Course> courses) {
+        Label titleLabel = new Label("Courses by Category");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000501;");
+        
+        java.util.Map<String, Long> categoryCount = courses.stream()
+            .collect(Collectors.groupingBy(Course::getCategory, Collectors.counting()));
+        
+        VBox statsBox = new VBox(10);
+        for (java.util.Map.Entry<String, Long> entry : categoryCount.entrySet()) {
+            HBox row = createCourseStatRow(entry.getKey(), entry.getValue().intValue(), courses.size());
+            statsBox.getChildren().add(row);
+        }
+        
+        container.getChildren().addAll(titleLabel, new Separator(), statsBox);
+    }
+
+    private void displayCoursesByStatus(VBox container, List<Course> courses) {
+        Label titleLabel = new Label("Courses by Status");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000501;");
+        
+        java.util.Map<String, Long> statusCount = courses.stream()
+            .collect(Collectors.groupingBy(Course::getStatus, Collectors.counting()));
+        
+        VBox statsBox = new VBox(10);
+        for (java.util.Map.Entry<String, Long> entry : statusCount.entrySet()) {
+            HBox row = createCourseStatRow(entry.getKey(), entry.getValue().intValue(), courses.size());
+            statsBox.getChildren().add(row);
+        }
+        
+        container.getChildren().addAll(titleLabel, new Separator(), statsBox);
+    }
+
+    private void displayAverageRewardPoints(VBox container, List<Course> courses) {
+        double avgPoints = courses.stream()
+            .mapToInt(Course::getRewardPoints)
+            .average()
+            .orElse(0.0);
+        
+        Label statLabel = new Label(String.format("%.1f points", avgPoints));
+        statLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #456990;");
+        
+        Label descLabel = new Label("Average reward points per course");
+        descLabel.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 13px;");
+        
+        container.getChildren().addAll(statLabel, descLabel);
+    }
+
+    private void displayAverageDuration(VBox container, List<Course> courses) {
+        double avgDuration = courses.stream()
+            .mapToInt(Course::getEstimatedDuration)
+            .average()
+            .orElse(0.0);
+        
+        Label statLabel = new Label(String.format("%.0f minutes", avgDuration));
+        statLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #456990;");
+        
+        Label descLabel = new Label("Average estimated duration per course");
+        descLabel.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 13px;");
+        
+        container.getChildren().addAll(statLabel, descLabel);
+    }
+
+    private void displayCoursesByLanguage(VBox container, List<Course> courses) {
+        Label titleLabel = new Label("Courses by Language");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000501;");
+        
+        java.util.Map<String, Long> languageCount = courses.stream()
+            .collect(Collectors.groupingBy(Course::getLanguage, Collectors.counting()));
+        
+        VBox statsBox = new VBox(10);
+        for (java.util.Map.Entry<String, Long> entry : languageCount.entrySet()) {
+            HBox row = createCourseStatRow(entry.getKey(), entry.getValue().intValue(), courses.size());
+            statsBox.getChildren().add(row);
+        }
+        
+        container.getChildren().addAll(titleLabel, new Separator(), statsBox);
+    }
+
+    private HBox createCourseStatRow(String label, int count, int total) {
+        HBox row = new HBox(15);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(8));
+        row.setStyle("-fx-background-color: #F7F0F5; -fx-background-radius: 6px;");
+        
+        Label nameLabel = new Label(label);
+        nameLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #000501; -fx-font-weight: 600;");
+        nameLabel.setPrefWidth(180);
+        
+        Label countLabel = new Label(count + " courses");
+        countLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #456990;");
+        countLabel.setPrefWidth(100);
+        
+        double percentage = total > 0 ? (double) count / total * 100 : 0;
+        ProgressBar progressBar = new ProgressBar(percentage / 100);
+        progressBar.setPrefWidth(150);
+        progressBar.setStyle("-fx-accent: #456990;");
+        
+        Label percentLabel = new Label(String.format("%.1f%%", percentage));
+        percentLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280;");
+        
+        row.getChildren().addAll(nameLabel, countLabel, progressBar, percentLabel);
+        
+        return row;
     }
     
     private void playEntranceAnimations() {

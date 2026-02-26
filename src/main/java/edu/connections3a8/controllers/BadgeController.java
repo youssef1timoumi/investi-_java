@@ -6,11 +6,16 @@ import javafx.animation.*;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.sql.SQLException;
@@ -804,5 +809,188 @@ public class BadgeController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @FXML
+    private void handleStatistics() {
+        openStatisticsDialog();
+    }
+
+    private void openStatisticsDialog() {
+        Stage dialog = new Stage();
+        dialog.setTitle("Badge Statistics");
+        
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(25));
+        root.setStyle("-fx-background-color: #F7F0F5;");
+        
+        Label titleLabel = new Label("📊 Badge Statistics");
+        titleLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #000501;");
+        
+        HBox selectorBox = new HBox(15);
+        selectorBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label selectLabel = new Label("Select Statistic:");
+        selectLabel.setStyle("-fx-font-weight: 600; -fx-text-fill: #000501; -fx-font-size: 14px;");
+        
+        ComboBox<String> statsCombo = new ComboBox<>();
+        statsCombo.setItems(FXCollections.observableArrayList(
+            "Total Badges",
+            "Average Points Required",
+            "Badges by Points Range",
+            "Badge Distribution"
+        ));
+        statsCombo.setPromptText("Choose a statistic...");
+        statsCombo.setPrefWidth(300);
+        statsCombo.setStyle("-fx-font-size: 13px;");
+        
+        selectorBox.getChildren().addAll(selectLabel, statsCombo);
+        
+        VBox resultsContainer = new VBox(15);
+        resultsContainer.setPadding(new Insets(20));
+        resultsContainer.setStyle("-fx-background-color: white; -fx-background-radius: 10px; -fx-border-color: #456990; -fx-border-width: 2px; -fx-border-radius: 10px;");
+        resultsContainer.setPrefHeight(400);
+        
+        ScrollPane scrollPane = new ScrollPane(resultsContainer);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+        
+        Label initialLabel = new Label("Select a statistic to view data");
+        initialLabel.setStyle("-fx-text-fill: #6B7280; -fx-font-style: italic; -fx-font-size: 14px;");
+        resultsContainer.getChildren().add(initialLabel);
+        
+        statsCombo.setOnAction(e -> {
+            String selected = statsCombo.getValue();
+            if (selected != null) {
+                displayBadgeStatistic(selected, resultsContainer);
+            }
+        });
+        
+        Button closeBtn = new Button("Close");
+        closeBtn.setStyle("-fx-background-color: #456990; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8px; -fx-padding: 10 30 10 30; -fx-cursor: hand; -fx-font-size: 13px;");
+        closeBtn.setOnAction(e -> dialog.close());
+        
+        HBox closeBox = new HBox(closeBtn);
+        closeBox.setAlignment(Pos.CENTER);
+        
+        root.getChildren().addAll(titleLabel, new Separator(), selectorBox, scrollPane, closeBox);
+        
+        Scene scene = new Scene(root, 650, 600);
+        dialog.setScene(scene);
+        dialog.show();
+    }
+
+    private void displayBadgeStatistic(String statType, VBox container) {
+        container.getChildren().clear();
+        
+        try {
+            List<Badge> allBadges = gamificationService.getAllBadges();
+            
+            switch (statType) {
+                case "Total Badges":
+                    displayTotalBadges(container, allBadges);
+                    break;
+                case "Average Points Required":
+                    displayAveragePointsRequired(container, allBadges);
+                    break;
+                case "Badges by Points Range":
+                    displayBadgesByPointsRange(container, allBadges);
+                    break;
+                case "Badge Distribution":
+                    displayBadgeDistribution(container, allBadges);
+                    break;
+            }
+            
+        } catch (SQLException e) {
+            Label errorLabel = new Label("Error loading statistics: " + e.getMessage());
+            errorLabel.setStyle("-fx-text-fill: #DC3545; -fx-font-size: 13px;");
+            container.getChildren().add(errorLabel);
+        }
+    }
+
+    private void displayTotalBadges(VBox container, List<Badge> badges) {
+        Label statLabel = new Label("Total Badges: " + badges.size());
+        statLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #456990;");
+        
+        Label descLabel = new Label("Total number of badges in the system");
+        descLabel.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 13px;");
+        
+        container.getChildren().addAll(statLabel, descLabel);
+    }
+
+    private void displayAveragePointsRequired(VBox container, List<Badge> badges) {
+        double avgPoints = badges.stream()
+            .mapToInt(Badge::getPointsRequired)
+            .average()
+            .orElse(0.0);
+        
+        Label statLabel = new Label(String.format("%.1f points", avgPoints));
+        statLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #456990;");
+        
+        Label descLabel = new Label("Average points required to earn badges");
+        descLabel.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 13px;");
+        
+        container.getChildren().addAll(statLabel, descLabel);
+    }
+
+    private void displayBadgesByPointsRange(VBox container, List<Badge> badges) {
+        Label titleLabel = new Label("Badges by Points Range");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000501;");
+        
+        int range0_100 = (int) badges.stream().filter(b -> b.getPointsRequired() <= 100).count();
+        int range101_500 = (int) badges.stream().filter(b -> b.getPointsRequired() > 100 && b.getPointsRequired() <= 500).count();
+        int range501_1000 = (int) badges.stream().filter(b -> b.getPointsRequired() > 500 && b.getPointsRequired() <= 1000).count();
+        int range1001plus = (int) badges.stream().filter(b -> b.getPointsRequired() > 1000).count();
+        
+        VBox statsBox = new VBox(10);
+        statsBox.getChildren().addAll(
+            createBadgeStatRow("0-100 points", range0_100, badges.size()),
+            createBadgeStatRow("101-500 points", range101_500, badges.size()),
+            createBadgeStatRow("501-1000 points", range501_1000, badges.size()),
+            createBadgeStatRow("1001+ points", range1001plus, badges.size())
+        );
+        
+        container.getChildren().addAll(titleLabel, new Separator(), statsBox);
+    }
+
+    private void displayBadgeDistribution(VBox container, List<Badge> badges) {
+        Label titleLabel = new Label("Badge Distribution");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000501;");
+        
+        VBox statsBox = new VBox(10);
+        for (Badge badge : badges) {
+            HBox row = createBadgeStatRow(badge.getName(), badge.getPointsRequired(), 
+                badges.stream().mapToInt(Badge::getPointsRequired).max().orElse(1));
+            statsBox.getChildren().add(row);
+        }
+        
+        container.getChildren().addAll(titleLabel, new Separator(), statsBox);
+    }
+
+    private HBox createBadgeStatRow(String label, int value, int maxValue) {
+        HBox row = new HBox(15);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(8));
+        row.setStyle("-fx-background-color: #F7F0F5; -fx-background-radius: 6px;");
+        
+        Label nameLabel = new Label(label);
+        nameLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #000501; -fx-font-weight: 600;");
+        nameLabel.setPrefWidth(180);
+        
+        Label countLabel = new Label(value + " badges");
+        countLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #456990;");
+        countLabel.setPrefWidth(100);
+        
+        double percentage = maxValue > 0 ? (double) value / maxValue * 100 : 0;
+        ProgressBar progressBar = new ProgressBar(percentage / 100);
+        progressBar.setPrefWidth(150);
+        progressBar.setStyle("-fx-accent: #456990;");
+        
+        Label percentLabel = new Label(String.format("%.1f%%", percentage));
+        percentLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280;");
+        
+        row.getChildren().addAll(nameLabel, countLabel, progressBar, percentLabel);
+        
+        return row;
     }
 }

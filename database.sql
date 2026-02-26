@@ -148,6 +148,31 @@ INSERT INTO badges (name, description, points_required) VALUES
 ('Rising Star', 'Reach level 3', 250),
 ('Expert Learner', 'Reach level 5', 1000);
 
+-- Table: questions
+CREATE TABLE IF NOT EXISTS questions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    quiz_id BIGINT NOT NULL,
+    question_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
+    INDEX idx_questions_quiz (quiz_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+COMMENT='Questions for each quiz';
+
+-- Table: question_options
+CREATE TABLE IF NOT EXISTS question_options (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    question_id BIGINT NOT NULL,
+    option_text VARCHAR(500) NOT NULL,
+    is_correct BOOLEAN DEFAULT FALSE,
+    option_order INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    INDEX idx_options_question (question_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+COMMENT='Answer options for each question';
+
 -- Sample data for quizzes
 INSERT INTO quizzes (title, description, points_reward, question_count, difficulty_level, category, time_limit, status) VALUES
 ('Java Basics Quiz', 'Test your Java fundamentals', 50, 10, 'beginner', 'programming', 600, 'active'),
@@ -157,3 +182,35 @@ INSERT INTO quizzes (title, description, points_reward, question_count, difficul
 -- Initialize points for existing users
 INSERT INTO user_points (user_id, points, level, total_earned_points)
 SELECT id, 0, 1, 0 FROM personne;
+
+-- Table: course_interactions
+CREATE TABLE IF NOT EXISTS course_interactions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    course_id BIGINT NOT NULL,
+    interaction_type ENUM('like', 'dislike', 'report') NOT NULL,
+    report_reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES personne(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_course_interaction (user_id, course_id, interaction_type),
+    INDEX idx_course_interactions_course (course_id),
+    INDEX idx_course_interactions_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+COMMENT='Tracks user interactions with courses (likes, dislikes, reports)';
+
+-- Table: course_quizzes (links courses to quizzes)
+CREATE TABLE IF NOT EXISTS course_quizzes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    course_id BIGINT NOT NULL,
+    quiz_id BIGINT NOT NULL,
+    quiz_order INT DEFAULT 1,
+    is_required BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_course_quiz (course_id, quiz_id),
+    INDEX idx_course_quizzes_course (course_id),
+    INDEX idx_course_quizzes_quiz (quiz_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+COMMENT='Links quizzes to courses';

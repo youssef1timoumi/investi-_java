@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="edu.connections3a8.controllers.CourseCatalogController"
+            fitToWidth="true"
+            style="-fx-background-color: transparent;"
+            vbarPolicy="AS_NEEDED"
+            hbarPolicy="NEVER">
+
+<VBox styleClass="root-container"
+      stylesheets="@courseCatalog.css"
+      spacing="20">
+
+    <padding>
+        <Insets top="32" right="36" bottom="32" left="36"/>
+    </padding>
+
+    <!-- Header -->
+    <HBox styleClass="glass-header" alignment="CENTER_LEFT" spacing="20">
+        <padding>
+            <Insets top="20" right="30" bottom="20" left="30"/>
+        </padding>
+        
+        <Label text="📚 Course Catalog" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+        
+        <Button text="← Back" onAction="#handleBack" styleClass="btn, btn-dark"/>
+    </HBox>
+
+    <!-- Search and Filter -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <TextField fx:id="searchField" promptText="Search courses..." 
+                   styleClass="modern-text-field" prefWidth="300"/>
+        
+        <ComboBox fx:id="categoryFilter" promptText="All Categories" 
+                  styleClass="modern-combo" prefWidth="180"/>
+        
+        <ComboBox fx:id="difficultyFilter" promptText="All Difficulties" 
+                  styleClass="modern-combo" prefWidth="180"/>
+        
+        <Button text="Clear Filters" onAction="#handleClearFilters" 
+                styleClass="btn, btn-secondary"/>
+    </HBox>
+
+    <Separator styleClass="styled-separator"/>
+
+    <!-- Course Count -->
+    <Label fx:id="courseCountLabel" text="Loading courses..." 
+           style="-fx-font-size: 14px; -fx-text-fill: #6B7280;"/>
+
+    <!-- Course Grid -->
+    <GridPane fx:id="courseGrid" hgap="20" vgap="20" VBox.vgrow="ALWAYS">
+        <!-- Courses loaded dynamically -->
+    </GridPane>
+
+</VBox>
+
+</ScrollPane>

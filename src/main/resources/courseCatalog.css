@@ -1,0 +1,154 @@
+/* Root Container */
+.root-container {
+    -fx-background: linear-gradient(to bottom right, #EEF1F8, #E4DCF4, #F4F0FA);
+}
+
+/* ScrollPane Styling */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .scroll-bar:vertical {
+    -fx-pref-width: 12px;
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .scroll-bar:vertical .track {
+    -fx-background-color: rgba(69, 105, 144, 0.1);
+    -fx-background-radius: 6px;
+}
+
+.scroll-pane > .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(69, 105, 144, 0.5);
+    -fx-background-radius: 6px;
+}
+
+.scroll-pane > .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(69, 105, 144, 0.7);
+}
+
+.scroll-pane > .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: #456990;
+}
+
+/* Glass Header */
+.glass-header {
+    -fx-background-color: rgba(255, 255, 255, 0.7);
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 3);
+}
+
+/* Page Title */
+.page-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000501;
+}
+
+/* Modern Text Field */
+.modern-text-field {
+    -fx-background-color: white;
+    -fx-border-color: #456990;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 10px 15px;
+    -fx-font-size: 13px;
+}
+
+.modern-text-field:focused {
+    -fx-border-color: #9B7E46;
+    -fx-border-width: 2px;
+}
+
+/* Modern ComboBox */
+.modern-combo {
+    -fx-background-color: white;
+    -fx-border-color: #456990;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 8px 12px;
+    -fx-font-size: 13px;
+}
+
+.modern-combo:focused {
+    -fx-border-color: #9B7E46;
+    -fx-border-width: 2px;
+}
+
+.modern-combo .list-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #000501;
+}
+
+.modern-combo .list-cell:hover {
+    -fx-background-color: #F7F0F5;
+}
+
+/* Buttons */
+.btn {
+    -fx-background-radius: 8px;
+    -fx-padding: 10px 20px;
+    -fx-cursor: hand;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+}
+
+.btn:hover {
+    -fx-opacity: 0.9;
+}
+
+.btn-secondary {
+    -fx-background-color: #9B7E46;
+    -fx-text-fill: white;
+}
+
+.btn-dark {
+    -fx-background-color: #000501;
+    -fx-text-fill: white;
+}
+
+/* Styled Separator */
+.styled-separator {
+    -fx-background-color: #456990;
+    -fx-opacity: 0.3;
+}
+
+/* Course Cards - handled inline in controller for dynamic styling */
+
+
+/* ===== SCROLL BAR FIX (Suppress JavaFX ClassCastException warnings) ===== */
+.scroll-bar:vertical > .increment-button > .increment-arrow,
+.scroll-bar:vertical > .decrement-button > .decrement-arrow,
+.scroll-bar:horizontal > .increment-button > .increment-arrow,
+.scroll-bar:horizontal > .decrement-button > .decrement-arrow {
+    -fx-effect: null;
+}
+
+.scroll-bar > .increment-button,
+.scroll-bar > .decrement-button {
+    -fx-effect: null;
+}
+
+.scroll-bar > .track,
+.scroll-bar > .thumb {
+    -fx-effect: null;
+}
+
+
+/* ===== SEPARATOR FIX (Suppress JavaFX ClassCastException warnings) ===== */
+.separator:horizontal .line {
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 1 0 0 0;
+    -fx-background-color: transparent;
+}
+
+.separator:vertical .line {
+    -fx-border-color: #E2E6ED;
+    -fx-border-width: 0 0 0 1;
+    -fx-background-color: transparent;
+}
