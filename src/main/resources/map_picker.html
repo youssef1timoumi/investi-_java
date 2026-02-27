@@ -57,9 +57,7 @@
         function boot() {
             if (map) return;
 
-            // window._tilePort is injected by Java before loading this page
-            var tilePort = (window._tilePort && window._tilePort > 0) ? window._tilePort : 0;
-            var tileUrl = 'http://localhost:' + tilePort + '/{z}/{x}/{y}.png';
+            var tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
             map = L.map('map', {
                 center: [36.8065, 10.1815], zoom: 13,

@@ -8,7 +8,6 @@ import models.Sale;
 import services.SaleService;
 import services.ProductService;
 
-import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -26,7 +25,6 @@ import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
-import utils.TileServer;
 
 public class AddSaleController implements Initializable {
 
@@ -144,25 +142,14 @@ public class AddSaleController implements Initializable {
     // ── Map window ────────────────────────────────────────────────────────
 
     private void openMapWindow(TextField targetField) {
-        File tilesDir = resolveTilesDir();
-        showMapStage(tilesDir, targetField);
+        showMapStage(targetField);
     }
 
-    private void showMapStage(File tilesDir, TextField targetField) {
-        TileServer tileServer = new TileServer(tilesDir);
-        int tilePort;
-        try {
-            tilePort = tileServer.start();
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Erreur", "Serveur de tuiles : " + e.getMessage());
-            return;
-        }
-
+    private void showMapStage(TextField targetField) {
         Stage stage = new Stage();
         stage.setTitle("Selectionner une adresse");
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setResizable(false);
-        stage.setOnHidden(ev -> tileServer.stop());
 
         WebView wv = new WebView();
         WebEngine engine = wv.getEngine();
@@ -170,12 +157,10 @@ public class AddSaleController implements Initializable {
         wv.setPrefSize(850, 650);
         wv.setMaxSize(850, 650);
 
-        // Extract all map resources to temp dir so file:// relative paths work
         URL mapUrl;
         try {
-            mapUrl = extractMapResources(tilePort);
+            mapUrl = extractMapResources();
         } catch (Exception e) {
-            tileServer.stop();
             showAlert(Alert.AlertType.ERROR, "Erreur", "Preparation carte : " + e.getMessage());
             return;
         }
@@ -209,10 +194,9 @@ public class AddSaleController implements Initializable {
 
     /**
      * Copies map resources from the classpath JAR to a real temp directory
-     * and injects the tile server port as a JS global variable.
      * Loading from file:// means relative paths (leaflet.css, leaflet.js) resolve.
      */
-    private URL extractMapResources(int tilePort) throws Exception {
+    private URL extractMapResources() throws Exception {
         Path tempDir = Files.createTempDirectory("map_picker_");
         tempDir.toFile().deleteOnExit();
 
@@ -229,24 +213,8 @@ public class AddSaleController implements Initializable {
             }
         }
 
-        // Inject tilePort as a JS global so the HTML can read it without query params
         Path htmlPath = tempDir.resolve("map_picker.html");
-        String html = new String(Files.readAllBytes(htmlPath));
-        html = html.replace("<body>", "<body><script>window._tilePort=" + tilePort + ";</script>");
-        Files.write(htmlPath, html.getBytes());
-
         return htmlPath.toUri().toURL();
-    }
-
-    private File resolveTilesDir() {
-        File dev = new File("src/main/resources/tiles");
-        if (dev.exists())
-            return dev.getAbsoluteFile();
-        File jar = new File("tiles");
-        if (jar.exists())
-            return jar.getAbsoluteFile();
-        dev.mkdirs();
-        return dev.getAbsoluteFile();
     }
 
     private boolean validateForm() {

@@ -141,6 +141,12 @@
                     <VBox.margin><javafx.geometry.Insets top="30" bottom="30" /></VBox.margin>
                     <HBox fx:id="categoryContainer" styleClass="category-container" spacing="15" />
                     <Region HBox.hgrow="ALWAYS" />
+                    <Button onAction="#handleImageSearch" styleClass="secondary-btn">
+                        <graphic>
+                            <FontIcon iconLiteral="fth-image" styleClass="nav-icon" />
+                        </graphic>
+                        <tooltip><Tooltip text="Recherche par Image (IA)" /></tooltip>
+                    </Button>
                     <Button onAction="#handleQRSearch" styleClass="secondary-btn">
                         <graphic>
                             <FontIcon iconLiteral="fth-maximize" styleClass="nav-icon" />

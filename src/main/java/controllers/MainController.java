@@ -52,6 +52,7 @@ public class MainController implements Initializable {
 
     private final ProductService productService = new ProductService();
     private final SaleService saleService = new SaleService();
+    private final services.NavyApiService navyApiService = new services.NavyApiService();
     private double xOffset = 0;
     private double yOffset = 0;
 
@@ -599,6 +600,63 @@ public class MainController implements Initializable {
             alert.getDialogPane().setGraphic(null);
 
             alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleImageSearch() {
+        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+        fileChooser.setTitle("Sélectionner une image pour la recherche");
+        fileChooser.getExtensionFilters().add(
+                new javafx.stage.FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.webp"));
+
+        File file = fileChooser.showOpenDialog(rootStack.getScene().getWindow());
+        if (file != null) {
+            String prompt = "Examine cette image attentivement. De quel objet ou produit principal s'agit-il ? Retourne uniquement UN SEUL MOT-CLÉ (ou deux très courts) principal pour effectuer une recherche dans une base de données de produits (ex: Voiture, Ordinateur, Chaussure, Tableau). Aucun point, aucune explication.";
+
+            Alert loadingAlert = new Alert(Alert.AlertType.INFORMATION, "L'IA analyse votre image en cours...");
+            loadingAlert.setTitle("Recherche par image");
+            loadingAlert.show();
+
+            navyApiService.generateContentFromImage(file, prompt)
+                    .thenAccept(keyword -> {
+                        Platform.runLater(() -> {
+                            loadingAlert.setResult(ButtonType.OK);
+                            loadingAlert.close();
+
+                            String finalKeyword = keyword.trim().toLowerCase();
+                            System.out.println("DEBUG: AI Image Search extracted keyword -> " + finalKeyword);
+
+                            List<Product> results = allProducts.stream()
+                                    .filter(p -> p.getName().toLowerCase().contains(finalKeyword)
+                                            || p.getShortDescription().toLowerCase().contains(finalKeyword)
+                                            || p.getCategoryName().toLowerCase().contains(finalKeyword)
+                                            || p.getDescription().toLowerCase().contains(finalKeyword))
+                                    .collect(Collectors.toList());
+
+                            productGrid.getChildren().clear();
+                            if (results.isEmpty()) {
+                                showAlert(Alert.AlertType.WARNING, "Aucun résultat",
+                                        "Aucun produit ne ressemble à : '" + finalKeyword + "'");
+                                // Fallback to reload all
+                                renderProducts();
+                            } else {
+                                // Indicate what we are searching for
+                                showAlert(Alert.AlertType.INFORMATION, "Résultat de recherche",
+                                        "Produits trouvés correspondant à : '" + finalKeyword + "'");
+                                results.forEach(p -> productGrid.getChildren().add(createProductCard(p)));
+                            }
+                        });
+                    })
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            loadingAlert.setResult(ButtonType.OK);
+                            loadingAlert.close();
+                            showAlert(Alert.AlertType.ERROR, "Erreur IA",
+                                    "L'analyse d'image a échoué : " + ex.getMessage());
+                        });
+                        return null;
+                    });
         }
     }
 
