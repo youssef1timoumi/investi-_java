@@ -716,6 +716,7 @@ public class MainController implements Initializable {
                 if (newState == Worker.State.SUCCEEDED) {
                     Platform.runLater(() -> {
                         engine.executeScript("loadSales('" + jsonOutput + "');");
+                        engine.executeScript("if(typeof invalidateMap === 'function') invalidateMap();");
                     });
                 }
             });
@@ -727,6 +728,8 @@ public class MainController implements Initializable {
             AnchorPane.setBottomAnchor(wv, 0.0);
             AnchorPane.setLeftAnchor(wv, 0.0);
             AnchorPane.setRightAnchor(wv, 0.0);
+            wv.prefWidthProperty().bind(root.widthProperty());
+            wv.prefHeightProperty().bind(root.heightProperty());
 
             stage.setScene(new Scene(root, 1000, 700));
             stage.show();

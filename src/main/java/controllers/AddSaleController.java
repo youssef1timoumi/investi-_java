@@ -178,7 +178,18 @@ public class AddSaleController implements Initializable {
 
         engine.getLoadWorker().stateProperty().addListener((obs, oldS, newS) -> {
             if (newS == javafx.concurrent.Worker.State.SUCCEEDED) {
-                Platform.runLater(() -> engine.executeScript("if(window.forceInit) window.forceInit();"));
+                Platform.runLater(() -> {
+                    engine.executeScript("if(window.forceInit) window.forceInit();");
+                });
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {
+                    }
+                    Platform.runLater(() -> {
+                        engine.executeScript("if(typeof invalidateMap==='function') invalidateMap();");
+                    });
+                }).start();
             }
         });
 
@@ -187,6 +198,8 @@ public class AddSaleController implements Initializable {
         AnchorPane.setBottomAnchor(wv, 0.0);
         AnchorPane.setLeftAnchor(wv, 0.0);
         AnchorPane.setRightAnchor(wv, 0.0);
+        wv.prefWidthProperty().bind(root.widthProperty());
+        wv.prefHeightProperty().bind(root.heightProperty());
 
         stage.setScene(new Scene(root, 850, 650));
         stage.show();
