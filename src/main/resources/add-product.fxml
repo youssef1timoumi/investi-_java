@@ -30,7 +30,10 @@
 
                 <!-- Name & Title -->
                 <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                    <Label styleClass="form-label" text="Product Name" />
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label styleClass="form-label" text="Product Name" />
+                        <Button text="✨ AI Title" onAction="#handleGenerateTitle" styleClass="secondary-btn" style="-fx-padding: 2 8; -fx-font-size: 11px; -fx-cursor: hand;" />
+                    </HBox>
                     <TextField fx:id="nameField" promptText="e.g. Premium Analytics Dashboard" styleClass="form-input" />
                     <Label fx:id="nameError" styleClass="error-text" visible="false" managed="false" />
                 </VBox>
@@ -47,7 +50,10 @@
                 </VBox>
 
                 <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
-                    <Label styleClass="form-label" text="Full Description" />
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label styleClass="form-label" text="Full Description" />
+                        <Button text="✨ Generate from Image" onAction="#handleGenerateDescription" styleClass="secondary-btn" style="-fx-padding: 2 8; -fx-font-size: 11px; -fx-cursor: hand;" />
+                    </HBox>
                     <TextArea fx:id="fullDescField" prefHeight="80" promptText="Detailed information about the product..." styleClass="form-input, text-area" wrapText="true" />
                 </VBox>
 

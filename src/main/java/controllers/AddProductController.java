@@ -34,6 +34,7 @@ public class AddProductController implements Initializable {
     private Label nameError, priceError;
 
     private final ProductService productService = new ProductService();
+    private final services.NavyApiService navyApiService = new services.NavyApiService();
     private Consumer<Void> onProductAdded;
     private Runnable onCancel;
     private File selectedFile;
@@ -118,6 +119,58 @@ public class AddProductController implements Initializable {
         if (selectedFile != null) {
             imageField.setText(selectedFile.getName());
         }
+    }
+
+    @FXML
+    private void handleGenerateTitle() {
+        if (selectedFile == null) {
+            showAlert(Alert.AlertType.WARNING, "No Image", "Veuillez d'abord sélectionner une image (Browse) !");
+            return;
+        }
+        String prompt = "Generate a short, catchy, and professional product title (max 5 words) based on this image. Return ONLY the title, no quotes or explanations.";
+        nameField.setPromptText("Génération en cours...");
+        nameField.setDisable(true);
+
+        navyApiService.generateContentFromImage(selectedFile, prompt)
+                .thenAccept(title -> {
+                    javafx.application.Platform.runLater(() -> {
+                        nameField.setText(title.replace("\"", ""));
+                        nameField.setDisable(false);
+                    });
+                })
+                .exceptionally(ex -> {
+                    javafx.application.Platform.runLater(() -> {
+                        nameField.setDisable(false);
+                        showAlert(Alert.AlertType.ERROR, "Erreur IA", "Échec : " + ex.getMessage());
+                    });
+                    return null;
+                });
+    }
+
+    @FXML
+    private void handleGenerateDescription() {
+        if (selectedFile == null) {
+            showAlert(Alert.AlertType.WARNING, "No Image", "Veuillez d'abord sélectionner une image (Browse) !");
+            return;
+        }
+        String prompt = "Write a comprehensive, engaging product description based on this image. Highlight potential features and benefits in French. Use professional marketing language. Return ONLY the description text.";
+        fullDescField.setPromptText("Génération de la description en cours...");
+        fullDescField.setDisable(true);
+
+        navyApiService.generateContentFromImage(selectedFile, prompt)
+                .thenAccept(desc -> {
+                    javafx.application.Platform.runLater(() -> {
+                        fullDescField.setText(desc);
+                        fullDescField.setDisable(false);
+                    });
+                })
+                .exceptionally(ex -> {
+                    javafx.application.Platform.runLater(() -> {
+                        fullDescField.setDisable(false);
+                        showAlert(Alert.AlertType.ERROR, "Erreur IA", "Échec : " + ex.getMessage());
+                    });
+                    return null;
+                });
     }
 
     @FXML

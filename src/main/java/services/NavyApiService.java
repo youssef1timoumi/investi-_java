@@ -1,0 +1,104 @@
+package services;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.util.Base64;
+import java.util.concurrent.CompletableFuture;
+
+public class NavyApiService {
+
+    private static final String API_URL = "https://api.navy/v1/chat/completions";
+    private static final String API_KEY = "sk-navy-CPFLtUUlVBr6LKSuK3LrUDYCVXdsua-OgMkdJ6wPcBY";
+    private final HttpClient httpClient;
+
+    public NavyApiService() {
+        this.httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)
+                .build();
+    }
+
+    public CompletableFuture<String> generateContentFromImage(File imageFile, String prompt) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // 1. Read and encode image to base64
+                byte[] fileContent = Files.readAllBytes(imageFile.toPath());
+                String base64Image = Base64.getEncoder().encodeToString(fileContent);
+                String mimeType = getMimeType(imageFile);
+                String dataUrl = "data:" + mimeType + ";base64," + base64Image;
+
+                // 2. Build JSON payload
+                JSONObject payload = new JSONObject();
+                payload.put("model", "gpt-4o");
+
+                JSONArray messages = new JSONArray();
+                JSONObject userMessage = new JSONObject();
+                userMessage.put("role", "user");
+
+                JSONArray contentArray = new JSONArray();
+
+                JSONObject textObject = new JSONObject();
+                textObject.put("type", "text");
+                textObject.put("text", prompt);
+                contentArray.put(textObject);
+
+                JSONObject imageObject = new JSONObject();
+                imageObject.put("type", "image_url");
+                JSONObject imageUrlObject = new JSONObject();
+                imageUrlObject.put("url", dataUrl);
+                imageObject.put("image_url", imageUrlObject);
+                contentArray.put(imageObject);
+
+                userMessage.put("content", contentArray);
+                messages.put(userMessage);
+
+                payload.put("messages", messages);
+                payload.put("max_tokens", 800);
+
+                // 3. Send HTTP Request
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_URL))
+                        .header("Authorization", "Bearer " + API_KEY)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    JSONObject jsonResponse = new JSONObject(response.body());
+                    JSONArray choices = jsonResponse.getJSONArray("choices");
+                    if (choices.length() > 0) {
+                        return choices.getJSONObject(0).getJSONObject("message").getString("content").trim();
+                    }
+                } else {
+                    System.err.println("API Error: " + response.statusCode() + " - " + response.body());
+                    throw new RuntimeException("API Error: " + response.statusCode());
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("Failed to generate content: " + e.getMessage(), e);
+            }
+            return null;
+        });
+    }
+
+    private String getMimeType(File file) {
+        String name = file.getName().toLowerCase();
+        if (name.endsWith(".png"))
+            return "image/png";
+        if (name.endsWith(".gif"))
+            return "image/gif";
+        if (name.endsWith(".webp"))
+            return "image/webp";
+        return "image/jpeg";
+    }
+}
