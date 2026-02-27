@@ -4,13 +4,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class NavyApiService {
@@ -162,6 +162,99 @@ public class NavyApiService {
                 throw new RuntimeException("Failed to validate context: " + e.getMessage(), e);
             }
             return new JSONObject().put("valid", false).put("reason", "Erreur technique lors de la validation.");
+        });
+    }
+
+    public CompletableFuture<List<Long>> searchProductsByImage(File imageFile, List<models.Product> catalog) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("model", "gpt-4.1-nano");
+                payload.put("response_format", new JSONObject().put("type", "json_object"));
+
+                JSONArray messages = new JSONArray();
+                JSONObject userMessage = new JSONObject();
+                userMessage.put("role", "user");
+
+                JSONArray contentArray = new JSONArray();
+
+                // Build a textual catalog of available products
+                StringBuilder sb = new StringBuilder();
+                sb.append(
+                        "You are a semantic image search engine. I will provide an image and a JSON list of products available in my store.\n");
+                sb.append(
+                        "Your task: Identify the product(s) in the list that visually, conceptually, or functionally match the uploaded image.\n");
+                sb.append(
+                        "Return ONLY a JSON object exactly like this: {\"matching_ids\": [1, 5, 8]} where the array contains the IDs of the products that are a good match for the image. If none match, return an empty array.\n\n");
+                sb.append("Available Products List:\n[\n");
+                for (models.Product p : catalog) {
+                    sb.append(String.format(
+                            "  {\"id\": %d, \"name\": \"%s\", \"category\": \"%s\", \"description\": \"%s\"},\n",
+                            p.getId(),
+                            p.getName().replace("\"", "\\\""),
+                            p.getCategoryName() != null ? p.getCategoryName() : "Unknown",
+                            p.getShortDescription() != null ? p.getShortDescription().replace("\"", "\\\"") : ""));
+                }
+                sb.append("]");
+
+                JSONObject textObject = new JSONObject();
+                textObject.put("type", "text");
+                textObject.put("text", sb.toString());
+                contentArray.put(textObject);
+
+                if (imageFile != null && imageFile.exists()) {
+                    byte[] fileContent = Files.readAllBytes(imageFile.toPath());
+                    String base64Image = Base64.getEncoder().encodeToString(fileContent);
+                    String mimeType = getMimeType(imageFile);
+                    String dataUrl = "data:" + mimeType + ";base64," + base64Image;
+
+                    JSONObject imageObject = new JSONObject();
+                    imageObject.put("type", "image_url");
+                    imageObject.put("image_url", new JSONObject().put("url", dataUrl));
+                    contentArray.put(imageObject);
+                }
+
+                userMessage.put("content", contentArray);
+                messages.put(userMessage);
+
+                payload.put("messages", messages);
+                payload.put("max_tokens", 800);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_URL))
+                        .header("Authorization", "Bearer " + API_KEY)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    JSONObject jsonResponse = new JSONObject(response.body());
+                    JSONArray choices = jsonResponse.getJSONArray("choices");
+                    if (choices.length() > 0) {
+                        String content = choices.getJSONObject(0).getJSONObject("message").getString("content").trim();
+                        JSONObject aiResult = new JSONObject(content);
+                        JSONArray matchingIdsObj = aiResult.optJSONArray("matching_ids");
+
+                        List<Long> matchingIds = new java.util.ArrayList<>();
+                        if (matchingIdsObj != null) {
+                            for (int i = 0; i < matchingIdsObj.length(); i++) {
+                                matchingIds.add(matchingIdsObj.getLong(i));
+                            }
+                        }
+                        return matchingIds;
+                    }
+                } else {
+                    System.err.println("API Error: " + response.statusCode() + " - " + response.body());
+                    throw new RuntimeException("API Error: " + response.statusCode());
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("Failed to perform semantic search: " + e.getMessage(), e);
+            }
+            return new java.util.ArrayList<>();
         });
     }
 

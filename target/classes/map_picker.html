@@ -34,72 +34,155 @@
             z-index: 9999;
             pointer-events: none;
         }
+
+        #search-box {
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            background: #fff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .14);
+            z-index: 9999;
+            display: flex;
+            gap: 5px;
+        }
+
+        #search-box input {
+            border: 1px solid #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            outline: none;
+            font: 400 13px system-ui, sans-serif;
+        }
+
+        #search-box button {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        #search-box button:hover {
+            background: #e2e8f0;
+        }
     </style>
 </head>
 
-<body>
-    <div id="hint">Cliquez sur la carte pour choisir une adresse</div>
-    <div id="map"></div>
-    <script>
-        // Fix marker icon paths for local usage
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-            iconUrl: 'marker-icon.png',
-            iconRetinaUrl: 'marker-icon-2x.png',
-            shadowUrl: 'marker-shadow.png'
+<div id="search-box">
+    <input type="text" id="searchInput" placeholder="Rechercher une adresse..." />
+    <button onclick="searchAddress()">🔍</button>
+    <button onclick="locateMe()" title="Ma position">📍</button>
+</div>
+<div id="hint">Cliquez sur la carte pour choisir une adresse</div>
+<div id="map"></div>
+<script>
+    // Fix marker icon paths for local usage
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconUrl: 'marker-icon.png',
+        iconRetinaUrl: 'marker-icon-2x.png',
+        shadowUrl: 'marker-shadow.png'
+    });
+
+    L.Browser.retina = false;
+
+    var map, pin;
+
+    function boot() {
+        if (map) return;
+
+        var tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+        map = L.map('map', {
+            center: [36.8065, 10.1815], zoom: 13,
+            zoomControl: true, attributionControl: false
         });
 
-        // Disable retina detection (causes tile scatter in JavaFX WebView)
-        L.Browser.retina = false;
+        L.tileLayer(tileUrl, {
+            maxZoom: 18, tileSize: 256, detectRetina: false
+        }).addTo(map);
 
-        var map, pin;
+        map.on('click', function (e) {
+            placePin(e.latlng.lat, e.latlng.lng);
+        });
 
-        function boot() {
-            if (map) return;
+        map.on('locationfound', function (e) {
+            map.setView(e.latlng, 15);
+            placePin(e.latlng.lat, e.latlng.lng);
+        });
 
-            var tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        map.on('locationerror', function (e) {
+            alert("Impossible de trouver votre position. Veuillez autoriser la localisation.");
+        });
 
-            map = L.map('map', {
-                center: [36.8065, 10.1815], zoom: 13,
-                zoomControl: true, attributionControl: false
-            });
+        setTimeout(function () { map.invalidateSize(); }, 400);
 
-            L.tileLayer(tileUrl, {
-                maxZoom: 18, tileSize: 256, detectRetina: false
-            }).addTo(map);
+        // Allow enter key in search
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchAddress();
+            }
+        });
+    }
 
-            map.on('click', function (e) {
-                var lat = e.latlng.lat, lng = e.latlng.lng;
-                if (pin) pin.setLatLng(e.latlng);
-                else {
-                    pin = L.marker(e.latlng, { draggable: true }).addTo(map);
-                    pin.on('dragend', function () { pick(pin.getLatLng().lat, pin.getLatLng().lng); });
+    function placePin(lat, lng) {
+        if (pin) pin.setLatLng([lat, lng]);
+        else {
+            pin = L.marker([lat, lng], { draggable: true }).addTo(map);
+            pin.on('dragend', function () { pick(pin.getLatLng().lat, pin.getLatLng().lng); });
+        }
+        pick(lat, lng);
+    }
+
+    function locateMe() {
+        document.getElementById('hint').textContent = 'Recherche de votre position...';
+        map.locate({ setView: true, maxZoom: 16 });
+    }
+
+    function searchAddress() {
+        var query = document.getElementById('searchInput').value;
+        if (!query) return;
+
+        document.getElementById('hint').textContent = 'Recherche en cours...';
+        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query))
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d && d.length > 0) {
+                    var lat = parseFloat(d[0].lat);
+                    var lon = parseFloat(d[0].lon);
+                    map.setView([lat, lon], 15);
+                    placePin(lat, lon);
+                } else {
+                    document.getElementById('hint').textContent = 'Adresse introuvable';
                 }
-                pick(lat, lng);
+            })
+            .catch(function (e) {
+                document.getElementById('hint').textContent = 'Erreur de recherche';
             });
+    }
 
-            setTimeout(function () { map.invalidateSize(); }, 400);
-        }
+    function pick(lat, lng) {
+        document.getElementById('hint').textContent = 'Identification...';
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng)
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                var addr = d.display_name || (lat.toFixed(5) + ', ' + lng.toFixed(5));
+                document.getElementById('hint').textContent = addr.substring(0, 55) + (addr.length > 55 ? "..." : "");
+                document.title = 'LOCATION:' + addr;
+            })
+            .catch(function () {
+                var coords = lat.toFixed(5) + ', ' + lng.toFixed(5);
+                document.getElementById('hint').textContent = coords;
+                document.title = 'LOCATION:' + coords;
+            });
+    }
 
-        function pick(lat, lng) {
-            document.getElementById('hint').textContent = 'Recherche...';
-            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng)
-                .then(function (r) { return r.json(); })
-                .then(function (d) {
-                    var addr = d.display_name || (lat.toFixed(5) + ', ' + lng.toFixed(5));
-                    document.getElementById('hint').textContent = addr.substring(0, 55);
-                    document.title = 'LOCATION:' + addr;
-                })
-                .catch(function () {
-                    var coords = lat.toFixed(5) + ', ' + lng.toFixed(5);
-                    document.getElementById('hint').textContent = coords;
-                    document.title = 'LOCATION:' + coords;
-                });
-        }
-
-        window.forceInit = boot;
-        window.onload = function () { setTimeout(boot, 350); };
-    </script>
+    window.forceInit = boot;
+    window.onload = function () { setTimeout(boot, 350); };
+</script>
 </body>
 
 </html>

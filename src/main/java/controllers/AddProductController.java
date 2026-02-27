@@ -20,8 +20,6 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import org.json.JSONObject;
-
 public class AddProductController implements Initializable {
 
     @FXML

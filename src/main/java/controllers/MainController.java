@@ -17,6 +17,7 @@ import services.SaleService;
 import org.kordamp.ikonli.javafx.FontIcon;
 import javafx.application.Platform;
 import javafx.stage.Stage;
+import javafx.scene.Scene;
 import javafx.concurrent.Worker;
 import com.stripe.Stripe;
 import com.stripe.model.checkout.Session;
@@ -612,38 +613,32 @@ public class MainController implements Initializable {
 
         File file = fileChooser.showOpenDialog(rootStack.getScene().getWindow());
         if (file != null) {
-            String prompt = "Examine cette image attentivement. De quel objet ou produit principal s'agit-il ? Retourne uniquement UN SEUL MOT-CLÉ (ou deux très courts) principal pour effectuer une recherche dans une base de données de produits (ex: Voiture, Ordinateur, Chaussure, Tableau). Aucun point, aucune explication.";
-
-            Alert loadingAlert = new Alert(Alert.AlertType.INFORMATION, "L'IA analyse votre image en cours...");
-            loadingAlert.setTitle("Recherche par image");
+            Alert loadingAlert = new Alert(Alert.AlertType.INFORMATION,
+                    "L'IA analyse l'image par rapport à votre catalogue (Recherche Sémantique)...");
+            loadingAlert.setTitle("Recherche Intelligente par Image");
             loadingAlert.show();
 
-            navyApiService.generateContentFromImage(file, prompt)
-                    .thenAccept(keyword -> {
+            navyApiService.searchProductsByImage(file, allProducts)
+                    .thenAccept(matchingIds -> {
                         Platform.runLater(() -> {
                             loadingAlert.setResult(ButtonType.OK);
                             loadingAlert.close();
 
-                            String finalKeyword = keyword.trim().toLowerCase();
-                            System.out.println("DEBUG: AI Image Search extracted keyword -> " + finalKeyword);
+                            System.out.println("DEBUG: AI Image Semantic Search found matching IDs -> " + matchingIds);
 
                             List<Product> results = allProducts.stream()
-                                    .filter(p -> p.getName().toLowerCase().contains(finalKeyword)
-                                            || p.getShortDescription().toLowerCase().contains(finalKeyword)
-                                            || p.getCategoryName().toLowerCase().contains(finalKeyword)
-                                            || p.getDescription().toLowerCase().contains(finalKeyword))
+                                    .filter(p -> matchingIds.contains(p.getId()))
                                     .collect(Collectors.toList());
 
                             productGrid.getChildren().clear();
                             if (results.isEmpty()) {
                                 showAlert(Alert.AlertType.WARNING, "Aucun résultat",
-                                        "Aucun produit ne ressemble à : '" + finalKeyword + "'");
+                                        "L'IA n'a trouvé aucun produit ressemblant dans le catalogue.");
                                 // Fallback to reload all
                                 renderProducts();
                             } else {
-                                // Indicate what we are searching for
                                 showAlert(Alert.AlertType.INFORMATION, "Résultat de recherche",
-                                        "Produits trouvés correspondant à : '" + finalKeyword + "'");
+                                        "L'IA a trouvé " + matchingIds.size() + " correspondance(s) !");
                                 results.forEach(p -> productGrid.getChildren().add(createProductCard(p)));
                             }
                         });
@@ -657,6 +652,88 @@ public class MainController implements Initializable {
                         });
                         return null;
                     });
+        }
+    }
+
+    @FXML
+    private void handleShowSalesMap() {
+        if (allSales == null || allSales.isEmpty()) {
+            showAlert(Alert.AlertType.INFORMATION, "Information", "Aucune vente à afficher sur la carte.");
+            return;
+        }
+
+        Stage stage = new Stage();
+        stage.setTitle("Carte des Ventes");
+        stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+
+        WebView wv = new WebView();
+        WebEngine engine = wv.getEngine();
+        wv.setMinSize(1000, 700);
+
+        try {
+            java.nio.file.Path tempDir = java.nio.file.Files.createTempDirectory("sales_map_");
+            tempDir.toFile().deleteOnExit();
+
+            String[] resources = {
+                    "sales_map.html", "leaflet.css", "leaflet.js",
+                    "marker-icon.png", "marker-icon-2x.png", "marker-shadow.png"
+            };
+
+            for (String res : resources) {
+                try (java.io.InputStream is = getClass().getResourceAsStream("/" + res)) {
+                    if (is != null) {
+                        java.nio.file.Files.copy(is, tempDir.resolve(res),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            }
+
+            java.nio.file.Path htmlPath = tempDir.resolve("sales_map.html");
+            URL mapUrl = htmlPath.toUri().toURL();
+
+            // Build JSON
+            List<Sale> filteredSales = allSales.stream()
+                    .filter(s -> activeSaleStatus.equals("All") || s.getStatus().equalsIgnoreCase(activeSaleStatus))
+                    .collect(Collectors.toList());
+
+            org.json.JSONArray salesArray = new org.json.JSONArray();
+            for (Sale s : filteredSales) {
+                if (s.getShippingAddress() != null && !s.getShippingAddress().isEmpty()) {
+                    org.json.JSONObject obj = new org.json.JSONObject();
+                    obj.put("id", s.getId());
+                    obj.put("ref", s.getReference());
+                    obj.put("amount", s.getTotalAmount());
+                    obj.put("currency", s.getCurrency());
+                    obj.put("status", s.getStatus());
+                    obj.put("address", s.getShippingAddress());
+                    salesArray.put(obj);
+                }
+            }
+
+            String jsonOutput = salesArray.toString().replace("'", "\\'"); // Escape quotes
+
+            engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                if (newState == Worker.State.SUCCEEDED) {
+                    Platform.runLater(() -> {
+                        engine.executeScript("loadSales('" + jsonOutput + "');");
+                    });
+                }
+            });
+
+            engine.load(mapUrl.toExternalForm());
+
+            AnchorPane root = new AnchorPane(wv);
+            AnchorPane.setTopAnchor(wv, 0.0);
+            AnchorPane.setBottomAnchor(wv, 0.0);
+            AnchorPane.setLeftAnchor(wv, 0.0);
+            AnchorPane.setRightAnchor(wv, 0.0);
+
+            stage.setScene(new Scene(root, 1000, 700));
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible d'ouvrir la carte : " + e.getMessage());
         }
     }
 

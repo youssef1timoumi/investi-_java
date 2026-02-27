@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="leaflet.css" />
+    <script src="leaflet.js"></script>
+    <style>
+        html,
+        body,
+        #map {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #e8edf2;
+        }
+
+        #toolbar {
+            position: fixed;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            padding: 9px 22px;
+            border-radius: 999px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .14);
+            font: 600 13px system-ui, sans-serif;
+            color: #1e293b;
+            z-index: 9999;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .progress-text {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="toolbar">
+        <span id="status">Chargement de la carte...</span>
+    </div>
+    <div id="map"></div>
+    <script>
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconUrl: 'marker-icon.png',
+            iconRetinaUrl: 'marker-icon-2x.png',
+            shadowUrl: 'marker-shadow.png'
+        });
+
+        L.Browser.retina = false;
+
+        var map;
+        var markers = L.layerGroup();
+
+        function boot() {
+            if (map) return;
+            var tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            map = L.map('map', { center: [36.8065, 10.1815], zoom: 6, zoomControl: true, attributionControl: false });
+            L.tileLayer(tileUrl, { maxZoom: 18, tileSize: 256, detectRetina: false }).addTo(map);
+            markers.addTo(map);
+
+            setTimeout(function () { map.invalidateSize(); }, 400);
+        }
+
+        // Called by Java with a JSON string of sales
+        function loadSales(salesJson) {
+            boot();
+            var sales = [];
+            try {
+                sales = JSON.parse(salesJson);
+            } catch (e) {
+                document.getElementById('status').textContent = "Erreur de données.";
+                return;
+            }
+
+            var validSales = sales.filter(s => s.address && s.address.trim().length > 3);
+            if (validSales.length === 0) {
+                document.getElementById('status').textContent = "Aucune adresse valide trouvée.";
+                return;
+            }
+
+            document.getElementById('status').innerHTML = "Géocodage des ventes en cours... <span class='progress-text'>0/" + validSales.length + "</span>";
+
+            // Nominatim requires 1 sec delay between requests
+            var i = 0;
+            var bounds = L.latLngBounds();
+
+            function geocodeNext() {
+                if (i >= validSales.length) {
+                    document.getElementById('status').textContent = validSales.length + " ventes placées sur la carte.";
+                    if (bounds.isValid()) map.fitBounds(bounds, { padding: [50, 50] });
+                    return;
+                }
+
+                var s = validSales[i];
+                var query = s.address;
+
+                fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query))
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            var lat = parseFloat(data[0].lat);
+                            var lon = parseFloat(data[0].lon);
+                            var popupContent = "<b>" + s.ref + "</b><br/>" +
+                                "Montant: " + s.amount + " " + s.currency + "<br/>" +
+                                "Statut: " + s.status + "<br/>" +
+                                "<small>" + s.address + "</small>";
+
+                            var marker = L.marker([lat, lon]).bindPopup(popupContent);
+                            markers.addLayer(marker);
+                            bounds.extend([lat, lon]);
+                        }
+                    })
+                    .catch(e => console.error(e))
+                    .finally(() => {
+                        i++;
+                        document.getElementById('status').innerHTML = "Géocodage des ventes en cours... <span class='progress-text'>" + i + "/" + validSales.length + "</span>";
+                        // Delay next request to respect rate limits (1.2s to be safe)
+                        setTimeout(geocodeNext, 1200);
+                    });
+            }
+
+            geocodeNext();
+        }
+
+        window.forceInit = boot;
+        window.onload = function () { setTimeout(boot, 350); };
+    </script>
+</body>
+
+</html>

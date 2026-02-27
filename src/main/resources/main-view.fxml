@@ -171,6 +171,13 @@
                     <VBox fx:id="orderHistoryPage" spacing="30" styleClass="history-page" visible="false" managed="false">
                         <HBox fx:id="saleFiltersContainer" spacing="15" alignment="CENTER_LEFT">
                             <HBox fx:id="saleCategoryContainer" styleClass="category-container" spacing="15" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Button onAction="#handleShowSalesMap" styleClass="secondary-btn">
+                                <graphic>
+                                    <FontIcon iconLiteral="fth-map" styleClass="nav-icon" />
+                                </graphic>
+                                <tooltip><Tooltip text="Voir sur Carte" /></tooltip>
+                            </Button>
                         </HBox>
                         <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
                             <VBox fx:id="ordersContainer" spacing="20" />
