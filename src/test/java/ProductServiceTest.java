@@ -30,8 +30,8 @@ public class ProductServiceTest {
     @Test
     @Order(1)
     public void testCreateProduct() {
-        Product p = new Product("Test Product", "Description", "Short", 100.0, "TND", false, null, 1, 1, 1,
-                "published", "image.png", "gradient", 10, 0);
+        Product p = new Product("Test Product", "Description", 100.0, "TND", false, null, 1,
+                "published", "image.png", 10, 0);
         try {
             int id = ps.create(p);
             this.idProduct = id;
@@ -50,8 +50,8 @@ public class ProductServiceTest {
     @Test
     @Order(2)
     public void testUpdateProduct() throws SQLException {
-        Product p = new Product("Update Test", "Desc", "Short", 50.0, "TND", false, null, 1, 1, 1, "published",
-                "image.png", "gradient", 10, 0);
+        Product p = new Product("Update Test", "Desc", 50.0, "TND", false, null, 1, "published",
+                "image.png", 10, 0);
         int id = ps.create(p);
         this.idProduct = id;
 
@@ -60,12 +60,9 @@ public class ProductServiceTest {
         updateInfo.setName("Updated Name");
         updateInfo.setPrice(75.0);
         updateInfo.setDescription("Updated Desc");
-        updateInfo.setShortDescription("Update Short");
         updateInfo.setCurrency("TND");
         updateInfo.setStatus("published");
-        updateInfo.setProjectId(1);
         updateInfo.setEntrepreneurId(1);
-        updateInfo.setCategoryId(1);
         updateInfo.setDigital(false);
         updateInfo.setDownloadUrl(null);
 

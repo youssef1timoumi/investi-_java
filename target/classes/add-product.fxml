@@ -28,8 +28,8 @@
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 </columnConstraints>
 
-                <!-- Name & Title -->
-                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                <!-- Name -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="2">
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label styleClass="form-label" text="Product Name" />
                         <Button text="✨ AI Title" onAction="#handleGenerateTitle" styleClass="secondary-btn" style="-fx-padding: 2 8; -fx-font-size: 11px; -fx-cursor: hand;" />
@@ -38,16 +38,7 @@
                     <Label fx:id="nameError" styleClass="error-text" visible="false" managed="false" />
                 </VBox>
 
-                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                    <Label styleClass="form-label" text="Display Title" />
-                    <TextField fx:id="titleField" promptText="e.g. Analytics Pro" styleClass="form-input" />
-                </VBox>
 
-                <!-- Description -->
-                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
-                    <Label styleClass="form-label" text="Short Description" />
-                    <TextField fx:id="shortDescField" promptText="Brief catchphrase for the product card" styleClass="form-input" />
-                </VBox>
 
                 <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
                     <HBox spacing="10" alignment="CENTER_LEFT">
@@ -69,23 +60,26 @@
                     <ComboBox fx:id="currencyCombo" maxWidth="Infinity" styleClass="form-input" />
                 </VBox>
 
-                <!-- Category & Status -->
+                <!-- Status & Category -->
                 <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="4">
-                    <Label styleClass="form-label" text="Category" />
-                    <ComboBox fx:id="categoryCombo" maxWidth="Infinity" styleClass="form-input" />
-                </VBox>
-
-                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="4">
                     <Label styleClass="form-label" text="Status" />
                     <ComboBox fx:id="statusCombo" maxWidth="Infinity" styleClass="form-input" />
                 </VBox>
 
-                <!-- Image & Gradient -->
-                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="5">
-                    <Label styleClass="form-label" text="Product Image" />
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                    <Label styleClass="form-label" text="Category" />
                     <HBox spacing="10">
-                        <TextField fx:id="imageField" editable="false" promptText="Select an image..." styleClass="form-input" HBox.hgrow="ALWAYS" />
-                        <Button onAction="#handleBrowseImage" styleClass="secondary-btn" text="Browse">
+                        <ComboBox fx:id="categoryCombo" editable="true" maxWidth="Infinity" promptText="Select or type category..." styleClass="form-input" HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleDetectCategory" styleClass="secondary-btn" text="✨ Detect" style="-fx-padding: 6 12;" />
+                    </HBox>
+                </VBox>
+
+                <!-- Product Image URL (downloadUrl) & Import -->
+                <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2">
+                    <Label styleClass="form-label" text="Product Image (URL or Local)" />
+                    <HBox spacing="10">
+                        <TextField fx:id="downloadUrlField" promptText="https://example.com/image.jpg" styleClass="form-input" HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleBrowseImage" styleClass="secondary-btn" text="Import Image">
                             <graphic>
                                 <FontIcon iconLiteral="fth-image" styleClass="nav-icon" />
                             </graphic>
@@ -93,10 +87,7 @@
                     </HBox>
                 </VBox>
 
-                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="5">
-                    <Label styleClass="form-label" text="Gradient Style" />
-                    <ComboBox fx:id="gradientCombo" maxWidth="Infinity" styleClass="form-input" />
-                </VBox>
+
 
                 <!-- Checkbox -->
                 <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="6">

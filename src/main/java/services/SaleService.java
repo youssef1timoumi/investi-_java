@@ -37,7 +37,14 @@ public class SaleService implements IService<Sale> {
         ps.executeUpdate();
         ResultSet rs = ps.getGeneratedKeys();
         if (rs.next()) {
-            return (int) rs.getLong(1);
+            int saleId = (int) rs.getLong(1);
+            // Increment logic
+            try {
+                new ProductService().incrementSalesCount(sale.getProductId());
+            } catch (Exception e) {
+                System.err.println("Failed to increment sales count: " + e.getMessage());
+            }
+            return saleId;
         }
         return -1;
     }

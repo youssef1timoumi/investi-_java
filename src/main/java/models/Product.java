@@ -6,17 +6,13 @@ public class Product {
     private long id;
     private String name;
     private String description;
-    private String shortDescription;
     private double price;
     private String currency;
     private boolean isDigital;
     private String downloadUrl;
-    private long projectId;
     private long entrepreneurId;
-    private long categoryId;
+    private String category;
     private String status;
-    private String image;
-    private String gradient;
     private int viewsCount;
     private int salesCount;
     private int stock;
@@ -27,24 +23,20 @@ public class Product {
     public Product() {
     }
 
-    public Product(long id, String name, String description, String shortDescription, double price, String currency,
-            boolean isDigital, String downloadUrl, long projectId, long entrepreneurId, long categoryId, String status,
-            String image, String gradient, int viewsCount, int salesCount, int stock, int remise, Timestamp createdAt,
+    public Product(long id, String name, String description, double price, String currency,
+            boolean isDigital, String downloadUrl, long entrepreneurId, String category, String status,
+            int viewsCount, int salesCount, int stock, int remise, Timestamp createdAt,
             Timestamp updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
-        this.shortDescription = shortDescription;
         this.price = price;
         this.currency = currency;
         this.isDigital = isDigital;
         this.downloadUrl = downloadUrl;
-        this.projectId = projectId;
         this.entrepreneurId = entrepreneurId;
-        this.categoryId = categoryId;
+        this.category = category;
         this.status = status;
-        this.image = image;
-        this.gradient = gradient;
         this.viewsCount = viewsCount;
         this.salesCount = salesCount;
         this.stock = stock;
@@ -54,22 +46,18 @@ public class Product {
     }
 
     // Constructor for creation (without ID and timestamps)
-    public Product(String name, String description, String shortDescription, double price, String currency,
-            boolean isDigital, String downloadUrl, long projectId, long entrepreneurId, long categoryId,
-            String status, String image, String gradient, int stock, int remise) {
+    public Product(String name, String description, double price, String currency,
+            boolean isDigital, String downloadUrl, long entrepreneurId, String category,
+            String status, int stock, int remise) {
         this.name = name;
         this.description = description;
-        this.shortDescription = shortDescription;
         this.price = price;
         this.currency = currency;
         this.isDigital = isDigital;
         this.downloadUrl = downloadUrl;
-        this.projectId = projectId;
         this.entrepreneurId = entrepreneurId;
-        this.categoryId = categoryId;
+        this.category = category;
         this.status = status;
-        this.image = image;
-        this.gradient = gradient;
         this.stock = stock;
         this.remise = remise;
     }
@@ -98,14 +86,6 @@ public class Product {
         this.description = description;
     }
 
-    public String getShortDescription() {
-        return shortDescription;
-    }
-
-    public void setShortDescription(String shortDescription) {
-        this.shortDescription = shortDescription;
-    }
-
     public double getPrice() {
         return price;
     }
@@ -127,7 +107,7 @@ public class Product {
     }
 
     public void setDigital(boolean digital) {
-        isDigital = digital;
+        this.isDigital = digital;
     }
 
     public String getDownloadUrl() {
@@ -138,14 +118,6 @@ public class Product {
         this.downloadUrl = downloadUrl;
     }
 
-    public long getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(long projectId) {
-        this.projectId = projectId;
-    }
-
     public long getEntrepreneurId() {
         return entrepreneurId;
     }
@@ -154,12 +126,12 @@ public class Product {
         this.entrepreneurId = entrepreneurId;
     }
 
-    public long getCategoryId() {
-        return categoryId;
+    public String getCategory() {
+        return category;
     }
 
-    public void setCategoryId(long categoryId) {
-        this.categoryId = categoryId;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getStatus() {
@@ -168,22 +140,6 @@ public class Product {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    public String getGradient() {
-        return gradient;
-    }
-
-    public void setGradient(String gradient) {
-        this.gradient = gradient;
     }
 
     public int getViewsCount() {
@@ -235,11 +191,15 @@ public class Product {
     }
 
     public String getCategoryName() {
-        return name; // Or whichever field represents the category name in your UI
+        return category != null ? category : "Uncategorized";
     }
 
     public String getTitle() {
         return name;
+    }
+
+    public String getImage() {
+        return downloadUrl; // Repurposing downloadUrl for images as requested
     }
 
     @Override

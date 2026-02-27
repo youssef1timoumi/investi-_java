@@ -235,6 +235,7 @@
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                         </columnConstraints>
                         
                         <VBox styleClass="meta-item" GridPane.columnIndex="0" GridPane.rowIndex="0">
@@ -248,6 +249,10 @@
                         <VBox styleClass="meta-item" GridPane.columnIndex="2" GridPane.rowIndex="0">
                             <Label styleClass="meta-label" text="CREATED" />
                             <Label fx:id="detailCreated" styleClass="meta-value" text="2024-01-01" />
+                        </VBox>
+                        <VBox styleClass="meta-item" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                            <Label styleClass="meta-label" text="UPDATED" />
+                            <Label fx:id="detailUpdated" styleClass="meta-value" text="N/A" />
                         </VBox>
                     </GridPane>
                     

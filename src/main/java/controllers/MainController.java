@@ -71,7 +71,7 @@ public class MainController implements Initializable {
     @FXML
     private Label detailTitle, detailShortDesc, detailStatus, detailPrice, detailCurrency;
     @FXML
-    private Label detailViews, detailSales, detailCreated;
+    private Label detailViews, detailSales, detailCreated, detailUpdated;
     @FXML
     private TextFlow detailFullDesc;
 
@@ -140,7 +140,7 @@ public class MainController implements Initializable {
     }
 
     private void setupCategories() {
-        String[] cats = { "All", "Software", "Analytics", "Web", "Design", "Mobile" };
+        String[] cats = { "All", "Informatique", "Voiture", "Immobilier", "Vêtements", "Services", "Loisirs" };
         categoryContainer.getChildren().clear();
         for (String cat : cats) {
             Button btn = new Button(cat);
@@ -360,7 +360,7 @@ public class MainController implements Initializable {
         productGrid.getChildren().clear();
         List<Product> filtered = allProducts.stream()
                 .filter(p -> activeCategory.equals("All")
-                        || (p.getCategoryName() != null && p.getCategoryName().equals(activeCategory)))
+                        || (p.getCategory() != null && p.getCategory().equalsIgnoreCase(activeCategory)))
                 .collect(Collectors.toList());
 
         System.out.println("DEBUG: Rendering " + filtered.size() + " products for category: " + activeCategory);
@@ -375,7 +375,7 @@ public class MainController implements Initializable {
 
         StackPane imgContainer = new StackPane();
         imgContainer.getStyleClass().add("card-img-container");
-        imgContainer.setStyle("-fx-background-color: " + mapTailwindGradient(p.getGradient()) + ";");
+        imgContainer.setStyle("-fx-background-color: transparent;");
 
         String imageUrl = p.getImage();
         if (imageUrl == null || imageUrl.isEmpty()) {
@@ -395,11 +395,7 @@ public class MainController implements Initializable {
         iv.setPreserveRatio(true);
         iv.setEffect(new DropShadow(15, Color.rgb(0, 0, 0, 0.2)));
 
-        Label badge = new Label(p.getCategoryName());
-        badge.getStyleClass().add("category-badge");
-        StackPane.setAlignment(badge, Pos.TOP_RIGHT);
-
-        imgContainer.getChildren().addAll(iv, badge);
+        imgContainer.getChildren().addAll(iv);
 
         VBox content = new VBox(15);
         content.getStyleClass().add("card-content");
@@ -407,9 +403,7 @@ public class MainController implements Initializable {
         Label title = new Label(p.getTitle());
         title.getStyleClass().add("card-title");
 
-        Label desc = new Label(p.getShortDescription());
-        desc.getStyleClass().add("card-desc");
-        desc.setWrapText(true);
+        // Short description removed.
 
         VBox footer = new VBox(10);
         footer.getStyleClass().add("card-footer");
@@ -505,7 +499,7 @@ public class MainController implements Initializable {
 
         actionBox.getChildren().addAll(qrBtn, remiseBtn, editBtn, deleteBtn, buyBtn);
         footer.getChildren().addAll(priceAndStockBox, actionBox);
-        content.getChildren().addAll(title, desc, footer);
+        content.getChildren().addAll(title, footer);
         card.getChildren().addAll(imgContainer, content);
 
         return card;
@@ -830,9 +824,17 @@ public class MainController implements Initializable {
         if (detailOverlay == null)
             return;
 
+        // Increment views
+        try {
+            productService.incrementViewsCount(p.getId());
+            p.setViewsCount(p.getViewsCount() + 1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         detailImage.setImage(new Image(p.getImage(), true));
         detailTitle.setText(p.getName());
-        detailShortDesc.setText(p.getShortDescription());
+        detailShortDesc.setText(""); // Removed short_desc
         detailStatus.setText(p.getStatus());
         if (p.getRemise() > 0) {
             double discountedAmount = p.getPrice() * (1 - p.getRemise() / 100.0);
@@ -850,11 +852,17 @@ public class MainController implements Initializable {
         if (p.getCreatedAt() != null) {
             detailCreated.setText(p.getCreatedAt().toLocalDateTime().toLocalDate().toString());
         }
+        if (p.getUpdatedAt() != null) {
+            detailUpdated.setText(p.getUpdatedAt().toLocalDateTime().toLocalDate().toString());
+        } else {
+            detailUpdated.setText("N/A");
+        }
 
         detailFullDesc.getChildren().clear();
         Label fullDescLabel = new Label(p.getDescription());
         fullDescLabel.getStyleClass().add("detail-description");
         fullDescLabel.setWrapText(true);
+        fullDescLabel.prefWidthProperty().bind(detailFullDesc.widthProperty().subtract(20)); // Fix overflow
         detailFullDesc.getChildren().add(fullDescLabel);
 
         // Add Buy Button to detailed view if not present or just handle it
@@ -1162,18 +1170,6 @@ public class MainController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.show();
-    }
-
-    private String mapTailwindGradient(String tw) {
-        if (tw == null)
-            return "linear-gradient(to bottom right, #ffffff, #f7f0f5)";
-        if (tw.contains("blue-600") || tw.contains("purple-600"))
-            return "linear-gradient(to bottom right, #f0f4f8, #d9e2ec)"; // Slate variations
-        if (tw.contains("orange-600") || tw.contains("yellow-600"))
-            return "linear-gradient(to bottom right, #fdfaf3, #f5ead3)"; // Gold variations
-        if (tw.contains("pink-600") || tw.contains("red-600"))
-            return "linear-gradient(to bottom right, #faf5f6, #f2e3e5)"; // Rose variations
-        return "linear-gradient(to bottom right, #ffffff, #f7f0f5)";
     }
 
     private void addToCart(Product p) {

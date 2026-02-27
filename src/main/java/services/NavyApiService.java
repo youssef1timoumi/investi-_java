@@ -25,6 +25,128 @@ public class NavyApiService {
                 .build();
     }
 
+    public CompletableFuture<String> detectCurrencyByIP() {
+        return CompletableFuture.supplyAsync(() -> {
+            System.out.println("LOG: Detecting currency by IP...");
+
+            // Try ipapi.co
+            String currency = tryIpApiCo();
+            if (currency == null) {
+                // Try freeipapi.com
+                currency = tryFreeIpApi();
+            }
+            if (currency == null) {
+                // Try ip-api.com (returns country, we map it)
+                currency = tryIpApiCom();
+            }
+
+            String result = (currency != null) ? currency : "USD";
+            System.out.println("LOG: Final detected currency: " + result);
+            return result;
+        });
+    }
+
+    private String tryIpApiCo() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://ipapi.co/json/"))
+                    .GET()
+                    .header("User-Agent", "Mozilla/5.0")
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                JSONObject json = new JSONObject(response.body());
+                return json.optString("currency", null);
+            }
+        } catch (Exception e) {
+            System.err.println("LOG ERR: ipapi.co failed: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private String tryFreeIpApi() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://freeipapi.com/api/json"))
+                    .GET()
+                    .header("User-Agent", "Mozilla/5.0")
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                JSONObject json = new JSONObject(response.body());
+                return json.optString("currencyCode", null);
+            }
+        } catch (Exception e) {
+            System.err.println("LOG ERR: freeipapi.com failed: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private String tryIpApiCom() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://ip-api.com/json"))
+                    .GET()
+                    .header("User-Agent", "Mozilla/5.0")
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                JSONObject json = new JSONObject(response.body());
+                String countryCode = json.optString("countryCode", "");
+                if ("TN".equalsIgnoreCase(countryCode))
+                    return "TND";
+                if ("FR".equalsIgnoreCase(countryCode) || "DE".equalsIgnoreCase(countryCode)
+                        || "IT".equalsIgnoreCase(countryCode))
+                    return "EUR";
+                // Add more common mappings if needed or use country code as fallback
+                return null;
+            }
+        } catch (Exception e) {
+            System.err.println("LOG ERR: ip-api.com failed: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public CompletableFuture<String> generateContent(String prompt) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("model", "gpt-4.1-nano");
+
+                JSONArray messages = new JSONArray();
+                JSONObject userMessage = new JSONObject();
+                userMessage.put("role", "user");
+                userMessage.put("content", prompt);
+                messages.put(userMessage);
+
+                payload.put("messages", messages);
+                payload.put("max_tokens", 500);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_URL))
+                        .header("Authorization", "Bearer " + API_KEY)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    JSONObject jsonResponse = new JSONObject(response.body());
+                    JSONArray choices = jsonResponse.getJSONArray("choices");
+                    if (choices.length() > 0) {
+                        return choices.getJSONObject(0).getJSONObject("message").getString("content").trim();
+                    }
+                } else {
+                    throw new RuntimeException("API Error: " + response.statusCode());
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to generate text content: " + e.getMessage(), e);
+            }
+            return null;
+        });
+    }
+
     public CompletableFuture<String> generateContentFromImage(File imageFile, String prompt) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -150,7 +272,7 @@ public class NavyApiService {
                     JSONArray choices = jsonResponse.getJSONArray("choices");
                     if (choices.length() > 0) {
                         String content = choices.getJSONObject(0).getJSONObject("message").getString("content").trim();
-                        return new JSONObject(content); // Parses the AI's JSON output
+                        return new JSONObject(cleanJsonResponse(content)); // Parses the AI's cleaned JSON output
                     }
                 } else {
                     System.err.println("API Error: " + response.statusCode() + " - " + response.body());
@@ -193,7 +315,7 @@ public class NavyApiService {
                             p.getId(),
                             p.getName().replace("\"", "\\\""),
                             p.getCategoryName() != null ? p.getCategoryName() : "Unknown",
-                            p.getShortDescription() != null ? p.getShortDescription().replace("\"", "\\\"") : ""));
+                            p.getDescription() != null ? p.getDescription().replace("\"", "\\\"") : ""));
                 }
                 sb.append("]");
 
@@ -234,7 +356,7 @@ public class NavyApiService {
                     JSONArray choices = jsonResponse.getJSONArray("choices");
                     if (choices.length() > 0) {
                         String content = choices.getJSONObject(0).getJSONObject("message").getString("content").trim();
-                        JSONObject aiResult = new JSONObject(content);
+                        JSONObject aiResult = new JSONObject(cleanJsonResponse(content));
                         JSONArray matchingIdsObj = aiResult.optJSONArray("matching_ids");
 
                         List<Long> matchingIds = new java.util.ArrayList<>();
@@ -256,6 +378,21 @@ public class NavyApiService {
             }
             return new java.util.ArrayList<>();
         });
+    }
+
+    private String cleanJsonResponse(String content) {
+        if (content == null)
+            return "{}";
+        String cleaned = content.trim();
+        if (cleaned.startsWith("```json")) {
+            cleaned = cleaned.substring(7);
+        } else if (cleaned.startsWith("```")) {
+            cleaned = cleaned.substring(3);
+        }
+        if (cleaned.endsWith("```")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 3);
+        }
+        return cleaned.trim();
     }
 
     private String getMimeType(File file) {
