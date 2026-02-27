@@ -36,7 +36,7 @@ public class NavyApiService {
 
                 // 2. Build JSON payload
                 JSONObject payload = new JSONObject();
-                payload.put("model", "gpt-4o");
+                payload.put("model", "gpt-4.1-nano");
 
                 JSONArray messages = new JSONArray();
                 JSONObject userMessage = new JSONObject();
@@ -88,6 +88,80 @@ public class NavyApiService {
                 throw new RuntimeException("Failed to generate content: " + e.getMessage(), e);
             }
             return null;
+        });
+    }
+
+    public CompletableFuture<JSONObject> validateProductContext(File imageFile, String name, String fullDesc,
+            double price, String currency) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("model", "gpt-4.1-nano");
+                payload.put("response_format", new JSONObject().put("type", "json_object"));
+
+                JSONArray messages = new JSONArray();
+                JSONObject userMessage = new JSONObject();
+                userMessage.put("role", "user");
+
+                JSONArray contentArray = new JSONArray();
+
+                String promptText = "You are a strict product validation AI. Analyze the product details below. " +
+                        "1. Is the price logical for this type of product? " +
+                        "2. Does the title match the product/image? " +
+                        "3. Does the description fit the title and the image? " +
+                        "\n\nTitle: " + name + "\nDescription: " + fullDesc + "\nPrice: " + price + " " + currency +
+                        "\n\nReturn a JSON object EXCLUSIVELY with two fields: " +
+                        "'valid' (boolean) and 'reason' (string explaining what is wrong in French if 'valid' is false. If true, reason can be empty).";
+
+                JSONObject textObject = new JSONObject();
+                textObject.put("type", "text");
+                textObject.put("text", promptText);
+                contentArray.put(textObject);
+
+                if (imageFile != null && imageFile.exists()) {
+                    byte[] fileContent = Files.readAllBytes(imageFile.toPath());
+                    String base64Image = Base64.getEncoder().encodeToString(fileContent);
+                    String mimeType = getMimeType(imageFile);
+                    String dataUrl = "data:" + mimeType + ";base64," + base64Image;
+
+                    JSONObject imageObject = new JSONObject();
+                    imageObject.put("type", "image_url");
+                    imageObject.put("image_url", new JSONObject().put("url", dataUrl));
+                    contentArray.put(imageObject);
+                }
+
+                userMessage.put("content", contentArray);
+                messages.put(userMessage);
+
+                payload.put("messages", messages);
+                payload.put("max_tokens", 800);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_URL))
+                        .header("Authorization", "Bearer " + API_KEY)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    JSONObject jsonResponse = new JSONObject(response.body());
+                    JSONArray choices = jsonResponse.getJSONArray("choices");
+                    if (choices.length() > 0) {
+                        String content = choices.getJSONObject(0).getJSONObject("message").getString("content").trim();
+                        return new JSONObject(content); // Parses the AI's JSON output
+                    }
+                } else {
+                    System.err.println("API Error: " + response.statusCode() + " - " + response.body());
+                    throw new RuntimeException("API Error: " + response.statusCode());
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("Failed to validate context: " + e.getMessage(), e);
+            }
+            return new JSONObject().put("valid", false).put("reason", "Erreur technique lors de la validation.");
         });
     }
 

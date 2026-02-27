@@ -20,6 +20,8 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import org.json.JSONObject;
+
 public class AddProductController implements Initializable {
 
     @FXML
@@ -178,6 +180,41 @@ public class AddProductController implements Initializable {
         if (!validateForm())
             return;
 
+        double price = Double.parseDouble(priceField.getText());
+        String name = nameField.getText();
+        String description = fullDescField.getText();
+        String currency = currencyCombo.getValue();
+
+        saveBtn.setText("Validating (AI)...");
+        saveBtn.setDisable(true);
+
+        navyApiService.validateProductContext(selectedFile, name, description, price, currency)
+                .thenAccept(jsonResult -> {
+                    javafx.application.Platform.runLater(() -> {
+                        boolean isValid = jsonResult.optBoolean("valid", false);
+                        String reason = jsonResult.optString("reason", "Le produit n'est pas cohérent.");
+
+                        if (isValid) {
+                            proceedWithSave(price);
+                        } else {
+                            saveBtn.setDisable(false);
+                            saveBtn.setText(existingProduct == null ? "Create Product" : "Update Product");
+                            showAlert(Alert.AlertType.WARNING, "Validation Rejetée par l'IA", reason);
+                        }
+                    });
+                })
+                .exceptionally(ex -> {
+                    javafx.application.Platform.runLater(() -> {
+                        saveBtn.setDisable(false);
+                        saveBtn.setText(existingProduct == null ? "Create Product" : "Update Product");
+                        showAlert(Alert.AlertType.ERROR, "Erreur IA",
+                                "Impossible de valider le produit : " + ex.getMessage());
+                    });
+                    return null;
+                });
+    }
+
+    private void proceedWithSave(double price) {
         try {
             String imagePath = existingProduct != null ? existingProduct.getImage() : "https://via.placeholder.com/180";
 
@@ -294,7 +331,17 @@ public class AddProductController implements Initializable {
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
-        alert.setContentText(content);
+        alert.setHeaderText(null);
+
+        Label label = new Label(content);
+        label.setWrapText(true);
+        label.setMaxWidth(Double.MAX_VALUE);
+        label.setMaxHeight(Double.MAX_VALUE);
+
+        // Ensure sufficient width for readability
+        alert.getDialogPane().setPrefWidth(500);
+        alert.getDialogPane().setContent(label);
+
         alert.show();
     }
 }
