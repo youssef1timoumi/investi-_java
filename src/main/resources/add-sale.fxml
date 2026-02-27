@@ -57,12 +57,26 @@
                 <!-- Addresses -->
                 <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="3">
                     <Label styleClass="form-label" text="Shipping Address" />
-                    <TextField fx:id="shippingField" promptText="Street address..." styleClass="form-input" />
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="shippingField" promptText="Street address..." styleClass="form-input" HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleOpenShippingMap" styleClass="secondary-btn" style="-fx-padding: 8;">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-map-pin" iconSize="18" />
+                            </graphic>
+                        </Button>
+                    </HBox>
                 </VBox>
 
                 <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
                     <Label styleClass="form-label" text="Billing Address" />
-                    <TextField fx:id="billingField" promptText="Same as shipping..." styleClass="form-input" />
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="billingField" promptText="Same as shipping..." styleClass="form-input" HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleOpenBillingMap" styleClass="secondary-btn" style="-fx-padding: 8;">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-map-pin" iconSize="18" />
+                            </graphic>
+                        </Button>
+                    </HBox>
                 </VBox>
 
                 <!-- Notes -->

@@ -1,7 +1,7 @@
-models\Sale.class
-services\IService.class
 services\SaleService.class
-utils\MyDatabase.class
+models\Sale.class
 services\ProductService.class
 test\MainFx.class
+utils\MyDatabase.class
+services\IService.class
 models\Product.class

@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 public class AddProductController implements Initializable {
 
     @FXML
-    private TextField nameField, titleField, shortDescField, imageField, priceField;
+    private TextField nameField, titleField, shortDescField, imageField, priceField, stockField;
     @FXML
     private TextArea fullDescField;
     @FXML
@@ -69,6 +69,8 @@ public class AddProductController implements Initializable {
             shortDescField.setText(p.getShortDescription());
             fullDescField.setText(p.getDescription());
             priceField.setText(String.valueOf(p.getPrice()));
+            if (stockField != null)
+                stockField.setText(String.valueOf(p.getStock()));
             currencyCombo.setValue(p.getCurrency());
             digitalCheck.setSelected(p.isDigital());
             statusCombo.setValue(p.getStatus());
@@ -146,6 +148,15 @@ public class AddProductController implements Initializable {
             p.setDescription(fullDescField.getText());
             p.setShortDescription(shortDescField.getText());
             p.setPrice(Double.parseDouble(priceField.getText()));
+            try {
+                if (stockField != null && !stockField.getText().isEmpty()) {
+                    p.setStock(Integer.parseInt(stockField.getText()));
+                } else {
+                    p.setStock(0);
+                }
+            } catch (NumberFormatException ignored) {
+                p.setStock(0);
+            }
             p.setCurrency(currencyCombo.getValue());
             p.setDigital(digitalCheck.isSelected());
             p.setStatus(statusCombo.getValue());

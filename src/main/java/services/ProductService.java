@@ -17,9 +17,9 @@ public class ProductService implements IService<Product> {
 
     @Override
     public int create(Product product) throws SQLException {
-        String sql = "INSERT INTO product (name, description, short_description, price, currency, is_digital, download_url, project_id, entrepreneur_id, category_id, status, image, gradient) "
+        String sql = "INSERT INTO product (name, description, short_description, price, currency, is_digital, download_url, project_id, entrepreneur_id, category_id, status, image, gradient, stock, remise) "
                 +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         ps.setString(1, product.getName());
         ps.setString(2, product.getDescription());
@@ -34,6 +34,8 @@ public class ProductService implements IService<Product> {
         ps.setString(11, product.getStatus());
         ps.setString(12, product.getImage());
         ps.setString(13, product.getGradient());
+        ps.setInt(14, product.getStock());
+        ps.setInt(15, product.getRemise());
 
         ps.executeUpdate();
         ResultSet rs = ps.getGeneratedKeys();
@@ -45,7 +47,7 @@ public class ProductService implements IService<Product> {
 
     @Override
     public void update(Product product) throws SQLException {
-        String sql = "UPDATE product SET name = ?, description = ?, short_description = ?, price = ?, currency = ?, is_digital = ?, download_url = ?, project_id = ?, entrepreneur_id = ?, category_id = ?, status = ?, image = ?, gradient = ? WHERE id = ?";
+        String sql = "UPDATE product SET name = ?, description = ?, short_description = ?, price = ?, currency = ?, is_digital = ?, download_url = ?, project_id = ?, entrepreneur_id = ?, category_id = ?, status = ?, image = ?, gradient = ?, stock = ?, remise = ? WHERE id = ?";
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setString(1, product.getName());
         ps.setString(2, product.getDescription());
@@ -60,7 +62,9 @@ public class ProductService implements IService<Product> {
         ps.setString(11, product.getStatus());
         ps.setString(12, product.getImage());
         ps.setString(13, product.getGradient());
-        ps.setLong(14, product.getId());
+        ps.setInt(14, product.getStock());
+        ps.setInt(15, product.getRemise());
+        ps.setLong(16, product.getId());
 
         ps.executeUpdate();
     }
@@ -97,6 +101,16 @@ public class ProductService implements IService<Product> {
             p.setGradient(rs.getString("gradient"));
             p.setViewsCount(rs.getInt("views_count"));
             p.setSalesCount(rs.getInt("sales_count"));
+            // Handle possible nulls for stock and remise if columns didn't have defaults
+            // initially
+            try {
+                p.setStock(rs.getInt("stock"));
+            } catch (SQLException ignored) {
+            }
+            try {
+                p.setRemise(rs.getInt("remise"));
+            } catch (SQLException ignored) {
+            }
             p.setCreatedAt(rs.getTimestamp("created_at"));
             p.setUpdatedAt(rs.getTimestamp("updated_at"));
             products.add(p);

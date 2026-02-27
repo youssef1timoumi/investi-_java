@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Leaflet charge localement depuis le meme dossier -->
+    <link rel="stylesheet" href="leaflet.css" />
+    <script src="leaflet.js"></script>
+    <style>
+        html,
+        body,
+        #map {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #e8edf2;
+        }
+
+        #hint {
+            position: fixed;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            padding: 9px 22px;
+            border-radius: 999px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .14);
+            font: 600 13px system-ui, sans-serif;
+            color: #1e293b;
+            white-space: nowrap;
+            z-index: 9999;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="hint">Cliquez sur la carte pour choisir une adresse</div>
+    <div id="map"></div>
+    <script>
+        // Fix marker icon paths for local usage
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconUrl: 'marker-icon.png',
+            iconRetinaUrl: 'marker-icon-2x.png',
+            shadowUrl: 'marker-shadow.png'
+        });
+
+        // Disable retina detection (causes tile scatter in JavaFX WebView)
+        L.Browser.retina = false;
+
+        var map, pin;
+
+        function boot() {
+            if (map) return;
+
+            // window._tilePort is injected by Java before loading this page
+            var tilePort = (window._tilePort && window._tilePort > 0) ? window._tilePort : 0;
+            var tileUrl = 'http://localhost:' + tilePort + '/{z}/{x}/{y}.png';
+
+            map = L.map('map', {
+                center: [36.8065, 10.1815], zoom: 13,
+                zoomControl: true, attributionControl: false
+            });
+
+            L.tileLayer(tileUrl, {
+                maxZoom: 18, tileSize: 256, detectRetina: false
+            }).addTo(map);
+
+            map.on('click', function (e) {
+                var lat = e.latlng.lat, lng = e.latlng.lng;
+                if (pin) pin.setLatLng(e.latlng);
+                else {
+                    pin = L.marker(e.latlng, { draggable: true }).addTo(map);
+                    pin.on('dragend', function () { pick(pin.getLatLng().lat, pin.getLatLng().lng); });
+                }
+                pick(lat, lng);
+            });
+
+            setTimeout(function () { map.invalidateSize(); }, 400);
+        }
+
+        function pick(lat, lng) {
+            document.getElementById('hint').textContent = 'Recherche...';
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng)
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    var addr = d.display_name || (lat.toFixed(5) + ', ' + lng.toFixed(5));
+                    document.getElementById('hint').textContent = addr.substring(0, 55);
+                    document.title = 'LOCATION:' + addr;
+                })
+                .catch(function () {
+                    var coords = lat.toFixed(5) + ', ' + lng.toFixed(5);
+                    document.getElementById('hint').textContent = coords;
+                    document.title = 'LOCATION:' + coords;
+                });
+        }
+
+        window.forceInit = boot;
+        window.onload = function () { setTimeout(boot, 350); };
+    </script>
+</body>
+
+</html>

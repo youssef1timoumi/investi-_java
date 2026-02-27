@@ -19,6 +19,8 @@ public class Product {
     private String gradient;
     private int viewsCount;
     private int salesCount;
+    private int stock;
+    private int remise;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -27,7 +29,8 @@ public class Product {
 
     public Product(long id, String name, String description, String shortDescription, double price, String currency,
             boolean isDigital, String downloadUrl, long projectId, long entrepreneurId, long categoryId, String status,
-            String image, String gradient, int viewsCount, int salesCount, Timestamp createdAt, Timestamp updatedAt) {
+            String image, String gradient, int viewsCount, int salesCount, int stock, int remise, Timestamp createdAt,
+            Timestamp updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -44,6 +47,8 @@ public class Product {
         this.gradient = gradient;
         this.viewsCount = viewsCount;
         this.salesCount = salesCount;
+        this.stock = stock;
+        this.remise = remise;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -51,7 +56,7 @@ public class Product {
     // Constructor for creation (without ID and timestamps)
     public Product(String name, String description, String shortDescription, double price, String currency,
             boolean isDigital, String downloadUrl, long projectId, long entrepreneurId, long categoryId,
-            String status, String image, String gradient) {
+            String status, String image, String gradient, int stock, int remise) {
         this.name = name;
         this.description = description;
         this.shortDescription = shortDescription;
@@ -65,6 +70,8 @@ public class Product {
         this.status = status;
         this.image = image;
         this.gradient = gradient;
+        this.stock = stock;
+        this.remise = remise;
     }
 
     public long getId() {
@@ -193,6 +200,22 @@ public class Product {
 
     public void setSalesCount(int salesCount) {
         this.salesCount = salesCount;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public int getRemise() {
+        return remise;
+    }
+
+    public void setRemise(int remise) {
+        this.remise = remise;
     }
 
     public Timestamp getCreatedAt() {

@@ -412,23 +412,67 @@ public class MainController implements Initializable {
         VBox footer = new VBox(10);
         footer.getStyleClass().add("card-footer");
 
-        HBox priceBox = new HBox();
+        VBox priceAndStockBox = new VBox(5);
+        priceAndStockBox.setAlignment(Pos.CENTER_LEFT);
+
+        HBox priceBox = new HBox(8);
         priceBox.setAlignment(Pos.CENTER_LEFT);
-        Label price = new Label("$" + p.getPrice());
-        price.getStyleClass().add("card-price");
-        priceBox.getChildren().add(price);
+
+        if (p.getRemise() > 0) {
+            Label originalPrice = new Label(p.getCurrency() + " " + p.getPrice());
+            originalPrice.setStyle("-fx-strikethrough: true; -fx-text-fill: gray; -fx-font-size: 11px;");
+
+            double discountedAmount = p.getPrice() * (1 - p.getRemise() / 100.0);
+            Label newPrice = new Label(p.getCurrency() + " " + String.format("%.2f", discountedAmount));
+            newPrice.getStyleClass().add("card-price");
+            newPrice.setStyle("-fx-text-fill: #e11d48;"); // Highlighted red for discount
+
+            Label discountBadge = new Label("-" + p.getRemise() + "%");
+            discountBadge.setStyle(
+                    "-fx-background-color: #e11d48; -fx-text-fill: white; -fx-padding: 3 6; -fx-background-radius: 4; -fx-font-size: 11px; -fx-font-weight: bold;");
+
+            VBox discountBox = new VBox(2);
+            discountBox.getChildren().addAll(originalPrice, newPrice);
+
+            priceBox.getChildren().addAll(discountBadge, discountBox);
+        } else {
+            Label price = new Label(p.getCurrency() + " " + p.getPrice());
+            price.getStyleClass().add("card-price");
+            priceBox.getChildren().add(price);
+        }
+
+        Label stockLabel = new Label("Stock: " + p.getStock());
+        stockLabel.setStyle(p.getStock() > 0 ? "-fx-text-fill: #16a34a; -fx-font-weight: bold; -fx-font-size: 12px;"
+                : "-fx-text-fill: #dc2626; -fx-font-weight: bold; -fx-font-size: 12px;");
+
+        priceAndStockBox.getChildren().addAll(priceBox, stockLabel);
 
         HBox actionBox = new HBox(8);
         actionBox.setAlignment(Pos.CENTER_RIGHT);
 
         Button buyBtn = new Button("Buy");
         buyBtn.getStyleClass().add("add-btn");
+        if (p.getStock() <= 0) {
+            buyBtn.setDisable(true);
+            buyBtn.setText("Out of Stock");
+        }
         FontIcon bagIcon = new FontIcon("fth-shopping-bag");
         buyBtn.setGraphic(bagIcon);
         buyBtn.setOnAction(e -> {
             e.consume();
+            hideProductDetails(); // Close details if open
             handleBuyProduct(p);
         });
+        buyBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
+
+        Button remiseBtn = new Button();
+        remiseBtn.getStyleClass().addAll("card-action-btn", "remise");
+        remiseBtn.setGraphic(new FontIcon("fth-tag"));
+        remiseBtn.setOnAction(e -> {
+            e.consume();
+            handleRemiseDialog(p);
+        });
+        remiseBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
 
         Button editBtn = new Button();
         editBtn.getStyleClass().addAll("card-action-btn", "edit");
@@ -437,6 +481,7 @@ public class MainController implements Initializable {
             e.consume();
             handleEditProduct(p);
         });
+        editBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
 
         Button deleteBtn = new Button();
         deleteBtn.getStyleClass().addAll("card-action-btn", "delete");
@@ -445,6 +490,7 @@ public class MainController implements Initializable {
             e.consume();
             handleDeleteProduct(p);
         });
+        deleteBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
 
         Button qrBtn = new Button();
         qrBtn.getStyleClass().addAll("card-action-btn", "qr");
@@ -453,9 +499,10 @@ public class MainController implements Initializable {
             e.consume();
             showQRCodeDialog(p);
         });
+        qrBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
 
-        actionBox.getChildren().addAll(qrBtn, editBtn, deleteBtn, buyBtn);
-        footer.getChildren().addAll(priceBox, actionBox);
+        actionBox.getChildren().addAll(qrBtn, remiseBtn, editBtn, deleteBtn, buyBtn);
+        footer.getChildren().addAll(priceAndStockBox, actionBox);
         content.getChildren().addAll(title, desc, footer);
         card.getChildren().addAll(imgContainer, content);
 
@@ -463,7 +510,70 @@ public class MainController implements Initializable {
     }
 
     private void handleBuyProduct(Product p) {
-        openSaleForm(p);
+        if (p.getStock() > 0) {
+            openSaleForm(p);
+        } else {
+            showAlert(Alert.AlertType.WARNING, "Out of Stock", "This product is currently out of stock.");
+        }
+    }
+
+    private void handleRemiseDialog(Product p) {
+        if (p.getRemise() > 0) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Gestion de Remise");
+            alert.setHeaderText("Remise actuelle : " + p.getRemise() + "%");
+            alert.setContentText("Voulez-vous supprimer la remise ou la modifier ?");
+
+            ButtonType btnDelete = new ButtonType("Supprimer");
+            ButtonType btnEdit = new ButtonType("Modifier");
+            ButtonType btnCancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(btnDelete, btnEdit, btnCancel);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == btnDelete) {
+                p.setRemise(0);
+                try {
+                    productService.update(p);
+                    loadDatabaseData(); // Reload to reflect changes
+                    renderProducts();
+                } catch (SQLException e) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur BD", "Impossible de supprimer la remise.");
+                }
+            } else if (result.isPresent() && result.get() == btnEdit) {
+                askForRemise(p);
+            }
+        } else {
+            askForRemise(p);
+        }
+    }
+
+    private void askForRemise(Product p) {
+        TextInputDialog dialog = new TextInputDialog("");
+        dialog.setTitle("Ajouter une Remise");
+        dialog.setHeaderText("Ajouter une remise pour: " + p.getName());
+        dialog.setContentText("Pourcentage de remise (%) :");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            try {
+                int remiseValue = Integer.parseInt(result.get());
+                if (remiseValue > 0 && remiseValue <= 100) {
+                    p.setRemise(remiseValue);
+                    productService.update(p);
+                    // Send Email
+                    services.EmailService.sendDiscountEmail(p);
+                    loadDatabaseData();
+                    renderProducts();
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "La remise doit être entre 1 et 100.");
+                }
+            } catch (NumberFormatException e) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez entrer un nombre valide.");
+            } catch (SQLException e) {
+                showAlert(Alert.AlertType.ERROR, "Erreur BD", "Impossible de sauvegarder la remise.");
+            }
+        }
     }
 
     private void showQRCodeDialog(Product p) {
@@ -586,7 +696,15 @@ public class MainController implements Initializable {
         detailTitle.setText(p.getName());
         detailShortDesc.setText(p.getShortDescription());
         detailStatus.setText(p.getStatus());
-        detailPrice.setText(String.valueOf(p.getPrice()));
+        if (p.getRemise() > 0) {
+            double discountedAmount = p.getPrice() * (1 - p.getRemise() / 100.0);
+            detailPrice.setText(
+                    String.format("%.2f (Remise -%d%%, Ancien: %.2f)", discountedAmount, p.getRemise(), p.getPrice()));
+            detailPrice.setStyle("-fx-text-fill: #e11d48; -fx-font-weight: bold;");
+        } else {
+            detailPrice.setText(String.valueOf(p.getPrice()));
+            detailPrice.setStyle("");
+        }
         detailCurrency.setText(p.getCurrency());
         detailViews.setText(String.valueOf(p.getViewsCount()));
         detailSales.setText(String.valueOf(p.getSalesCount()));
@@ -601,8 +719,26 @@ public class MainController implements Initializable {
         fullDescLabel.setWrapText(true);
         detailFullDesc.getChildren().add(fullDescLabel);
 
+        // Add Buy Button to detailed view if not present or just handle it
+        // We'll add it to the footer in FXML or here
+        // For simplicity, let's ensure we have a reference to a button in FXML
+        // or just create one here if needed.
+        // I will add it to the FXML for better styling, but I need to set the action
+        // here.
+
+        detailOverlay.setUserData(p); // Store product in overlay for the buy button action
+
         detailOverlay.setVisible(true);
         detailOverlay.toFront();
+    }
+
+    @FXML
+    private void handleBuyFromDetails() {
+        Product p = (Product) detailOverlay.getUserData();
+        if (p != null) {
+            hideProductDetails();
+            handleBuyProduct(p);
+        }
     }
 
     @FXML

@@ -93,9 +93,14 @@
                 </VBox>
 
                 <!-- Checkbox -->
-                <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.columnSpan="2">
+                <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="6">
                     <CheckBox fx:id="digitalCheck" selected="true" styleClass="form-checkbox" text="This is a digital product" />
                 </HBox>
+
+                <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                    <Label styleClass="form-label" text="Initial Stock" />
+                    <TextField fx:id="stockField" promptText="0" styleClass="form-input" />
+                </VBox>
             </GridPane>
 
             <HBox alignment="CENTER_RIGHT" spacing="15" styleClass="form-actions">
