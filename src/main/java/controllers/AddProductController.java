@@ -85,6 +85,7 @@ public class AddProductController implements Initializable {
                                                                                            // fails completely
             }
         });
+
     }
 
     public void setProductData(Product p) {
@@ -340,6 +341,7 @@ public class AddProductController implements Initializable {
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {
+        // Already handled TTS in finalizeSave or calling manually if needed
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);

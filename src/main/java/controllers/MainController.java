@@ -14,16 +14,18 @@ import models.Product;
 import models.Sale;
 import services.ProductService;
 import services.SaleService;
+import services.ExportService;
 import org.kordamp.ikonli.javafx.FontIcon;
 import javafx.application.Platform;
 import javafx.stage.Stage;
+import javafx.stage.FileChooser;
+import java.io.File;
 import javafx.scene.Scene;
 import javafx.concurrent.Worker;
 import com.stripe.Stripe;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.stripe.exception.StripeException;
-
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.*;
@@ -85,6 +87,7 @@ public class MainController implements Initializable {
     private String activeCategory = "All";
     private String activeSaleStatus = "All";
     private String activeTab = "products";
+    private ExportService exportService = new ExportService();
 
     @FXML
     private Button btnCompare;
@@ -351,7 +354,9 @@ public class MainController implements Initializable {
                 renderProducts();
                 switchTab("products", navProducts);
             });
-            controller.setOnCancel(() -> switchTab("products", navProducts));
+            controller.setOnCancel(() -> {
+                switchTab("products", navProducts);
+            });
 
             addProductPage.getChildren().setAll(form);
             switchTab("add-product", btnAddNewProduct);
@@ -1216,6 +1221,34 @@ public class MainController implements Initializable {
             detailOverlay.setVisible(false);
     }
 
+    private void handleExportSale(Sale s) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save PDF Invoice");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+        fileChooser.setInitialFileName("Invoice_" + s.getReference() + ".pdf");
+        File file = fileChooser.showSaveDialog(rootStack.getScene().getWindow());
+
+        if (file != null) {
+            try {
+                exportService.exportSaleToPdf(s, file);
+                showAlert(Alert.AlertType.INFORMATION, "Export Successful",
+                        "Invoice saved to:\n" + file.getAbsolutePath());
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    new Thread(() -> {
+                        try {
+                            java.awt.Desktop.getDesktop().open(file);
+                        } catch (java.io.IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Export Failed", "Could not export PDF: " + e.getMessage());
+            }
+        }
+    }
+
     private void renderOrders() {
         if (ordersContainer == null) {
             System.err.println("DEBUG: ordersContainer is NULL!");
@@ -1297,6 +1330,11 @@ public class MainController implements Initializable {
             deleteBtn.setGraphic(new FontIcon("fth-trash-2"));
             deleteBtn.setOnAction(e -> handleDeleteSale(s));
 
+            Button exportBtn = new Button();
+            exportBtn.getStyleClass().addAll("card-action-btn");
+            exportBtn.setGraphic(new FontIcon("fth-download")); // A download icon
+            exportBtn.setOnAction(e -> handleExportSale(s));
+
             Region fSpacer = new Region();
             HBox.setHgrow(fSpacer, Priority.ALWAYS);
 
@@ -1365,9 +1403,9 @@ public class MainController implements Initializable {
                                 "An unexpected error occurred: " + ex.getMessage());
                     }
                 });
-                footer.getChildren().addAll(payBtn, editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
+                footer.getChildren().addAll(payBtn, exportBtn, editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
             } else {
-                footer.getChildren().addAll(editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
+                footer.getChildren().addAll(exportBtn, editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
             }
 
             card.getChildren().addAll(header, new Separator(), grid, new Separator(), footer);
@@ -1493,11 +1531,6 @@ public class MainController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.show();
-    }
-
-    private void addToCart(Product p) {
-        int currentCount = Integer.parseInt(cartCountLabel.getText());
-        cartCountLabel.setText(String.valueOf(currentCount + 1));
     }
 
     @FXML
