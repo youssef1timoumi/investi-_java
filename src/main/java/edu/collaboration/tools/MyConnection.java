@@ -29,19 +29,80 @@ public class MyConnection {
                     System.out.println("Patched DB: Dropped unique index " + idx + " on investment table.");
                 }
 
-                // Auto-patch missing Idea 5 columns
-                String[] newCols = {
-                        "ALTER TABLE investment ADD COLUMN progressPercentage int(11) DEFAULT 0",
-                        "ALTER TABLE investment ADD COLUMN latestProgressLog varchar(255) DEFAULT NULL",
-                        "ALTER TABLE investment ADD COLUMN paymentMonthsCompleted int(11) DEFAULT 0"
+                // Auto-patch missing Idea 5 columns (checked via INFORMATION_SCHEMA)
+                String[][] newCols = {
+                        { "progressPercentage",
+                                "ALTER TABLE investment ADD COLUMN progressPercentage int(11) DEFAULT 0" },
+                        { "latestProgressLog",
+                                "ALTER TABLE investment ADD COLUMN latestProgressLog varchar(255) DEFAULT NULL" },
+                        { "paymentMonthsCompleted",
+                                "ALTER TABLE investment ADD COLUMN paymentMonthsCompleted int(11) DEFAULT 0" },
+                        { "lastPaymentDate",
+                                "ALTER TABLE investment ADD COLUMN lastPaymentDate DATETIME DEFAULT NULL" }
                 };
-                for (String q : newCols) {
+                for (String[] col : newCols) {
                     try {
-                        st.executeUpdate(q);
-                        System.out.println("Patched DB: Added missing column");
-                    } catch (Exception e) {
+                        java.sql.ResultSet chk = st.executeQuery(
+                                "SELECT COUNT(*) FROM information_schema.COLUMNS " +
+                                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'investment' AND COLUMN_NAME = '"
+                                        + col[0] + "'");
+                        if (chk.next() && chk.getInt(1) == 0) {
+                            st.executeUpdate(col[1]);
+                            System.out.println("Patched DB: Added column " + col[0] + " to investment.");
+                        }
+                    } catch (Exception ignored) {
                     }
                 }
+
+                // Auto-create Governance Layer tables
+                String createCollaborationTable = "CREATE TABLE IF NOT EXISTS collaboration (" +
+                        "id INT PRIMARY KEY AUTO_INCREMENT, " +
+                        "project_id INT NOT NULL, " +
+                        "investor_id INT NOT NULL, " +
+                        "start_date DATETIME, " +
+                        "status VARCHAR(50) DEFAULT 'ACTIVE', " +
+                        "health_score DOUBLE DEFAULT 100, " +
+                        "default_probability DOUBLE DEFAULT 0, " +
+                        "fairness_score DOUBLE DEFAULT 100, " +
+                        "fairness_status VARCHAR(50) DEFAULT 'BALANCED', " +
+                        "ideal_equity DOUBLE DEFAULT 0, " +
+                        "equity_deviation DOUBLE DEFAULT 0)";
+
+                String createCollabMessageTable = "CREATE TABLE IF NOT EXISTS collaboration_message (" +
+                        "id INT PRIMARY KEY AUTO_INCREMENT, " +
+                        "investment_id INT, " +
+                        "collaboration_id INT, " +
+                        "sender_id INT NOT NULL, " +
+                        "message TEXT NOT NULL, " +
+                        "type VARCHAR(50) DEFAULT 'GENERAL', " +
+                        "created_at DATETIME DEFAULT CURRENT_TIMESTAMP)";
+
+                try {
+                    st.executeUpdate(createCollaborationTable);
+                    System.out.println("Patched DB: Ensured collaboration table exists.");
+
+                    // Auto-patch fairness columns if table already existed without them
+                    String[] fairnessCols = {
+                            "ALTER TABLE collaboration ADD COLUMN fairness_score DOUBLE DEFAULT 100",
+                            "ALTER TABLE collaboration ADD COLUMN fairness_status VARCHAR(50) DEFAULT 'BALANCED'",
+                            "ALTER TABLE collaboration ADD COLUMN ideal_equity DOUBLE DEFAULT 0",
+                            "ALTER TABLE collaboration ADD COLUMN equity_deviation DOUBLE DEFAULT 0"
+                    };
+                    for (String fq : fairnessCols) {
+                        try {
+                            st.executeUpdate(fq);
+                        } catch (Exception ignored) {
+                        }
+                    }
+                } catch (Exception e) {
+                }
+
+                try {
+                    st.executeUpdate(createCollabMessageTable);
+                    System.out.println("Patched DB: Ensured collaboration_message table exists.");
+                } catch (Exception e) {
+                }
+
             } catch (Exception e) {
                 // Ignore silent db patch errors
             }

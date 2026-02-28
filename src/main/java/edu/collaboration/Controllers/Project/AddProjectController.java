@@ -1,5 +1,6 @@
 package edu.collaboration.Controllers.Project;
 
+import edu.collaboration.Controllers.AlertHelper;
 import edu.collaboration.entities.Project;
 import edu.collaboration.services.CurrencyService;
 import edu.collaboration.services.ProjectService;
@@ -137,6 +138,17 @@ public class AddProjectController implements Initializable {
             }
         }
 
+        if (isValid) {
+            boolean exists = new edu.collaboration.services.ProjectService()
+                    .existsByTitleOrDescription(titleTf.getText(), descriptionTf.getText());
+            if (exists) {
+                setErrorStyle(titleTf);
+                setErrorStyle(descriptionTf);
+                errors.append("- A project with this exact Title OR Description already exists.\n");
+                isValid = false;
+            }
+        }
+
         if (!isValid) {
             showAlert(Alert.AlertType.ERROR, "Validation Error",
                     "Please correct the following:\n" + errors.toString());
@@ -166,11 +178,12 @@ public class AddProjectController implements Initializable {
     }
 
     private void showAlert(Alert.AlertType type, String title, String msg) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
+        if (type == Alert.AlertType.ERROR)
+            AlertHelper.showError(title, msg);
+        else if (type == Alert.AlertType.WARNING)
+            AlertHelper.showWarning(title, msg);
+        else
+            AlertHelper.showInfo(title, msg);
     }
 
     @FXML

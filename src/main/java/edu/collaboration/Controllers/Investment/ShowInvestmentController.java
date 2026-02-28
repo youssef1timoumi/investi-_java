@@ -1,7 +1,10 @@
 package edu.collaboration.Controllers.Investment;
 
 import edu.collaboration.entities.Investment;
+import edu.collaboration.entities.Project;
 import edu.collaboration.services.InvestmentService;
+import edu.collaboration.services.ProjectService;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,6 +15,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import edu.collaboration.Controllers.ActionButtonsController;
+import edu.collaboration.Controllers.AlertHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,6 +23,7 @@ import java.util.List;
 public class ShowInvestmentController {
 
     private final InvestmentService is = new InvestmentService();
+    private final ProjectService ps = new ProjectService();
     private ObservableList<Investment> list;
 
     @FXML
@@ -26,7 +31,7 @@ public class ShowInvestmentController {
     @FXML
     private TableColumn<Investment, Integer> idCol;
     @FXML
-    private TableColumn<Investment, Integer> projectCol;
+    private TableColumn<Investment, String> projectCol;
     @FXML
     private TableColumn<Investment, Integer> investorCol;
     @FXML
@@ -43,7 +48,10 @@ public class ShowInvestmentController {
     @FXML
     void initialize() {
         idCol.setCellValueFactory(new PropertyValueFactory<>("investmentId"));
-        projectCol.setCellValueFactory(new PropertyValueFactory<>("projectId"));
+        projectCol.setCellValueFactory(cellData -> {
+            Project p = ps.readById(cellData.getValue().getProjectId());
+            return new SimpleStringProperty(p != null ? p.getTitle() : "Unknown");
+        });
         investorCol.setCellValueFactory(new PropertyValueFactory<>("investorId"));
         amountCol.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
         durationCol.setCellValueFactory(new PropertyValueFactory<>("durationMonths"));
@@ -76,6 +84,12 @@ public class ShowInvestmentController {
 
                         controller.getEditBtn().setOnAction(e -> {
                             Investment inv = getTableView().getItems().get(getIndex());
+                            if ("ACCEPTED".equalsIgnoreCase(inv.getStatus())
+                                    || "REFUSED".equalsIgnoreCase(inv.getStatus())) {
+                                AlertHelper.showError("Modification Denied",
+                                        "Cannot edit an " + inv.getStatus() + " deal.");
+                                return;
+                            }
                             try {
                                 javafx.fxml.FXMLLoader editLoader = new javafx.fxml.FXMLLoader(
                                         getClass().getResource("/UpdateInvestment.fxml"));
@@ -96,15 +110,15 @@ public class ShowInvestmentController {
 
                         controller.getDeleteBtn().setOnAction(e -> {
                             Investment inv = getTableView().getItems().get(getIndex());
-                            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                                    "Delete Investment " + inv.getInvestmentId() + "?",
-                                    ButtonType.YES, ButtonType.NO);
-                            confirm.showAndWait().ifPresent(type -> {
-                                if (type == ButtonType.YES) {
-                                    is.deleteEntity(inv);
-                                    loadData();
-                                }
-                            });
+                            if ("ACCEPTED".equalsIgnoreCase(inv.getStatus())) {
+                                AlertHelper.showError("Forbidden", "Cannot delete an ACCEPTED investment.");
+                                return;
+                            }
+                            if (AlertHelper.confirm("Delete Investment",
+                                    "Delete Investment #" + inv.getInvestmentId() + "?")) {
+                                is.deleteEntity(inv);
+                                loadData();
+                            }
                         });
 
                         setGraphic(pane);
@@ -115,14 +129,6 @@ public class ShowInvestmentController {
                 }
             }
         });
-    }
-
-    private void showAlert(String title, String msg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
     }
 
     @FXML

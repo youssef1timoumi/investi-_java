@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
 
 <AnchorPane prefHeight="500" prefWidth="480"
             stylesheets="@Project.css"
@@ -21,18 +22,31 @@
             <VBox spacing="14" styleClass="form-container">
                 <Label text="Create New Project" styleClass="heading"/>
 
-                <TextField fx:id="titleTf"       promptText="Project Title (min 3 chars)"/>
-                <TextField fx:id="descriptionTf" promptText="Description (min 10 chars)"/>
+                <VBox spacing="4">
+                    <Label text="Project Title (min 3 chars)" style="-fx-text-fill: #34495e; -fx-font-weight: bold;"/>
+                    <TextField fx:id="titleTf" promptText="Enter project title"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Description (min 10 chars)" style="-fx-text-fill: #34495e; -fx-font-weight: bold;"/>
+                    <TextField fx:id="descriptionTf" promptText="Describe your project..."/>
+                </VBox>
 
                 <!-- Amount + Currency Row -->
                 <HBox spacing="10" alignment="CENTER_LEFT">
-                    <TextField fx:id="amountTf" promptText="Target Amount" HBox.hgrow="ALWAYS"/>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="Target Amount" style="-fx-text-fill: #34495e; -fx-font-weight: bold;"/>
+                        <TextField fx:id="amountTf" promptText="0.00"/>
+                    </VBox>
                     <ComboBox fx:id="currencyBox" prefWidth="90"/>
                 </HBox>
                 <Label fx:id="convertedAmountLabel"
                        style="-fx-text-fill: #2A52BE; -fx-font-size: 12px; -fx-font-style: italic;"/>
 
-                <TextField fx:id="equityTf" promptText="Equity Offered (%)"/>
+                <VBox spacing="4">
+                    <Label text="Equity Offered (%)" style="-fx-text-fill: #34495e; -fx-font-weight: bold;"/>
+                    <TextField fx:id="equityTf" promptText="e.g. 15.0"/>
+                </VBox>
 
                 <!-- Category -->
                 <HBox spacing="10" alignment="CENTER_LEFT">

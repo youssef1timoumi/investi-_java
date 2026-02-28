@@ -19,6 +19,7 @@ public class Investment {
     private int progressPercentage; // 0 to 100
     private String latestProgressLog; // What the entrepreneur did lately
     private int paymentMonthsCompleted; // Investor payments made so far
+    private Date lastPaymentDate; // Automatically map SQL Timestamp to Date
 
     public Investment() {
     }
@@ -130,6 +131,14 @@ public class Investment {
 
     public void setPaymentMonthsCompleted(int paymentMonthsCompleted) {
         this.paymentMonthsCompleted = paymentMonthsCompleted;
+    }
+
+    public Date getLastPaymentDate() {
+        return lastPaymentDate;
+    }
+
+    public void setLastPaymentDate(Date lastPaymentDate) {
+        this.lastPaymentDate = lastPaymentDate;
     }
 
     @Override

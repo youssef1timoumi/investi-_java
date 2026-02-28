@@ -1,12 +1,15 @@
 package edu.collaboration.Controllers;
 
 import edu.collaboration.entities.Investment;
+import edu.collaboration.entities.Milestone;
 import edu.collaboration.entities.Project;
+import edu.collaboration.services.AiService;
+import edu.collaboration.services.CollaborationService;
 import edu.collaboration.services.CurrencyService;
 import edu.collaboration.services.InvestmentService;
-import edu.collaboration.services.ProjectService;
-import edu.collaboration.services.AiService;
+import edu.collaboration.services.MilestoneService;
 import edu.collaboration.services.PdfExportService;
+import edu.collaboration.services.ProjectService;
 
 import edu.collaboration.Controllers.Investment.AddInvestmentController;
 import javafx.application.Platform;
@@ -14,15 +17,24 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Arc;
+import javafx.scene.shape.ArcType;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
+import javafx.animation.*;
+import javafx.util.Duration;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -35,17 +47,7 @@ public class InvestorController implements Initializable {
     @FXML
     private VBox browsePage;
     @FXML
-    private VBox portfolioPage;
-    @FXML
     private VBox collaborationPage;
-
-    // ─── Sidebar Navigation Buttons ─────────────────────────────────────────────
-    @FXML
-    private Button navBrowse;
-    @FXML
-    private Button navPortfolio;
-    @FXML
-    private Button navCollaboration;
 
     // ─── Browse Page Components ──────────────────────────────────────────────────
     @FXML
@@ -59,24 +61,7 @@ public class InvestorController implements Initializable {
     @FXML
     private ComboBox<String> currencyBox;
 
-    // ─── Portfolio Page Components ───────────────────────────────────────────────
-    @FXML
-    private TableView<Investment> portfolioTable;
-    @FXML
-    private TableColumn<Investment, Integer> colInvId;
-    @FXML
-    private TableColumn<Investment, Integer> colInvProject;
-    @FXML
-    private TableColumn<Investment, Double> colInvAmount;
-    @FXML
-    private TableColumn<Investment, Double> colInvEquity;
-    @FXML
-    private TableColumn<Investment, String> colInvStatus;
-    @FXML
-    private TableColumn<Investment, String> colInvDate;
-    @FXML
-    private TableColumn<Investment, Void> colInvAction;
-
+    // ─── AI Advisor Components ───────────────────────────────────────────────
     @FXML
     private Button btnAiAdvisor;
     @FXML
@@ -107,9 +92,18 @@ public class InvestorController implements Initializable {
     private Button btnAiExplain;
     @FXML
     private Button btnInvestNow;
+    @FXML
+    private Button btnTrackProgress;
+    @FXML
+    private Button btnDealRoom;
+    @FXML
+    private Button btnCancelOffer;
 
     private final ProjectService projectService = new ProjectService();
     private final InvestmentService investmentService = new InvestmentService();
+    private final MilestoneService milestoneService = new MilestoneService();
+    private final CollaborationService collaborationService = new CollaborationService();
+    private final List<Integer> notifiedInvestments = new ArrayList<>();
 
     // MOCK LOGIN
     private final int currentInvestorId = 2;
@@ -117,11 +111,11 @@ public class InvestorController implements Initializable {
     private List<Project> allProjects;
     private List<Investment> myInvestments;
 
-    private Project selectedOverlayProject;
+    private Project selectedOverlayProject = null;
+    private Project focusedProjectForCollab = null;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        setupPortfolioTable();
 
         // Setup filter boxes
         categoryFilterBox
@@ -146,39 +140,35 @@ public class InvestorController implements Initializable {
         buildCollaborationPage();
     }
 
-    // ─── Sidebar Navigation Methods ──────────────────────────────────────────────
+    // ─── Navigation Methods ──────────────────────────────────────────────
 
     @FXML
     void showBrowsePage() {
-        togglePage(browsePage, navBrowse);
-    }
-
-    @FXML
-    void showPortfolioPage() {
-        togglePage(portfolioPage, navPortfolio);
+        focusedProjectForCollab = null;
+        togglePage(browsePage);
     }
 
     @FXML
     void showCollaborationPage() {
-        togglePage(collaborationPage, navCollaboration);
+        if (focusedProjectForCollab == null) {
+            AlertHelper.showWarning("Select a Project",
+                    "Please select 'Track 📊' on an accepted offer to view collaborations.");
+            showBrowsePage();
+            return;
+        }
+        hideProjectDetails();
+        togglePage(collaborationPage);
         buildCollaborationPage();
     }
 
-    private void togglePage(VBox pageToShow, Button activeNavBtn) {
+    private void togglePage(VBox pageToShow) {
         browsePage.setVisible(false);
         browsePage.setManaged(false);
-        portfolioPage.setVisible(false);
-        portfolioPage.setManaged(false);
         collaborationPage.setVisible(false);
         collaborationPage.setManaged(false);
 
-        navBrowse.getStyleClass().remove("active");
-        navPortfolio.getStyleClass().remove("active");
-        navCollaboration.getStyleClass().remove("active");
-
         pageToShow.setVisible(true);
         pageToShow.setManaged(true);
-        activeNavBtn.getStyleClass().add("active");
     }
 
     @FXML
@@ -205,26 +195,99 @@ public class InvestorController implements Initializable {
         detailDesc.setText(p.getDescription());
 
         // Buttons configuration
+        btnInvestNow.setManaged(true);
+        btnInvestNow.setVisible(true);
         btnInvestNow.setDisable(false);
         btnInvestNow.setText("💼 Add Investment Offer");
+
+        btnAiExplain.setManaged(true);
+        btnAiExplain.setVisible(true);
         btnAiExplain.setDisable(false);
         btnAiExplain.setText("🤖 AI Setup Explanation & PDF");
 
+        btnTrackProgress.setManaged(false);
+        btnTrackProgress.setVisible(false);
+
+        btnDealRoom.setManaged(false);
+        btnDealRoom.setVisible(false);
+
+        btnCancelOffer.setManaged(false);
+        btnCancelOffer.setVisible(false);
+
         if (interaction != null) {
             btnInvestNow.setDisable(true);
-            btnInvestNow.setText(interaction.getStatus());
-            btnAiExplain.setDisable(true); // Once invested, no need to pitch it to them
+            btnInvestNow.setText(interaction.getStatus() + " OFFER");
+
+            btnAiExplain.setManaged(false);
+            btnAiExplain.setVisible(false);
+
+            if ("ACCEPTED".equalsIgnoreCase(interaction.getStatus())) {
+                btnTrackProgress.setManaged(true);
+                btnTrackProgress.setVisible(true);
+                btnTrackProgress.setOnAction(e -> {
+                    focusedProjectForCollab = p;
+                    showCollaborationPage();
+                });
+
+                btnDealRoom.setManaged(true);
+                btnDealRoom.setVisible(true);
+                btnDealRoom.setOnAction(e -> openDealRoom(interaction));
+            } else {
+                btnDealRoom.setManaged(true);
+                btnDealRoom.setVisible(true);
+                btnDealRoom.setOnAction(e -> openDealRoom(interaction));
+
+                if ("REFUSED".equalsIgnoreCase(interaction.getStatus())) {
+                    // Refused: hide Deal Room and Cancel, show refused badge
+                    btnDealRoom.setManaged(false);
+                    btnDealRoom.setVisible(false);
+                    btnCancelOffer.setManaged(false);
+                    btnCancelOffer.setVisible(false);
+                } else {
+                    btnCancelOffer.setManaged(true);
+                    btnCancelOffer.setVisible(true);
+                    btnCancelOffer.setOnAction(e -> {
+                        if (confirm("Cancel Offer", "Are you sure you want to cancel this offer?")) {
+                            investmentService.deleteEntity(interaction);
+                            refreshProjects();
+                            hideProjectDetails();
+                        }
+                    });
+                }
+            }
+
         } else if (!"OPEN".equals(p.getStatus())) {
             btnInvestNow.setDisable(true);
-            btnInvestNow.setText("Unavailable");
+            btnInvestNow.setText("Unavailable (" + p.getStatus() + ")");
         }
 
+        detailOverlay.setOpacity(0);
         detailOverlay.setVisible(true);
+        detailOverlay.setManaged(true);
+
+        FadeTransition ft = new FadeTransition(Duration.millis(250), detailOverlay);
+        ft.setToValue(1);
+        ScaleTransition st = new ScaleTransition(Duration.millis(250), detailOverlay.getChildren().get(0));
+        st.setFromX(0.95);
+        st.setFromY(0.95);
+        st.setToX(1.0);
+        st.setToY(1.0);
+        new ParallelTransition(ft, st).play();
     }
 
     @FXML
     void hideProjectDetails() {
-        detailOverlay.setVisible(false);
+        FadeTransition ft = new FadeTransition(Duration.millis(200), detailOverlay);
+        ft.setToValue(0);
+        ScaleTransition st = new ScaleTransition(Duration.millis(200), detailOverlay.getChildren().get(0));
+        st.setToX(0.95);
+        st.setToY(0.95);
+        ParallelTransition pt = new ParallelTransition(ft, st);
+        pt.setOnFinished(e -> {
+            detailOverlay.setVisible(false);
+            detailOverlay.setManaged(false);
+        });
+        pt.play();
     }
 
     @FXML
@@ -261,8 +324,7 @@ public class InvestorController implements Initializable {
                 });
 
                 // Alert completion
-                new Alert(Alert.AlertType.INFORMATION, "PDF generation successful! Click the button again to view it.")
-                        .show();
+                AlertHelper.showInfo("PDF Ready", "PDF generation successful! Click the button again to view it.");
             });
         }).start();
     }
@@ -278,7 +340,8 @@ public class InvestorController implements Initializable {
 
         List<Project> filtered = allProjects.stream()
                 .filter(p -> "OPEN".equals(p.getStatus())
-                        || myInvestments.stream().anyMatch(inv -> inv.getProjectId() == p.getProjectId()))
+                        || (myInvestments != null
+                                && myInvestments.stream().anyMatch(inv -> inv.getProjectId() == p.getProjectId())))
                 .filter(p -> keyword.isEmpty() || p.getTitle().toLowerCase().contains(keyword)
                         || p.getDescription().toLowerCase().contains(keyword))
                 .filter(p -> category == null || category.equals("All") || category.equals(p.getCategory()))
@@ -302,8 +365,8 @@ public class InvestorController implements Initializable {
     @FXML
     void refreshProjects() {
         allProjects = projectService.getData();
-        refreshPortfolio();
-        applyFilters();
+        refreshPortfolio(); // Must refresh FIRST so myInvestments is up to date for card rendering
+        applyFilters(); // This calls renderProjectCards which reads myInvestments
     }
 
     private void renderProjectCards(List<Project> projects) {
@@ -316,8 +379,50 @@ public class InvestorController implements Initializable {
         }
 
         for (Project p : projects) {
+            boolean isFunded = "FUNDED".equalsIgnoreCase(p.getStatus());
+
             VBox card = new VBox(15);
-            card.getStyleClass().add("project-card");
+            card.getStyleClass().addAll("project-card", "card-l1", "glass-card");
+            card.setCache(true);
+            card.setCacheHint(javafx.scene.CacheHint.SPEED);
+
+            javafx.scene.effect.InnerShadow glassEdge = new javafx.scene.effect.InnerShadow();
+            glassEdge.setRadius(8);
+            glassEdge.setColor(Color.rgb(255, 255, 255, 0.4));
+            card.setEffect(glassEdge);
+
+            // ─── Funded Project: Animated Ambient Glow Ring ────────────────────
+            if (isFunded) {
+                javafx.scene.effect.DropShadow plasmaLayer2 = new javafx.scene.effect.DropShadow();
+                plasmaLayer2.setColor(Color.web("#c07c4b", 0.4)); // Faded Copper ambient
+                plasmaLayer2.setSpread(0.5);
+                plasmaLayer2.setRadius(20);
+
+                javafx.scene.effect.DropShadow plasmaLayer1 = new javafx.scene.effect.DropShadow();
+                plasmaLayer1.setColor(Color.web("#2a506b", 0.8)); // Baltic Blue core
+                plasmaLayer1.setSpread(0.2);
+                plasmaLayer1.setRadius(5);
+                plasmaLayer1.setInput(plasmaLayer2);
+
+                card.setEffect(plasmaLayer1);
+
+                Timeline plasmaAnim = new Timeline(
+                        new KeyFrame(Duration.ZERO,
+                                new KeyValue(plasmaLayer1.radiusProperty(), 5, Interpolator.EASE_BOTH),
+                                new KeyValue(plasmaLayer2.radiusProperty(), 20, Interpolator.EASE_BOTH)),
+                        new KeyFrame(Duration.seconds(2.0),
+                                new KeyValue(plasmaLayer1.radiusProperty(), 15, Interpolator.EASE_BOTH),
+                                new KeyValue(plasmaLayer2.radiusProperty(), 40, Interpolator.EASE_BOTH)));
+                plasmaAnim.setAutoReverse(true);
+                plasmaAnim.setCycleCount(Animation.INDEFINITE);
+                plasmaAnim.play();
+
+                card.setStyle(card.getStyle()
+                        + "; -fx-border-color: #2a506b; -fx-border-width: 1px; -fx-border-radius: 12px;");
+            }
+
+            java.util.Optional<Investment> interaction = myInvestments.stream()
+                    .filter(inv -> inv.getProjectId() == p.getProjectId()).findFirst();
 
             HBox header = new HBox(10);
             Label catBadge = new Label(p.getCategory() != null ? p.getCategory() : "Other");
@@ -326,29 +431,78 @@ public class InvestorController implements Initializable {
             Label title = new Label(p.getTitle());
             title.getStyleClass().add("card-title");
 
-            header.getChildren().addAll(catBadge, title);
+            if (interaction.isPresent()) {
+                Label interactBadge = new Label(interaction.get().getStatus());
+                interactBadge.setStyle(
+                        "-fx-font-weight: bold; -fx-padding: 2 6; -fx-background-radius: 4; -fx-text-fill: white; -fx-background-color: "
+                                + ("ACCEPTED".equals(interaction.get().getStatus()) ? "#16a34a"
+                                        : ("PENDING".equals(interaction.get().getStatus()) ? "#b45309" : "#A62639"))
+                                + ";");
+                header.getChildren().addAll(catBadge, interactBadge, title);
+            } else {
+                header.getChildren().addAll(catBadge, title);
+            }
+
+            // Momentum badges
+            long offerCount = investmentService.getInvestmentsByStatus("PENDING").stream()
+                    .filter(inv -> inv.getProjectId() == p.getProjectId()).count();
+            if ("OPEN".equals(p.getStatus())) {
+                if (offerCount >= 2) {
+                    Label hotBadge = new Label("🔥 HOT");
+                    hotBadge.getStyleClass().add("badge-hot");
+                    header.getChildren().add(hotBadge);
+                } else if (offerCount == 0 && allProjects.indexOf(p) >= allProjects.size() - 2) {
+                    Label newBadge = new Label("🆕 NEW");
+                    newBadge.getStyleClass().add("badge-new");
+                    header.getChildren().add(newBadge);
+                }
+            }
 
             Label desc = new Label(p.getDescription());
             desc.getStyleClass().add("card-desc");
             desc.setWrapText(true);
-            desc.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+            desc.setMinHeight(Region.USE_PREF_SIZE);
 
             double convAmt = CurrencyService.convertFromUSD(p.getAmountRequested(), dispCurr);
             Label goal = new Label("Goal: " + CurrencyService.format(convAmt, dispCurr));
             goal.getStyleClass().add("card-price");
 
-            java.util.Optional<Investment> interaction = myInvestments.stream()
-                    .filter(inv -> inv.getProjectId() == p.getProjectId()).findFirst();
+            // ─── Momentum Badge: Aurora Breathing Pill ────────────────────────
+            goal.setStyle(
+                    "-fx-background-color: #2a506b; -fx-text-fill: #e6e6fa; -fx-padding: 6 12; -fx-background-radius: 20;");
 
-            if (interaction.isPresent()) {
-                Label interactBadge = new Label(interaction.get().getStatus());
-                interactBadge.setStyle("-fx-font-weight: bold; -fx-text-fill: #A62639;");
-                card.getChildren().addAll(header, desc, goal, interactBadge);
-            } else {
-                // Button for AI recommendation inline
+            javafx.scene.effect.DropShadow auroraShadow = new javafx.scene.effect.DropShadow();
+            auroraShadow.setColor(Color.web("#c07c4b", 0.6));
+            auroraShadow.setRadius(5);
+            auroraShadow.setSpread(0.2);
+            goal.setEffect(auroraShadow);
+
+            Timeline auroraAnim = new Timeline(
+                    new KeyFrame(Duration.ZERO,
+                            new KeyValue(auroraShadow.radiusProperty(), 5, Interpolator.EASE_BOTH),
+                            new KeyValue(auroraShadow.colorProperty(), Color.web("#c07c4b", 0.6),
+                                    Interpolator.EASE_BOTH)),
+                    new KeyFrame(Duration.seconds(2.0),
+                            new KeyValue(auroraShadow.radiusProperty(), 15, Interpolator.EASE_BOTH),
+                            new KeyValue(auroraShadow.colorProperty(), Color.web("#8b3a3a", 0.4),
+                                    Interpolator.EASE_BOTH)));
+            auroraAnim.setAutoReverse(true);
+            auroraAnim.setCycleCount(Animation.INDEFINITE);
+
+            Timeline delay = new Timeline(
+                    new KeyFrame(Duration.millis((projects.indexOf(p) * 100) + 200), e -> auroraAnim.play()));
+            delay.play();
+
+            StackPane goalContainer = new StackPane(goal);
+            goalContainer.setAlignment(Pos.CENTER_LEFT);
+
+            if (!interaction.isPresent()) {
+                HBox actionBox = new HBox(15);
+                actionBox.setAlignment(Pos.CENTER_LEFT);
+
                 Button aiAdvisorBtn = new Button("Quick AI Advice?");
                 aiAdvisorBtn.setStyle(
-                        "-fx-background-color: transparent; -fx-text-fill: #9B7E46; -fx-cursor: hand; -fx-underline: true;");
+                        "-fx-background-color: transparent; -fx-text-fill: #1d4ed8; -fx-font-weight: bold; -fx-font-size: 13px; -fx-cursor: hand; -fx-underline: true;");
                 aiAdvisorBtn.setOnAction(e -> {
                     aiAdvisorBtn.setText("Thinking...");
                     aiAdvisorBtn.setDisable(true);
@@ -361,61 +515,24 @@ public class InvestorController implements Initializable {
                     }).start();
                 });
 
-                card.getChildren().addAll(header, desc, goal, aiAdvisorBtn);
+                actionBox.getChildren().addAll(aiAdvisorBtn);
+                card.getChildren().addAll(header, desc, goalContainer, actionBox);
+            } else {
+                card.getChildren().addAll(header, desc, goalContainer);
             }
 
-            // Hover Overlay click logic
-            card.setOnMouseClicked(e -> showProjectDetails(p, interaction.isPresent() ? interaction.get() : null));
+            applyMagneticHover(card);
 
+            card.setOnMouseClicked(e -> showProjectDetails(p, interaction.isPresent() ? interaction.get() : null));
             projectsContainer.getChildren().add(card);
         }
     }
 
-    // ─── Portfolio Table Logic ──────────────────────────────────────────────────
-
-    private void setupPortfolioTable() {
-        colInvId.setCellValueFactory(new PropertyValueFactory<>("investmentId"));
-        colInvProject.setCellValueFactory(new PropertyValueFactory<>("projectId"));
-        colInvAmount.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
-        colInvEquity.setCellValueFactory(new PropertyValueFactory<>("equityRequested"));
-        colInvStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        colInvDate.setCellValueFactory(new PropertyValueFactory<>("investmentDate"));
-        addTableButtons();
-    }
+    // ─── Portfolio Logic ──────────────────────────────────────────────────
 
     @FXML
     void refreshPortfolio() {
         myInvestments = investmentService.getInvestmentsByInvestor(currentInvestorId);
-        if (portfolioTable != null) {
-            portfolioTable.setItems(FXCollections.observableArrayList(myInvestments));
-            portfolioTable.refresh();
-        }
-    }
-
-    private void addTableButtons() {
-        colInvAction.setCellFactory(param -> new TableCell<>() {
-            private final Button cancelBtn = new Button("Cancel Offer");
-            {
-                cancelBtn.getStyleClass().add("ai-btn");
-                cancelBtn.setOnAction(e -> {
-                    Investment data = getTableView().getItems().get(getIndex());
-                    if ("ACCEPTED".equalsIgnoreCase(data.getStatus()) || "REFUSED".equalsIgnoreCase(data.getStatus())) {
-                        new Alert(Alert.AlertType.ERROR, "Cannot cancel an ACCEPTED or REFUSED offer.").show();
-                        return;
-                    }
-                    if (confirm("Delete Offer", "Are you sure you want to cancel this offer?")) {
-                        investmentService.deleteEntity(data);
-                        refreshPortfolio();
-                    }
-                });
-            }
-
-            @Override
-            public void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : cancelBtn);
-            }
-        });
     }
 
     @FXML
@@ -424,6 +541,7 @@ public class InvestorController implements Initializable {
         btnAiAdvisor.setDisable(true);
         aiAdvisorOutput.setVisible(true);
         aiAdvisorOutput.setManaged(true);
+        aiAdvisorOutput.setStyle("-fx-text-fill: #1d4ed8; -fx-font-weight: bold; -fx-font-size: 14px;");
         aiAdvisorOutput.setText("Analyzing your portfolio and the current market...");
 
         new Thread(() -> {
@@ -433,19 +551,30 @@ public class InvestorController implements Initializable {
                         "The investor has no past investments yet. They are looking for their very first opportunity.");
             } else {
                 for (Investment i : myInvestments) {
+                    if ("REFUSED".equalsIgnoreCase(i.getStatus())) {
+                        continue; // Do not tell AI about refused investments to prevent bad advice
+                    }
                     Project p = allProjects.stream().filter(proj -> proj.getProjectId() == i.getProjectId()).findFirst()
                             .orElse(null);
                     if (p != null) {
                         pastContext.append("- ").append(p.getTitle()).append(" (Category: ")
                                 .append(p.getCategory() != null ? p.getCategory() : "Other").append("). Invested: $")
-                                .append(i.getTotalAmount()).append("\n");
+                                .append(i.getTotalAmount()).append(" (Status: ").append(i.getStatus()).append(")\n");
                     }
                 }
             }
 
             StringBuilder openContext = new StringBuilder();
+
+            // Collect IDs of projects this investor was refused on
+            List<Integer> refusedProjectIds = myInvestments.stream()
+                    .filter(i -> "REFUSED".equalsIgnoreCase(i.getStatus()))
+                    .map(Investment::getProjectId)
+                    .collect(Collectors.toList());
+
             List<Project> openProjects = allProjects.stream()
                     .filter(p -> "OPEN".equals(p.getStatus()))
+                    .filter(p -> !refusedProjectIds.contains(p.getProjectId()))
                     .limit(10)
                     .collect(Collectors.toList());
 
@@ -453,7 +582,7 @@ public class InvestorController implements Initializable {
                 openContext.append("There are currently no open projects available for investment.");
             } else {
                 for (Project p : openProjects) {
-                    openContext.append("- [ID: ").append(p.getProjectId()).append("] ").append(p.getTitle())
+                    openContext.append("- ").append(p.getTitle())
                             .append(" (Category: ").append(p.getCategory() != null ? p.getCategory() : "Other")
                             .append(")\n");
                 }
@@ -478,7 +607,19 @@ public class InvestorController implements Initializable {
 
         List<Investment> activeCollabs = myInvestments.stream()
                 .filter(i -> "ACCEPTED".equalsIgnoreCase(i.getStatus()))
+                .filter(i -> focusedProjectForCollab == null
+                        || i.getProjectId() == focusedProjectForCollab.getProjectId())
                 .collect(Collectors.toList());
+
+        if (focusedProjectForCollab != null) {
+            Button showAllBtn = new Button("⬅ Back to Browse");
+            showAllBtn.getStyleClass().add("ai-btn");
+            showAllBtn.setOnAction(e -> {
+                focusedProjectForCollab = null;
+                showBrowsePage();
+            });
+            collaborationContainer.getChildren().add(showAllBtn);
+        }
 
         if (activeCollabs.isEmpty()) {
             collaborationContainer.getChildren()
@@ -486,51 +627,190 @@ public class InvestorController implements Initializable {
             return;
         }
 
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd");
+
         for (Investment i : activeCollabs) {
-            VBox card = new VBox(15);
+            // ─── Get or ensure collaboration record (Safeguard) ────────────────
+            edu.collaboration.entities.Collaboration collab = null;
+            try {
+                collab = collaborationService.getCollaborationByInvestment(i.getProjectId(), i.getInvestorId());
+                if (collab == null) {
+                    // Logic from EntrepreneurController: Ensure it exists if investment is accepted
+                    edu.collaboration.entities.Collaboration newCollab = new edu.collaboration.entities.Collaboration(
+                            0, i.getProjectId(), i.getInvestorId(), null, "ACTIVE", 100.0, 0.0);
+                    collab = collaborationService.createCollaboration(newCollab);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            final int collabId = collab != null ? collab.getId() : -1;
+
+            // ─── Load milestones & progress ───────────────────────────────────
+            List<Milestone> milestones = collabId > 0
+                    ? milestoneService.getMilestonesForCollaboration(collabId)
+                    : new java.util.ArrayList<>();
+            double progress = collabId > 0 ? milestoneService.calculateProgress(collabId) : i.getProgressPercentage();
+
+            // ─── Card ─────────────────────────────────────────────────────────
+            VBox card = new VBox(20);
             card.getStyleClass().add("progress-card");
 
-            Label title = new Label("Project ID #" + i.getProjectId());
+            Project proj = allProjects.stream().filter(p -> p.getProjectId() == i.getProjectId()).findFirst()
+                    .orElse(null);
+            String projName = proj != null ? proj.getTitle() : "Project #" + i.getProjectId();
+            Label title = new Label("📁 " + projName);
             title.getStyleClass().add("progress-title");
 
-            // Progress Bar
-            ProgressBar pb = new ProgressBar(i.getProgressPercentage() / 100.0);
-            pb.setPrefWidth(500);
-            pb.getStyleClass().add("progress-bar");
-            Label progressLabel = new Label(i.getProgressPercentage() + "% completed");
+            int monthsPaid = i.getPaymentMonthsCompleted();
+            int duration = i.getDurationMonths();
+            double expectedPct = duration > 0 ? ((double) monthsPaid / duration) * 100 : 100;
+            if (expectedPct == 0)
+                expectedPct = 15; // Set strict threshold for new projects
 
-            // Log Input
-            VBox logBox = new VBox(5);
-            Label logTitle = new Label("Latest Entrepreneur Update:");
-            logTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #456990;");
-            Label logValue = new Label(i.getLatestProgressLog() != null ? i.getLatestProgressLog() : "No updates yet.");
-            logValue.getStyleClass().add("progress-log-box");
-            logBox.getChildren().addAll(logTitle, logValue);
+            Label healthBadge = new Label();
+            String pulseColor;
+            if (milestones.isEmpty()) {
+                healthBadge.setText("⚪ Not Started");
+                healthBadge.getStyleClass().add("health-warning");
+                pulseColor = "#94a3b8";
+            } else if (progress >= expectedPct - 10) {
+                healthBadge.setText("🟢 Healthy Pulse");
+                healthBadge.getStyleClass().add("health-healthy");
+                pulseColor = "#16a34a";
+            } else if (progress >= expectedPct - 30) {
+                healthBadge.setText("🟡 Minor Delays");
+                healthBadge.getStyleClass().add("health-warning");
+                pulseColor = "#ca8a04";
+            } else {
+                healthBadge.setText("🔴 Action Needed");
+                healthBadge.getStyleClass().add("health-danger");
+                pulseColor = "#dc2626";
+            }
 
-            // Financial Status
+            javafx.scene.effect.DropShadow glow = new javafx.scene.effect.DropShadow();
+            glow.setColor(Color.web(pulseColor));
+            glow.setSpread(0.12);
+            card.setEffect(glow);
+            Timeline pulseTimeline = new Timeline(
+                    new KeyFrame(Duration.ZERO, new KeyValue(glow.radiusProperty(), 8)),
+                    new KeyFrame(Duration.seconds(2.5), new KeyValue(glow.radiusProperty(), 28)));
+            pulseTimeline.setAutoReverse(true);
+            pulseTimeline.setCycleCount(Animation.INDEFINITE);
+            pulseTimeline.play();
+
+            HBox titleRow = new HBox(15, title, healthBadge);
+            titleRow.setAlignment(Pos.CENTER_LEFT);
+
+            // ─── Animated Completion Ring (read-only) ─────────────────────────
+            StackPane ringPane = buildCompletionRing(progress, pulseColor);
+
+            // ─── Milestone Timeline (read-only, editable=false) ───────────────
+            Label msHeader = new Label(
+                    "📌 Milestone Timeline" + (milestones.isEmpty() ? "  (awaiting entrepreneur setup)" : ""));
+            msHeader.getStyleClass().add("milestone-section-title");
+
+            HBox timelineHBox = buildMilestoneTimeline(milestones, sdf);
+            ScrollPane timelineScroll = new ScrollPane(timelineHBox);
+            timelineScroll.setFitToWidth(false);
+            timelineScroll.setFitToHeight(true);
+            timelineScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            timelineScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            timelineScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+            timelineScroll.setPrefHeight(160);
+
+            // ─── Financial + Payment section ──────────────────────────────────
+            Separator sep = new Separator();
             GridPane finGrid = new GridPane();
             finGrid.setHgap(30);
+            finGrid.setVgap(10);
 
-            Label l1 = new Label("Total Investment:");
+            finGrid.add(new Label("Total Investment:"), 0, 0);
             Label v1 = new Label("$" + String.format("%.2f", i.getTotalAmount()));
             v1.setStyle("-fx-font-weight: bold;");
-            finGrid.add(l1, 0, 0);
             finGrid.add(v1, 1, 0);
 
-            Label l2 = new Label("Payment Months:");
-            HBox paymentBox = new HBox(10);
-            paymentBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-            Label v2 = new Label(i.getPaymentMonthsCompleted() + " / " + i.getDurationMonths() + " Paid");
-            v2.setStyle("-fx-font-weight: bold;");
-            paymentBox.getChildren().add(v2);
+            finGrid.add(new Label("Payment Months:"), 0, 1);
+            HBox paymentBox = new HBox(15);
+            paymentBox.setAlignment(Pos.CENTER_LEFT);
 
-            if (i.getPaymentMonthsCompleted() < i.getDurationMonths()) {
+            // Build pill-style month tracker
+            HBox pillRow = new HBox(5);
+            pillRow.setAlignment(Pos.CENTER_LEFT);
+            int maxShow = Math.min(duration, 12); // cap at 12 pills rows
+            for (int m = 1; m <= maxShow; m++) {
+                Label pill = new Label(m <= monthsPaid ? "✓" : String.valueOf(m));
+                pill.setPrefSize(28, 22);
+                pill.setAlignment(Pos.CENTER);
+                pill.setStyle(
+                        "-fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-background-color: "
+                                + (m <= monthsPaid ? "#16a34a; -fx-text-fill: white;"
+                                        : "#e2e8f0; -fx-text-fill: #64748b;"));
+                pillRow.getChildren().add(pill);
+            }
+            if (duration > 12) {
+                Label more = new Label("..." + (duration - 12) + " more");
+                more.setStyle("-fx-font-size: 10px; -fx-text-fill: #94a3b8;");
+                pillRow.getChildren().add(more);
+            }
+            Label v2 = new Label(monthsPaid + " / " + duration + " Paid");
+            v2.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: "
+                    + (monthsPaid >= duration ? "#16a34a" : "#64748b") + ";");
+            paymentBox.getChildren().addAll(pillRow, v2);
+
+            if (monthsPaid < duration) {
+                java.time.LocalDate today = java.time.LocalDate.now();
+                java.time.LocalDate lastPay = i.getLastPaymentDate() != null
+                        ? new java.sql.Date(i.getLastPaymentDate().getTime()).toLocalDate()
+                        : null;
+                boolean alreadyPaidThisMonth = lastPay != null && lastPay.getYear() == today.getYear()
+                        && lastPay.getMonthValue() == today.getMonthValue();
+
+                // Calculate if late using centralized service logic
+                boolean isLate = investmentService.checkIsLate(i, today);
+                int anniversaryDay = 1;
+                if (i.getInvestmentDate() != null) {
+                    anniversaryDay = new java.sql.Date(i.getInvestmentDate().getTime()).toLocalDate().getDayOfMonth();
+                }
+
+                if (isLate && !notifiedInvestments.contains(i.getInvestmentId())) {
+                    if (proj != null) {
+                        edu.collaboration.services.EmailService.sendLatePaymentWarning("investor@example.com",
+                                proj.getTitle(), i.getAmountPerPeriod());
+                        notifiedInvestments.add(i.getInvestmentId());
+                    }
+                }
+
                 Button btnPay = new Button("Mark Month Paid ✅");
                 btnPay.getStyleClass().add("ai-btn");
+
+                if (isLate) {
+                    Label lateWarning = new Label("⚠️ LATE PAYMENT");
+                    lateWarning.setStyle("-fx-text-fill: #dc2626; -fx-font-weight: bold; -fx-font-size: 11px;");
+                    paymentBox.getChildren().add(lateWarning);
+
+                    // Force pulse color to red if late
+                    pulseColor = "#dc2626";
+                    healthBadge.setText("🔴 Payment Late");
+                    healthBadge.getStyleClass().setAll("health-danger");
+                }
+
+                if (alreadyPaidThisMonth && lastPay != null) {
+                    // Compute and show the next payment window starting date
+                    java.time.LocalDate nextDue = lastPay.plusMonths(1)
+                            .withDayOfMonth(Math.min(anniversaryDay, lastPay.plusMonths(1).lengthOfMonth()));
+                    btnPay.setText("Next payment window: " + nextDue.format(
+                            java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy")));
+                    btnPay.setDisable(true);
+                    btnPay.setStyle("-fx-font-size: 11px;");
+                }
                 btnPay.setOnAction(e -> {
                     if (confirm("Log Payment", "Mark the next month as paid for this investment?")) {
-                        investmentService.updateProgress(i.getInvestmentId(), i.getProgressPercentage(),
-                                i.getLatestProgressLog(), i.getPaymentMonthsCompleted() + 1);
+                        if (investmentService.markPaymentDone(i.getInvestmentId(), monthsPaid + 1)) {
+                            if (proj != null)
+                                edu.collaboration.services.EmailService.sendPaymentConfirmation(
+                                        "entrepreneur@example.com", "investor@example.com",
+                                        proj.getTitle(), i.getAmountPerPeriod());
+                        }
                         refreshPortfolio();
                         buildCollaborationPage();
                     }
@@ -538,18 +818,153 @@ public class InvestorController implements Initializable {
                 paymentBox.getChildren().add(btnPay);
             }
 
-            finGrid.add(l2, 0, 1);
             finGrid.add(paymentBox, 1, 1);
-
-            Label l3 = new Label("Expected Equity:");
+            finGrid.add(new Label("Expected Equity:"), 0, 2);
             Label v3 = new Label(i.getEquityRequested() + "% Ownership");
             v3.setStyle("-fx-font-weight: bold; -fx-text-fill: #9B7E46;");
-            finGrid.add(l3, 0, 2);
             finGrid.add(v3, 1, 2);
 
-            card.getChildren().addAll(title, pb, progressLabel, logBox, finGrid);
+            Button btnDealRoom = new Button("Enter Deal Room 🤝");
+            btnDealRoom.getStyleClass().add("ai-btn");
+            btnDealRoom.setOnAction(e -> openDealRoom(i));
+            finGrid.add(btnDealRoom, 0, 3);
+
+            card.getChildren().addAll(titleRow, ringPane, msHeader, timelineScroll, sep, finGrid);
             collaborationContainer.getChildren().add(card);
         }
+    }
+
+    // ─── Completion Ring (same as Entrepreneur) ─────────────────────
+    private StackPane buildCompletionRing(double progress, String color) {
+        Arc track = new Arc(0, 0, 56, 56, 90, -360);
+        track.setType(ArcType.OPEN);
+        track.setFill(Color.TRANSPARENT);
+        track.setStroke(Color.web("#5a7b93", 0.3)); // Muted Baltic Blue
+        track.setStrokeWidth(10);
+
+        Arc fill = new Arc(0, 0, 56, 56, 90, 0);
+        fill.setType(ArcType.OPEN);
+        fill.setFill(Color.TRANSPARENT);
+        fill.setStroke(Color.web(color));
+        fill.setStrokeWidth(10);
+        fill.setStrokeLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
+
+        new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(fill.lengthProperty(), 0)),
+                new KeyFrame(Duration.millis(900),
+                        new KeyValue(fill.lengthProperty(), -3.6 * progress, Interpolator.EASE_OUT)))
+                .play();
+
+        VBox center = new VBox(2);
+        center.setAlignment(Pos.CENTER);
+        Label pct = new Label("0%");
+        pct.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+
+        // Count-up label animation (synced with arc)
+        javafx.beans.property.DoubleProperty pctProp = new javafx.beans.property.SimpleDoubleProperty(0);
+        pctProp.addListener((obs, ov, nv) -> pct.setText(String.format("%.0f%%", nv.doubleValue())));
+        Timeline countUp = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(pctProp, 0)),
+                new KeyFrame(Duration.millis(900), new KeyValue(pctProp, progress, Interpolator.EASE_OUT)));
+        countUp.play();
+
+        Label sub = new Label("Complete");
+        sub.setStyle("-fx-font-size: 11px; -fx-text-fill: #5a7b93;");
+        center.getChildren().addAll(pct, sub);
+
+        // Wrap in a Group so the Arc doesn't shift its center when animating
+        javafx.scene.Group group = new javafx.scene.Group(track, fill);
+
+        StackPane ring = new StackPane(group, center);
+        ring.setAlignment(Pos.CENTER);
+        ring.setMinSize(140, 140);
+        ring.setMaxSize(140, 140);
+        return ring;
+    }
+
+    // ─── Read-only Milestone Timeline ────────────────────────────────────────
+    private HBox buildMilestoneTimeline(List<Milestone> milestones, SimpleDateFormat sdf) {
+        HBox timeline = new HBox();
+        timeline.setAlignment(Pos.CENTER_LEFT);
+        timeline.setPadding(new javafx.geometry.Insets(20, 10, 10, 10));
+        timeline.setSpacing(0);
+
+        if (milestones.isEmpty()) {
+            Label emptyLbl = new Label("No milestones set yet — entrepreneur will add them.");
+            emptyLbl.setStyle("-fx-text-fill: #94a3b8; -fx-font-style: italic;");
+            timeline.getChildren().add(emptyLbl);
+            return timeline;
+        }
+
+        for (int idx = 0; idx < milestones.size(); idx++) {
+            Milestone m = milestones.get(idx);
+            double nodeR = 18;
+            Circle nodeCircle = new Circle(nodeR);
+            Label nodeLabel;
+
+            switch (m.getStatus()) {
+                case "COMPLETED" -> {
+                    nodeCircle.setFill(Color.web("#2a506b"));
+                    nodeCircle.setStroke(Color.web("#2a506b"));
+                    nodeCircle.setStrokeWidth(3);
+                    nodeCircle.setEffect(new javafx.scene.effect.DropShadow(10, Color.web("#2a506b")));
+                    nodeLabel = new Label("✓");
+                    nodeLabel.setStyle("-fx-text-fill: #e6e6fa; -fx-font-weight: bold; -fx-font-size: 14px;");
+                }
+                case "IN_PROGRESS" -> {
+                    nodeCircle.setFill(Color.TRANSPARENT);
+                    nodeCircle.setStroke(Color.web("#c07c4b"));
+                    nodeCircle.setStrokeWidth(3);
+                    javafx.scene.effect.DropShadow glow = new javafx.scene.effect.DropShadow(12, Color.web("#c07c4b"));
+                    nodeCircle.setEffect(glow);
+
+                    Timeline pulse = new Timeline(
+                            new KeyFrame(Duration.ZERO, new KeyValue(glow.radiusProperty(), 5)),
+                            new KeyFrame(Duration.seconds(1), new KeyValue(glow.radiusProperty(), 15)));
+                    pulse.setAutoReverse(true);
+                    pulse.setCycleCount(Animation.INDEFINITE);
+                    pulse.play();
+
+                    nodeLabel = new Label("▶");
+                    nodeLabel.setStyle("-fx-text-fill: #c07c4b; -fx-font-size: 14px; -fx-font-weight: bold;");
+                }
+                default -> {
+                    nodeCircle.setFill(Color.TRANSPARENT);
+                    nodeCircle.setStroke(Color.web("#5a7b93"));
+                    nodeCircle.setStrokeWidth(3);
+                    nodeLabel = new Label(String.valueOf(idx + 1));
+                    nodeLabel.setStyle("-fx-text-fill: #5a7b93; -fx-font-size: 11px; -fx-font-weight: bold;");
+                }
+            }
+
+            StackPane nodeSP = new StackPane(nodeCircle, nodeLabel);
+            nodeSP.setMinSize(nodeR * 2, nodeR * 2);
+            nodeSP.setMaxSize(nodeR * 2, nodeR * 2);
+
+            Label milLabel = new Label(m.getTitle());
+            milLabel.setStyle(
+                    "-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #1e293b; -fx-wrap-text: true; -fx-max-width: 80px; -fx-text-alignment: center;");
+            Label weightLabel = new Label(String.format("%.0f%%", m.getWeight()));
+            weightLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #5a7b93;");
+            Label dateLabel = new Label(m.getDueDate() != null ? sdf.format(m.getDueDate()) : "");
+            dateLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #5a7b93;");
+
+            VBox nodeCol = new VBox(4, dateLabel, nodeSP, milLabel, weightLabel);
+            nodeCol.setAlignment(Pos.TOP_CENTER);
+            nodeCol.setMinWidth(90);
+            timeline.getChildren().add(nodeCol);
+
+            if (idx < milestones.size() - 1) {
+                Line connector = new Line(0, 0, 50, 0);
+                connector.setStrokeWidth(3);
+                connector.setStroke("COMPLETED".equals(m.getStatus()) ? Color.web("#2a506b") : Color.web("#e2e8f0"));
+                VBox connWrapper = new VBox(connector);
+                connWrapper.setAlignment(Pos.CENTER);
+                connWrapper.setPadding(new javafx.geometry.Insets(0, 0, 30, 0));
+                timeline.getChildren().add(connWrapper);
+            }
+        }
+        return timeline;
     }
 
     private void openInvestDialog(Project p) {
@@ -574,9 +989,77 @@ public class InvestorController implements Initializable {
 
     private boolean confirm(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.initStyle(javafx.stage.StageStyle.UNDECORATED);
         alert.setTitle(title);
-        alert.setHeaderText(null);
+        alert.setHeaderText(title);
         alert.setContentText(content);
+        alert.getDialogPane().getStylesheets().add(
+                getClass().getResource("/styles_premium.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("styled-dialog");
         return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
+    }
+
+    private void openDealRoom(Investment inv) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/DealRoom.fxml"));
+            javafx.scene.Parent root = loader.load();
+            edu.collaboration.Controllers.DealRoomController controller = loader.getController();
+
+            Project p = allProjects.stream().filter(proj -> proj.getProjectId() == inv.getProjectId()).findFirst()
+                    .orElse(null);
+            if (p == null) {
+                new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR,
+                        "Could not find project #" + inv.getProjectId() + " in the loaded projects list.")
+                        .showAndWait();
+                return;
+            }
+            controller.initData(inv, p, currentInvestorId);
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setScene(new javafx.scene.Scene(root));
+            stage.setTitle("Deal Room - " + p.getTitle());
+            stage.showAndWait();
+            refreshPortfolio();
+            buildCollaborationPage();
+        } catch (Exception e) {
+            e.printStackTrace();
+            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR,
+                    "Could not open Deal Room:\n" + e.getClass().getSimpleName() + ": " + e.getMessage()).showAndWait();
+        }
+    }
+
+    // ─── Magnetic Hover Engine ────────────────────────────────────────────────
+    private void applyMagneticHover(javafx.scene.Node node) {
+        node.setOnMouseEntered(e -> {
+            node.setCache(true);
+            node.setCacheHint(javafx.scene.CacheHint.SPEED);
+
+            TranslateTransition tt = new TranslateTransition(Duration.millis(200), node);
+            tt.setToY(-8);
+            tt.setInterpolator(Interpolator.SPLINE(0.25, 0.1, 0.25, 1)); // Apple-like easing
+
+            if (node.getEffect() instanceof javafx.scene.effect.DropShadow ds) {
+                Timeline shadowGlow = new Timeline(
+                        new KeyFrame(Duration.millis(200),
+                                new KeyValue(ds.radiusProperty(), 40, Interpolator.EASE_OUT),
+                                new KeyValue(ds.offsetYProperty(), 15, Interpolator.EASE_OUT)));
+                shadowGlow.play();
+            }
+            tt.play();
+        });
+
+        node.setOnMouseExited(e -> {
+            TranslateTransition tt = new TranslateTransition(Duration.millis(250), node);
+            tt.setToY(0);
+            tt.setOnFinished(ev -> node.setCache(false));
+
+            if (node.getEffect() instanceof javafx.scene.effect.DropShadow ds) {
+                Timeline shadowShrink = new Timeline(
+                        new KeyFrame(Duration.millis(250),
+                                new KeyValue(ds.radiusProperty(), 30, Interpolator.EASE_IN),
+                                new KeyValue(ds.offsetYProperty(), 10, Interpolator.EASE_IN)));
+                shadowShrink.play();
+            }
+            tt.play();
+        });
     }
 }

@@ -12,6 +12,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import edu.collaboration.Controllers.ActionButtonsController;
+import edu.collaboration.Controllers.AlertHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -73,6 +74,11 @@ public class ShowProjectController {
 
                         controller.getEditBtn().setOnAction(e -> {
                             Project p = getTableView().getItems().get(getIndex());
+                            if ("FUNDED".equalsIgnoreCase(p.getStatus()) || "CLOSED".equalsIgnoreCase(p.getStatus())) {
+                                AlertHelper.showError("Modification Denied",
+                                        "Cannot edit a " + p.getStatus() + " project.");
+                                return;
+                            }
                             try {
                                 javafx.fxml.FXMLLoader editLoader = new javafx.fxml.FXMLLoader(
                                         getClass().getResource("/UpdateProject.fxml"));
@@ -93,14 +99,10 @@ public class ShowProjectController {
 
                         controller.getDeleteBtn().setOnAction(e -> {
                             Project p = getTableView().getItems().get(getIndex());
-                            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Delete " + p.getTitle() + "?",
-                                    ButtonType.YES, ButtonType.NO);
-                            confirm.showAndWait().ifPresent(type -> {
-                                if (type == ButtonType.YES) {
-                                    ps.deleteEntity(p);
-                                    loadData();
-                                }
-                            });
+                            if (AlertHelper.confirm("Delete Project", "Delete '" + p.getTitle() + "'?")) {
+                                ps.deleteEntity(p);
+                                loadData();
+                            }
                         });
 
                         setGraphic(pane);
@@ -111,14 +113,6 @@ public class ShowProjectController {
                 }
             }
         });
-    }
-
-    private void showAlert(String title, String msg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
     }
 
     @FXML

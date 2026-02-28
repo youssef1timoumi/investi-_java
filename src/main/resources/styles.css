@@ -165,3 +165,26 @@
 .text-field:focused {
     -fx-border-color: #2A52BE;
 }
+
+/* --- Deal Room Specific --- */
+.action-btn {
+    -fx-background-color: #A03030;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.action-btn:hover {
+    -fx-background-color: #782424;
+}
+
+.fairness-slider .thumb {
+    -fx-background-color: #2A52BE;
+}
+
+.fairness-slider .track {
+    -fx-background-color: linear-gradient(to right, #C89F81, #E6E6FA, #2A52BE);
+    -fx-background-radius: 4;
+}

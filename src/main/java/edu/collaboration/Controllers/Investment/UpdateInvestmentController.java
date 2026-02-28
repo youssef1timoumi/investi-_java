@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import edu.collaboration.Controllers.AlertHelper;
 
 public class UpdateInvestmentController {
 
@@ -179,11 +180,12 @@ public class UpdateInvestmentController {
     }
 
     private void showAlert(Alert.AlertType type, String title, String msg) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
+        if (type == Alert.AlertType.ERROR)
+            AlertHelper.showError(title, msg);
+        else if (type == Alert.AlertType.WARNING)
+            AlertHelper.showWarning(title, msg);
+        else
+            AlertHelper.showInfo(title, msg);
     }
 
     @FXML

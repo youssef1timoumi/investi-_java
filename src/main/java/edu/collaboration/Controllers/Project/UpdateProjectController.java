@@ -9,6 +9,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import edu.collaboration.Controllers.AlertHelper;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -55,11 +56,6 @@ public class UpdateProjectController implements Initializable {
 
     @FXML
     void updateProject(ActionEvent event) {
-        if ("FUNDED".equalsIgnoreCase(originalStatus) || "CLOSED".equalsIgnoreCase(originalStatus)) {
-            showAlert(Alert.AlertType.ERROR, "Modification Denied",
-                    "You cannot edit a project that is FUNDED or CLOSED.");
-            return;
-        }
         if (!validateUpdate())
             return;
 
@@ -75,14 +71,14 @@ public class UpdateProjectController implements Initializable {
 
             boolean success = ps.update(p.getProjectId(), p);
             if (success) {
-                showAlert(Alert.AlertType.INFORMATION, "Success",
+                AlertHelper.showInfo("Success",
                         "Project updated. It will need to be re-validated by admin.");
                 closeStage(event);
             } else {
-                showAlert(Alert.AlertType.ERROR, "Error", "Project update failed.");
+                AlertHelper.showError("Error", "Project update failed.");
             }
         } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Invalid number format in Amount or Equity fields.");
+            AlertHelper.showError("Error", "Invalid number format in Amount or Equity fields.");
         }
     }
 
@@ -125,7 +121,7 @@ public class UpdateProjectController implements Initializable {
         }
 
         if (!isValid)
-            showAlert(Alert.AlertType.ERROR, "Validation Error", "Please correct:\n" + errors);
+            AlertHelper.showError("Validation Error", "Please correct:\n" + errors);
         return isValid;
     }
 
@@ -149,14 +145,6 @@ public class UpdateProjectController implements Initializable {
         } catch (NumberFormatException e) {
             return false;
         }
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String msg) {
-        Alert a = new Alert(type);
-        a.setTitle(title);
-        a.setHeaderText(null);
-        a.setContentText(msg);
-        a.showAndWait();
     }
 
     @FXML

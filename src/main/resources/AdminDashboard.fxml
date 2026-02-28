@@ -61,55 +61,61 @@
                 <Button text="↺ Refresh System" onAction="#refreshDataAction" styleClass="add-btn" />
             </HBox>
 
-            <VBox spacing="30" VBox.vgrow="ALWAYS">
+            <VBox spacing="30" VBox.vgrow="ALWAYS" maxWidth="Infinity">
                 <padding><javafx.geometry.Insets top="40" bottom="0" left="0" right="0"/></padding>
                 
-                <StackPane VBox.vgrow="ALWAYS">
+                <StackPane VBox.vgrow="ALWAYS" maxWidth="Infinity">
                     
                     <!-- 1. Validation Queue -->
-                    <VBox fx:id="queuePage" spacing="25" VBox.vgrow="ALWAYS">
-                        <Label text="Pending Approvals (Status: UNDER_REVIEW)" style="-fx-font-weight: bold; -fx-text-fill: -app-accent; -fx-font-size: 16px;"/>
+                    <VBox fx:id="queuePage" spacing="30" VBox.vgrow="ALWAYS">
+                        
+                        <HBox alignment="CENTER_LEFT" spacing="15">
+                            <Label text="Validation Queue" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: -app-text;"/>
+                            <Label fx:id="actionRequiredBadge" text="ACTION REQUIRED" style="-fx-font-size: 11px; -fx-background-color: #ca8a04; -fx-text-fill: white; -fx-padding: 4 8; -fx-background-radius: 6; -fx-font-weight: bold;" visible="false" managed="false"/>
+                        </HBox>
 
-                        <!-- Projects Queue -->
-                        <VBox spacing="10" VBox.vgrow="ALWAYS">
-                            <Label text="Projects requiring Review" style="-fx-font-weight: bold; -fx-text-fill: -app-primary;"/>
-                            <TableView fx:id="projectTableQueue" VBox.vgrow="ALWAYS" style="-fx-border-radius: 10; -fx-background-radius: 10;">
-                                <columns>
-                                    <TableColumn fx:id="colProjectIdQ" text="ID" prefWidth="50"/>
-                                    <TableColumn fx:id="colProjectTitleQ" text="Title" prefWidth="180"/>
-                                    <TableColumn fx:id="colProjectDescQ" text="Description" prefWidth="300"/>
-                                    <TableColumn fx:id="colProjectRepoQ" text="Creator" prefWidth="100"/>
-                                    <TableColumn fx:id="colProjectStatusQ" text="Status" prefWidth="100"/>
-                                </columns>
-                                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-                            </TableView>
-                            <HBox spacing="15" alignment="CENTER_RIGHT">
-                                <Button text="❌ Reject &amp; Delete" styleClass="add-btn" style="-fx-background-color: #A62639;" onAction="#deleteProjectQueue"/>
-                                <Button text="✅ Validate (OPEN)" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 10 20;" onAction="#validateProject"/>
-                            </HBox>
-                        </VBox>
+                        <HBox spacing="30" VBox.vgrow="ALWAYS">
+                            <!-- Projects Queue Card -->
+                            <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="card-l1, glass-card" style="-fx-padding: 24;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="📁 Projects Pending Review" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -app-primary;"/>
+                                </HBox>
+                                <TableView fx:id="projectTableQueue" VBox.vgrow="ALWAYS" style="-fx-border-radius: 8; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-width: 1;">
+                                    <columns>
+                                        <TableColumn fx:id="colProjectIdQ" text="ID" prefWidth="50" style="-fx-alignment: CENTER;"/>
+                                        <TableColumn fx:id="colProjectTitleQ" text="Title" prefWidth="180"/>
+                                        <TableColumn fx:id="colProjectDescQ" text="Description" prefWidth="250"/>
+                                        <TableColumn fx:id="colProjectRepoQ" text="Creator" prefWidth="100"/>
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                                </TableView>
+                                <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 10 0 0 0;">
+                                    <Button text="Reject &amp; Delete" style="-fx-background-color: transparent; -fx-border-color: #dc2626; -fx-border-radius: 8; -fx-text-fill: #dc2626; -fx-font-weight: bold; -fx-padding: 8 20;" onAction="#deleteProjectQueue"/>
+                                    <Button text="Validate Project" style="-fx-background-color: #16a34a; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20; -fx-effect: dropshadow(gaussian, rgba(22,163,74,0.3), 10, 0, 0, 4);" onAction="#validateProject"/>
+                                </HBox>
+                            </VBox>
 
-                        <Separator style="-fx-padding: 10 0;"/>
-
-                        <!-- Investments Queue -->
-                        <VBox spacing="10" VBox.vgrow="ALWAYS">
-                            <Label text="Investments requiring Review" style="-fx-font-weight: bold; -fx-text-fill: -app-primary;"/>
-                            <TableView fx:id="investmentTableQueue" VBox.vgrow="ALWAYS" style="-fx-border-radius: 10; -fx-background-radius: 10;">
-                                <columns>
-                                    <TableColumn fx:id="colInvIdQ" text="ID" prefWidth="50"/>
-                                    <TableColumn fx:id="colInvProjectQ" text="Project" prefWidth="80"/>
-                                    <TableColumn fx:id="colInvInvestorQ" text="Investor" prefWidth="80"/>
-                                    <TableColumn fx:id="colInvAmountQ" text="Amount" prefWidth="120"/>
-                                    <TableColumn fx:id="colInvEquityQ" text="Equity %" prefWidth="80"/>
-                                    <TableColumn fx:id="colInvStatusQ" text="Status" prefWidth="100"/>
-                                </columns>
-                                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-                            </TableView>
-                            <HBox spacing="15" alignment="CENTER_RIGHT">
-                                <Button text="❌ Reject &amp; Delete" styleClass="add-btn" style="-fx-background-color: #A62639;" onAction="#deleteInvestmentQueue"/>
-                                <Button text="✅ Validate (PENDING)" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 10 20;" onAction="#validateInvestment"/>
-                            </HBox>
-                        </VBox>
+                            <!-- Investments Queue Card -->
+                            <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="card-l1, glass-card" style="-fx-padding: 24;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="💼 Investments Pending Review" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -app-primary;"/>
+                                </HBox>
+                                <TableView fx:id="investmentTableQueue" VBox.vgrow="ALWAYS" style="-fx-border-radius: 8; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-width: 1;">
+                                    <columns>
+                                        <TableColumn fx:id="colInvIdQ" text="ID" prefWidth="50" style="-fx-alignment: CENTER;"/>
+                                        <TableColumn fx:id="colInvProjectQ" text="Project" prefWidth="120"/>
+                                        <TableColumn fx:id="colInvInvestorQ" text="Investor" prefWidth="120"/>
+                                        <TableColumn fx:id="colInvAmountQ" text="Amount" prefWidth="120"/>
+                                        <TableColumn fx:id="colInvEquityQ" text="Equity %" prefWidth="80" style="-fx-alignment: CENTER;"/>
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                                </TableView>
+                                <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 10 0 0 0;">
+                                    <Button text="Reject &amp; Delete" style="-fx-background-color: transparent; -fx-border-color: #dc2626; -fx-border-radius: 8; -fx-text-fill: #dc2626; -fx-font-weight: bold; -fx-padding: 8 20;" onAction="#deleteInvestmentQueue"/>
+                                    <Button text="Validate Investment" style="-fx-background-color: #16a34a; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20; -fx-effect: dropshadow(gaussian, rgba(22,163,74,0.3), 10, 0, 0, 4);" onAction="#validateInvestment"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
                     </VBox>
 
                     <!-- 2. All Projects Page -->
@@ -154,24 +160,16 @@
                     </VBox>
 
                     <!-- 4. Statistics Page -->
-                    <VBox fx:id="statsPage" spacing="0" visible="false" managed="false" VBox.vgrow="ALWAYS">
-                        <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
-                            <VBox spacing="40" style="-fx-alignment: top-center; -fx-padding: 30 20;">
-                                <GridPane fx:id="statsGrid" hgap="30" vgap="30" alignment="CENTER">
-                                    <!-- Populated dynamically via Java -->
-                                </GridPane>
-                                
-                                <HBox spacing="30" alignment="CENTER" style="-fx-padding: 20 0;">
-                                    <PieChart fx:id="projectStatusChart" title="Projects by Status" prefWidth="450" prefHeight="350" style="-fx-background-color: -app-card; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 20, 0, 0, 8);" animated="true"/>
-                                    <BarChart fx:id="fundingBarChart" title="Total Financial Analytics (\$)" prefWidth="550" prefHeight="350" style="-fx-background-color: -app-card; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 20, 0, 0, 8);" animated="true">
-                                        <xAxis>
-                                            <CategoryAxis fx:id="fundingXAxis" label="Metrics" />
-                                        </xAxis>
-                                        <yAxis>
-                                            <NumberAxis fx:id="fundingYAxis" label="Capital" />
-                                        </yAxis>
-                                    </BarChart>
-                                </HBox>
+                    <VBox fx:id="statsPage" spacing="30" visible="false" managed="false" VBox.vgrow="ALWAYS">
+                        
+                        <HBox alignment="CENTER_LEFT" spacing="15">
+                            <Label text="Platform Statistics" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: -app-text;"/>
+                            <Label text="LIVE DATA" style="-fx-font-size: 11px; -fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 4 8; -fx-background-radius: 6; -fx-font-weight: bold;"/>
+                        </HBox>
+
+                        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+                            <VBox fx:id="statsContainer" spacing="25" style="-fx-padding: 10 20 40 10;">
+                                <!-- Populated entirely via Java -->
                             </VBox>
                         </ScrollPane>
                     </VBox>

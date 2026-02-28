@@ -5,9 +5,9 @@ import edu.collaboration.services.InvestmentService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import edu.collaboration.Controllers.AlertHelper;
 
 import java.sql.SQLException;
 
@@ -53,16 +53,11 @@ public class AddInvestmentController {
         try {
             is.addEntity(i);
 
-            // Trigger Email Notification to Entrepreneur
-            edu.collaboration.services.EmailService.sendNewInvestmentOffer(
-                    "entrepreneur@example.com",
-                    "Project ID #" + projectTf.getText(),
-                    total);
-
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Investment added successfully");
+            // Email notification moved to Admin approval stage
+            AlertHelper.showInfo("Success", "Investment added successfully and sent to Admin for review.");
             closeStage(event);
         } catch (SQLException e) {
-            showAlert(Alert.AlertType.ERROR, "Error", e.getMessage());
+            AlertHelper.showError("Error", e.getMessage());
         }
     }
 
@@ -124,7 +119,7 @@ public class AddInvestmentController {
         }
 
         if (!isValid) {
-            showAlert(Alert.AlertType.ERROR, "Validation Error", "Please correct the following:\n" + errors.toString());
+            AlertHelper.showError("Validation Error", "Please correct the following:\n" + errors.toString());
         }
         return isValid;
     }
@@ -149,14 +144,6 @@ public class AddInvestmentController {
         } catch (NumberFormatException e) {
             return false;
         }
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String msg) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
     }
 
     @FXML

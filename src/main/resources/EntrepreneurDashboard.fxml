@@ -13,41 +13,6 @@
     
     <!-- Main Content Layout -->
     <HBox styleClass="main-container">
-        <!-- Sidebar -->
-        <VBox styleClass="sidebar">
-            <VBox styleClass="sidebar-logo-container">
-                <FontIcon iconLiteral="fth-briefcase" styleClass="sidebar-logo" />
-            </VBox>
-            
-            <Region VBox.vgrow="ALWAYS" />
-            
-            <VBox styleClass="nav-container">
-                <Button fx:id="navProjects" onAction="#showProjectsPage" styleClass="nav-btn, active">
-                    <graphic>
-                        <FontIcon iconLiteral="fth-folder" styleClass="nav-icon" />
-                    </graphic>
-                    <tooltip><Tooltip text="My Projects" /></tooltip>
-                </Button>
-                <Button fx:id="navCollaboration" onAction="#showCollaborationPage" styleClass="nav-btn">
-                    <graphic>
-                        <FontIcon iconLiteral="fth-activity" styleClass="nav-icon" />
-                    </graphic>
-                    <tooltip><Tooltip text="Collaboration Tracking" /></tooltip>
-                </Button>
-            </VBox>
-            
-            <Region VBox.vgrow="ALWAYS" />
-            
-            <VBox styleClass="nav-container">
-                <Button styleClass="nav-btn" onAction="#logout">
-                    <graphic>
-                        <FontIcon iconLiteral="fth-log-out" styleClass="nav-icon" />
-                    </graphic>
-                    <tooltip><Tooltip text="Logout" /></tooltip>
-                </Button>
-            </VBox>
-        </VBox>
-
         <!-- Dynamic Content Area -->
         <VBox HBox.hgrow="ALWAYS" styleClass="content-area">
             <HBox alignment="CENTER_LEFT" spacing="20">
@@ -55,6 +20,13 @@
                     <Label fx:id="pageTitle" styleClass="title-text" text="Entrepreneur Dashboard" />
                     <Label fx:id="pageSubtitle" styleClass="subtitle-text" text="Manage your projects, evaluate offers via AI, and track progress." />
                 </VBox>
+                <Region HBox.hgrow="ALWAYS" />
+                <Button styleClass="nav-btn" onAction="#logout">
+                    <graphic>
+                        <FontIcon iconLiteral="fth-log-out" styleClass="nav-icon" />
+                    </graphic>
+                    <tooltip><Tooltip text="Logout" /></tooltip>
+                </Button>
             </HBox>
 
             <VBox spacing="30" VBox.vgrow="ALWAYS">
@@ -90,6 +62,7 @@
                                 <TableColumn fx:id="colOfferId" text="Offer ID" prefWidth="60"/>
                                 <TableColumn fx:id="colOfferProject" text="P.ID" prefWidth="50"/>
                                 <TableColumn fx:id="colOfferInvestor" text="Investor ID" prefWidth="100"/>
+                                <TableColumn fx:id="colOfferReputation" text="Investor Rep." prefWidth="120"/>
                                 <TableColumn fx:id="colOfferAmount" text="Amount (\$)" prefWidth="130"/>
                                 <TableColumn fx:id="colOfferEquity" text="Equity (%)" prefWidth="100"/>
                                 <TableColumn fx:id="colOfferDuration" text="Duration (Mo)" prefWidth="110"/>
@@ -99,13 +72,16 @@
                         </TableView>
                         
                         <!-- AI Mentor Box for Selected Offer -->
-                        <HBox fx:id="aiMentorBox" spacing="15" alignment="CENTER_LEFT" visible="false">
-                            <Button fx:id="btnMentor" text="💡 Ask AI Mentor" onAction="#askAiMentor" styleClass="ai-btn" />
-                            <Label fx:id="aiMentorAdvice" wrapText="true" style="-fx-font-weight: bold; -fx-text-fill: #9B7E46;" HBox.hgrow="ALWAYS"/>
-                            <Region HBox.hgrow="ALWAYS" />
-                            <Button fx:id="btnAccept" text="✅ Accept Offer" onAction="#acceptOffer" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 10 20;"/>
-                            <Button fx:id="btnDecline" text="❌ Decline" onAction="#declineOffer" styleClass="add-btn" style="-fx-background-color: #F44336;"/>
-                        </HBox>
+                        <VBox fx:id="aiMentorBox" spacing="8" visible="false">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Button fx:id="btnMentor" text="Ask AI Mentor" onAction="#askAiMentor" styleClass="ai-btn" />
+                                <Button fx:id="btnDealRoom" text="Deal Room" onAction="#openPreAcceptanceDealRoom" styleClass="ai-btn" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Button fx:id="btnAccept" text="Accept Offer" onAction="#acceptOffer" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 10 20;"/>
+                                <Button fx:id="btnDecline" text="Decline" onAction="#declineOffer" styleClass="add-btn" style="-fx-background-color: #F44336;"/>
+                            </HBox>
+                            <Label fx:id="aiMentorAdvice" wrapText="true" maxWidth="Infinity" style="-fx-font-weight: bold; -fx-text-fill: #9B7E46; -fx-font-size: 13px; -fx-padding: 5 0;"/>
+                        </VBox>
                     </VBox>
 
                     <!-- 3. Collaboration Tracking Page -->
@@ -118,4 +94,55 @@
             </VBox>
         </VBox>
     </HBox>
+    
+    <!-- Detail Overlay -->
+    <VBox fx:id="detailOverlay" styleClass="detail-overlay" visible="false" managed="false">
+        <VBox styleClass="detail-card">
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label fx:id="detailCategory" styleClass="category-badge" />
+                        <Label fx:id="detailStatus" styleClass="category-badge" style="-fx-background-color: #456990;" />
+                    </HBox>
+                    <Label fx:id="detailTitle" styleClass="detail-title" wrapText="true" />
+                </VBox>
+                <Button onAction="#hideProjectDetails" styleClass="close-detail-btn">
+                    <graphic><FontIcon iconLiteral="fth-x" iconSize="24"/></graphic>
+                </Button>
+            </HBox>
+
+            <!-- Meta Grid -->
+            <GridPane styleClass="meta-grid">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="50" />
+                    <ColumnConstraints percentWidth="50" />
+                </columnConstraints>
+                
+                <VBox styleClass="meta-item" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                    <Label text="FUNDING GOAL" styleClass="meta-label" />
+                    <Label fx:id="detailGoal" styleClass="meta-value" style="-fx-text-fill: -app-primary;" />
+                </VBox>
+                
+                <VBox styleClass="meta-item" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <Label text="EQUITY OFFERED" styleClass="meta-label" />
+                    <Label fx:id="detailEquity" styleClass="meta-value" style="-fx-text-fill: -app-secondary;" />
+                </VBox>
+            </GridPane>
+
+            <!-- Description -->
+            <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS" prefHeight="150">
+                <Label fx:id="detailDesc" wrapText="true" style="-fx-font-size: 15px; -fx-text-fill: -app-muted-foreground; -fx-line-spacing: 5px;" />
+            </ScrollPane>
+
+            <!-- Actions -->
+            <HBox spacing="15" alignment="CENTER_RIGHT" style="-fx-padding: 20 0 0 0; -fx-border-color: -app-border; -fx-border-width: 1 0 0 0;">
+                <Button fx:id="btnEditProject" text="Edit Project" styleClass="add-btn" />
+                <Button fx:id="btnViewOffers" text="View Offers" styleClass="ai-btn" />
+                <Button fx:id="btnTrackProgress" text="Track Progress" styleClass="add-btn" style="-fx-background-color: #16a34a;" />
+                <Button fx:id="btnDealRoomOverlay" text="Deal Room 🤝" styleClass="ai-btn" />
+                <Button fx:id="btnDeleteProject" text="Delete Project" styleClass="add-btn" style="-fx-background-color: #A62639;" />
+            </HBox>
+        </VBox>
+    </VBox>
 </StackPane>

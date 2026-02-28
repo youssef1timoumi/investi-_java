@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class AiService {
 
-    private static final String API_KEY = "AIzaSyD03B-XKzad44ieCGo4QnJorvaoZCtHqPo"; // Provided by User
+    private static final String API_KEY = "AIzaSyCtLzsPAmDvmcdRg6sjl7SCyL6wO7qLSa4"; // Provided by User
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="
             + API_KEY;
     private static final OkHttpClient client = new OkHttpClient.Builder()
@@ -53,11 +53,21 @@ public class AiService {
                 JSONObject content = firstCandidate.getJSONObject("content");
                 JSONArray partsArray = content.getJSONArray("parts");
                 if (partsArray.length() > 0) {
-                    return partsArray.getJSONObject(0).getString("text");
+                    return stripMarkdown(partsArray.getJSONObject(0).getString("text"));
                 }
             }
         }
         return "AI Response could not be parsed.";
+    }
+
+    /**
+     * Strips common markdown characters (*, #, `) from the text to ensure raw text
+     * output.
+     */
+    private static String stripMarkdown(String text) {
+        if (text == null)
+            return null;
+        return text.replace("*", "").replace("#", "").replace("`", "");
     }
 
     /**

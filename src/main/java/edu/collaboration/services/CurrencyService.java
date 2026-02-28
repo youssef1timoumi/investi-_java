@@ -63,6 +63,8 @@ public class CurrencyService {
             cachedRates.put("EUR", 0.92);
             cachedRates.put("TND", 3.11);
             cachedRates.put("GBP", 0.79);
+            cachedRates.put("MAD", 10.1);
+            cachedRates.put("DZD", 134.5);
             System.err.println("[CurrencyService] Using fallback rates.");
         }
         return cachedRates;
