@@ -903,4 +903,67 @@ public class ForumPostService {
         }
         return null; // Valid
     }
+    // =====================================================
+    // Bookmark / Save Methods
+    // =====================================================
+
+    public void toggleBookmark(String postId, String userId) throws SQLException {
+        if (isBookmarked(postId, userId)) {
+            removeBookmark(postId, userId);
+        } else {
+            addBookmark(postId, userId);
+        }
+    }
+
+    public void addBookmark(String postId, String userId) throws SQLException {
+        String query = "INSERT IGNORE INTO forum_bookmarks (id, post_id, user_id) VALUES (UUID(), ?, ?)";
+        try (var conn = MyConnection.getInstance().getCnx();
+             var ps = conn.prepareStatement(query)) {
+            ps.setString(1, postId);
+            ps.setString(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void removeBookmark(String postId, String userId) throws SQLException {
+        String query = "DELETE FROM forum_bookmarks WHERE post_id = ? AND user_id = ?";
+        try (var conn = MyConnection.getInstance().getCnx();
+             var ps = conn.prepareStatement(query)) {
+            ps.setString(1, postId);
+            ps.setString(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    public boolean isBookmarked(String postId, String userId) throws SQLException {
+        String query = "SELECT COUNT(*) FROM forum_bookmarks WHERE post_id = ? AND user_id = ?";
+        try (var conn = MyConnection.getInstance().getCnx();
+             var ps = conn.prepareStatement(query)) {
+            ps.setString(1, postId);
+            ps.setString(2, userId);
+            var rs = ps.executeQuery();
+            return rs.next() && rs.getInt(1) > 0;
+        }
+    }
+
+    public List<ForumPost> getBookmarkedPosts(String userId) throws SQLException {
+        List<ForumPost> posts = new ArrayList<>();
+        String query = "SELECT p.*, u.name as author_name, u.avatar_url as author_avatar " +
+                "FROM forum_posts p " +
+                "JOIN users u ON p.user_id = u.id " +
+                "JOIN forum_bookmarks b ON b.post_id = p.id " +
+                "WHERE b.user_id = ? AND p.is_deleted = FALSE " +
+                "ORDER BY b.created_at DESC";
+        try (var conn = MyConnection.getInstance().getCnx();
+             var ps = conn.prepareStatement(query)) {
+            ps.setString(1, userId);
+            var rs = ps.executeQuery();
+            while (rs.next()) {
+                ForumPost post = extractPostFromResultSet(rs);
+                post.setImagePaths(getPostImages(post.getId()));
+                posts.add(post);
+            }
+        }
+        return posts;
+    }
 }

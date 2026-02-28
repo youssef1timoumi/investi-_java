@@ -108,6 +108,20 @@ CREATE TABLE IF NOT EXISTS forum_post_views (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Tracks unique views per user - one view per user per post';
 
+-- Create forum_bookmarks table for saved/bookmarked posts
+CREATE TABLE IF NOT EXISTS forum_bookmarks (
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    post_id CHAR(36) NOT NULL,
+    user_id CHAR(36) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_bookmark (post_id, user_id),
+    INDEX idx_forum_bookmarks_user_id (user_id),
+    INDEX idx_forum_bookmarks_post_id (post_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+COMMENT='Tracks bookmarked/saved posts per user';
+
 -- Insert some sample data for testing (optional)
 -- Make sure you have at least one user in the users table first
 
