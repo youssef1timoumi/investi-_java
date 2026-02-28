@@ -394,8 +394,8 @@ public class MainController {
         });
 
         colInscrActions.setCellFactory(col -> new TableCell<>() {
-            private final Button btnEdit = new Button("✏️ Modifier");
-            private final Button btnDel = new Button("🗑️");
+            private final Button btnEdit = new Button("Modifier");
+            private final Button btnDel = new Button("✗");
             private final HBox box = new HBox(6, btnEdit, btnDel);
             {
                 box.setAlignment(Pos.CENTER);
