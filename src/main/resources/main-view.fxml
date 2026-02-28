@@ -23,6 +23,9 @@
             <HBox alignment="CENTER_LEFT" spacing="10" HBox.hgrow="ALWAYS">
                 <FontIcon iconLiteral="fth-zap" styleClass="title-bar-icon" />
                 <Label styleClass="title-bar-text" text="PIDEV Admin" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label text="Logged in as:" style="-fx-text-fill: #64748b;" />
+                <ComboBox fx:id="userSelector" prefWidth="180" styleClass="base-input" />
             </HBox>
             <HBox spacing="8" alignment="CENTER_RIGHT">
                 <Button onAction="#handleWindowMinimize" styleClass="window-control-btn, minimize">
@@ -102,8 +105,11 @@
                         <Separator orientation="VERTICAL" prefHeight="30" />
                         <VBox alignment="CENTER_LEFT">
                             <Label styleClass="meta-label" text="TOTAL REVENUE" />
-                            <Label fx:id="totalRevenueLabel" styleClass="meta-value" text="0.00" />
+                            <HBox alignment="CENTER_LEFT" spacing="5">
+                                <Label fx:id="totalRevenueLabel" styleClass="meta-value" text="0.00" />
+                            </HBox>
                         </VBox>
+                        <ToggleButton fx:id="tglMyProducts" text="Mes Produits" styleClass="secondary-btn" />
                     </HBox>
                 </HBox>
                 <HBox styleClass="cart-btn-container">

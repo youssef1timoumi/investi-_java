@@ -7,6 +7,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import models.Product;
 import services.ProductService;
+import services.SessionManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -284,7 +285,7 @@ public class AddProductController implements Initializable {
                 p.setStock(0);
             }
 
-            p.setEntrepreneurId(1);
+            p.setEntrepreneurId(SessionManager.getCurrentUser().getId());
 
             if (existingProduct == null) {
                 productService.create(p);

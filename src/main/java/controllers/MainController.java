@@ -15,6 +15,8 @@ import models.Sale;
 import services.ProductService;
 import services.SaleService;
 import services.ExportService;
+import services.SessionManager;
+import models.UserSession;
 import org.kordamp.ikonli.javafx.FontIcon;
 import javafx.application.Platform;
 import javafx.stage.Stage;
@@ -29,7 +31,6 @@ import com.stripe.exception.StripeException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.*;
-import java.io.File;
 import utils.QRCodeUtils;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,10 @@ public class MainController implements Initializable {
     private VBox addProductPage;
     @FXML
     private HBox titleBar;
+    @FXML
+    private ComboBox<UserSession> userSelector;
+    @FXML
+    private ToggleButton tglMyProducts;
 
     private final ProductService productService = new ProductService();
     private final SaleService saleService = new SaleService();
@@ -86,7 +91,6 @@ public class MainController implements Initializable {
     private List<Sale> allSales = new ArrayList<>();
     private String activeCategory = "All";
     private String activeSaleStatus = "All";
-    private String activeTab = "products";
     private ExportService exportService = new ExportService();
 
     @FXML
@@ -96,10 +100,17 @@ public class MainController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupWindowDragging();
         try {
+            setupUserSession();
             loadDatabaseData();
             setupCategories();
             setupSaleFilters();
             setupSidebar();
+
+            // Setup My Products toggle
+            if (tglMyProducts != null) {
+                tglMyProducts.setOnAction(e -> renderProducts());
+            }
+
             renderProducts();
 
             // Ensure overlay is hidden initially
@@ -143,6 +154,41 @@ public class MainController implements Initializable {
         } catch (Throwable t) {
             System.err.println("DEBUG: Unexpected Error in loadDatabaseData:");
             t.printStackTrace();
+        }
+    }
+
+    private void setupUserSession() {
+        if (userSelector != null) {
+            userSelector.getItems().setAll(SessionManager.getAllUsers());
+            userSelector.setValue(SessionManager.getCurrentUser());
+            userSelector.setOnAction(e -> {
+                SessionManager.setCurrentUser(userSelector.getValue());
+                // Reset toggle on user switch
+                if (tglMyProducts != null)
+                    tglMyProducts.setSelected(false);
+                renderProducts();
+                renderOrders();
+
+                // Refresh top stats
+                long productCount = allProducts.stream()
+                        .filter(p -> SessionManager.getCurrentUser().getRole() == UserSession.Role.ADMIN
+                                || p.getEntrepreneurId() == SessionManager.getCurrentUser().getId())
+                        .count();
+                if (totalProductsLabel != null)
+                    totalProductsLabel.setText(String.valueOf(productCount));
+
+                List<Sale> visibleSales = allSales.stream()
+                        .filter(s -> SessionManager.getCurrentUser().getRole() == UserSession.Role.ADMIN
+                                || s.getCustomerId() == SessionManager.getCurrentUser().getId())
+                        .collect(Collectors.toList());
+
+                if (totalSalesCountLabel != null)
+                    totalSalesCountLabel.setText(String.valueOf(visibleSales.size()));
+                if (totalRevenueLabel != null) {
+                    double total = visibleSales.stream().mapToDouble(Sale::getTotalAmount).sum();
+                    totalRevenueLabel.setText(String.format("$%.2f", total));
+                }
+            });
         }
     }
 
@@ -238,7 +284,6 @@ public class MainController implements Initializable {
     }
 
     private void switchTab(String tab, Button activeBtn) {
-        activeTab = tab;
 
         // Reset nav styles
         navProducts.getStyleClass().remove("active");
@@ -671,9 +716,14 @@ public class MainController implements Initializable {
 
     private void renderProducts() {
         productGrid.getChildren().clear();
+
+        UserSession currentUser = SessionManager.getCurrentUser();
+        boolean showOnlyMine = (tglMyProducts != null && tglMyProducts.isSelected());
+
         List<Product> filtered = allProducts.stream()
                 .filter(p -> activeCategory.equals("All")
                         || (p.getCategory() != null && p.getCategory().equalsIgnoreCase(activeCategory)))
+                .filter(p -> !showOnlyMine || p.getEntrepreneurId() == currentUser.getId())
                 .collect(Collectors.toList());
 
         System.out.println("DEBUG: Rendering " + filtered.size() + " products for category: " + activeCategory);
@@ -774,6 +824,10 @@ public class MainController implements Initializable {
         HBox actionBox = new HBox(8);
         actionBox.setAlignment(Pos.CENTER_RIGHT);
 
+        UserSession currentUser = SessionManager.getCurrentUser();
+        boolean isOwner = (p.getEntrepreneurId() == currentUser.getId());
+        boolean isAdmin = (currentUser.getRole() == UserSession.Role.ADMIN);
+
         Button buyBtn = new Button("Buy");
         buyBtn.getStyleClass().add("add-btn");
         if (p.getStock() <= 0) {
@@ -789,33 +843,6 @@ public class MainController implements Initializable {
         });
         buyBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
 
-        Button remiseBtn = new Button();
-        remiseBtn.getStyleClass().addAll("card-action-btn", "remise");
-        remiseBtn.setGraphic(new FontIcon("fth-tag"));
-        remiseBtn.setOnAction(e -> {
-            e.consume();
-            handleRemiseDialog(p);
-        });
-        remiseBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
-
-        Button editBtn = new Button();
-        editBtn.getStyleClass().addAll("card-action-btn", "edit");
-        editBtn.setGraphic(new FontIcon("fth-edit-2"));
-        editBtn.setOnAction(e -> {
-            e.consume();
-            handleEditProduct(p);
-        });
-        editBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
-
-        Button deleteBtn = new Button();
-        deleteBtn.getStyleClass().addAll("card-action-btn", "delete");
-        deleteBtn.setGraphic(new FontIcon("fth-trash-2"));
-        deleteBtn.setOnAction(e -> {
-            e.consume();
-            handleDeleteProduct(p);
-        });
-        deleteBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
-
         Button qrBtn = new Button();
         qrBtn.getStyleClass().addAll("card-action-btn", "qr");
         qrBtn.setGraphic(new FontIcon("fth-maximize"));
@@ -825,7 +852,44 @@ public class MainController implements Initializable {
         });
         qrBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
 
-        actionBox.getChildren().addAll(qrBtn, remiseBtn, editBtn, deleteBtn, buyBtn);
+        actionBox.getChildren().addAll(qrBtn);
+
+        if (isOwner || isAdmin) {
+            Button remiseBtn = new Button();
+            remiseBtn.getStyleClass().addAll("card-action-btn", "remise");
+            remiseBtn.setGraphic(new FontIcon("fth-tag"));
+            remiseBtn.setOnAction(e -> {
+                e.consume();
+                handleRemiseDialog(p);
+            });
+            remiseBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
+
+            Button editBtn = new Button();
+            editBtn.getStyleClass().addAll("card-action-btn", "edit");
+            editBtn.setGraphic(new FontIcon("fth-edit-2"));
+            editBtn.setOnAction(e -> {
+                e.consume();
+                handleEditProduct(p);
+            });
+            editBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
+
+            Button deleteBtn = new Button();
+            deleteBtn.getStyleClass().addAll("card-action-btn", "delete");
+            deleteBtn.setGraphic(new FontIcon("fth-trash-2"));
+            deleteBtn.setOnAction(e -> {
+                e.consume();
+                handleDeleteProduct(p);
+            });
+            deleteBtn.setOnMouseClicked(javafx.scene.input.MouseEvent::consume);
+
+            actionBox.getChildren().addAll(remiseBtn, editBtn, deleteBtn);
+        }
+
+        // Only show buy button if not the owner AND not an admin
+        if (!isOwner && !isAdmin) {
+            actionBox.getChildren().add(buyBtn);
+        }
+
         footer.getChildren().addAll(priceAndStockBox, actionBox);
         content.getChildren().addAll(title, footer);
         card.getChildren().addAll(imgContainer, content);
@@ -885,8 +949,8 @@ public class MainController implements Initializable {
                 if (remiseValue > 0 && remiseValue <= 100) {
                     p.setRemise(remiseValue);
                     productService.update(p);
-                    // Send Email
-                    services.EmailService.sendDiscountEmail(p);
+                    // Send Email to other users
+                    services.EmailService.sendDiscountNotification(p, SessionManager.getCurrentUser());
                     loadDatabaseData();
                     renderProducts();
                 } else {
@@ -1257,11 +1321,18 @@ public class MainController implements Initializable {
         System.out.println("DEBUG: Rendering filtered sales...");
         ordersContainer.getChildren().clear();
 
-        List<Sale> filteredSales = allSales.stream()
+        UserSession currentUser = SessionManager.getCurrentUser();
+        boolean isAdmin = (currentUser.getRole() == UserSession.Role.ADMIN);
+
+        List<Sale> roleFilteredSales = allSales.stream()
+                .filter(s -> isAdmin || s.getCustomerId() == currentUser.getId())
+                .collect(Collectors.toList());
+
+        List<Sale> finalFilteredSales = roleFilteredSales.stream()
                 .filter(s -> activeSaleStatus.equals("All") || s.getStatus().equalsIgnoreCase(activeSaleStatus))
                 .collect(Collectors.toList());
 
-        for (Sale s : filteredSales) {
+        for (Sale s : finalFilteredSales) {
             VBox card = new VBox(20);
             card.getStyleClass().add("order-card");
 
@@ -1320,20 +1391,28 @@ public class MainController implements Initializable {
             HBox footer = new HBox();
             footer.getStyleClass().add("order-total-box");
 
-            Button editBtn = new Button();
-            editBtn.getStyleClass().addAll("card-action-btn", "edit");
-            editBtn.setGraphic(new FontIcon("fth-edit-2"));
-            editBtn.setOnAction(e -> handleEditSale(s));
-
-            Button deleteBtn = new Button();
-            deleteBtn.getStyleClass().addAll("card-action-btn", "delete");
-            deleteBtn.setGraphic(new FontIcon("fth-trash-2"));
-            deleteBtn.setOnAction(e -> handleDeleteSale(s));
+            HBox actionBox = new HBox(10);
+            actionBox.setAlignment(Pos.CENTER_LEFT);
 
             Button exportBtn = new Button();
             exportBtn.getStyleClass().addAll("card-action-btn");
             exportBtn.setGraphic(new FontIcon("fth-download")); // A download icon
             exportBtn.setOnAction(e -> handleExportSale(s));
+            actionBox.getChildren().add(exportBtn);
+
+            if (isAdmin) {
+                Button editBtn = new Button();
+                editBtn.getStyleClass().addAll("card-action-btn", "edit");
+                editBtn.setGraphic(new FontIcon("fth-edit-2"));
+                editBtn.setOnAction(e -> handleEditSale(s));
+
+                Button deleteBtn = new Button();
+                deleteBtn.getStyleClass().addAll("card-action-btn", "delete");
+                deleteBtn.setGraphic(new FontIcon("fth-trash-2"));
+                deleteBtn.setOnAction(e -> handleDeleteSale(s));
+
+                actionBox.getChildren().addAll(editBtn, deleteBtn);
+            }
 
             Region fSpacer = new Region();
             HBox.setHgrow(fSpacer, Priority.ALWAYS);
@@ -1344,7 +1423,11 @@ public class MainController implements Initializable {
                     + String.format("%.2f", s.getTotalAmount()));
             totalAmount.getStyleClass().add("order-total-amount");
 
-            if (!s.getStatus().equalsIgnoreCase("Paid") && !s.getStatus().equalsIgnoreCase("Completed")) {
+            HBox payBox = new HBox(10);
+            payBox.setAlignment(Pos.CENTER_RIGHT);
+            payBox.getChildren().addAll(totalLabel, totalAmount);
+
+            if (!isAdmin && !s.getStatus().equalsIgnoreCase("Paid") && !s.getStatus().equalsIgnoreCase("Completed")) {
                 Button payBtn = new Button("Pay");
                 payBtn.getStyleClass().add("add-btn"); // using the same template style
                 payBtn.setGraphic(new FontIcon("fth-credit-card"));
@@ -1396,17 +1479,16 @@ public class MainController implements Initializable {
                     } catch (StripeException ex) {
                         ex.printStackTrace();
                         showAlert(Alert.AlertType.ERROR, "Payment Error",
-                                "Stripe Error: " + ex.getMessage());
+                                "Stripe initialization failed: " + ex.getMessage());
                     } catch (Exception ex) {
                         ex.printStackTrace();
-                        showAlert(Alert.AlertType.ERROR, "Payment Error",
-                                "An unexpected error occurred: " + ex.getMessage());
+                        showAlert(Alert.AlertType.ERROR, "System Error", "An unexpected error occurred.");
                     }
                 });
-                footer.getChildren().addAll(payBtn, exportBtn, editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
-            } else {
-                footer.getChildren().addAll(exportBtn, editBtn, deleteBtn, fSpacer, totalLabel, totalAmount);
+                payBox.getChildren().add(payBtn);
             }
+
+            footer.getChildren().addAll(actionBox, fSpacer, payBox);
 
             card.getChildren().addAll(header, new Separator(), grid, new Separator(), footer);
             ordersContainer.getChildren().add(card);

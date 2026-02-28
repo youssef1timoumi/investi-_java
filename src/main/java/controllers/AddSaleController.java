@@ -7,6 +7,7 @@ import models.Product;
 import models.Sale;
 import services.SaleService;
 import services.ProductService;
+import services.SessionManager;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -93,7 +94,7 @@ public class AddSaleController implements Initializable {
         try {
             Sale s = (existingSale != null) ? existingSale : new Sale();
             s.setReference(referenceField.getText());
-            s.setCustomerId(1L);
+            s.setCustomerId(SessionManager.getCurrentUser().getId());
             s.setProductId(product != null ? product.getId()
                     : (existingSale != null ? existingSale.getProductId() : 0));
             s.setTotalAmount(Double.parseDouble(amountField.getText()));
