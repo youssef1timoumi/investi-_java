@@ -43,7 +43,6 @@ public class ForumController implements Initializable {
     @FXML private Label userAvatarLabel;
     @FXML private Label composeAvatarLabel;
     @FXML private TextArea composeTextArea;
-    @FXML private VBox activeUsersContainer;
 
     private ForumPostService forumService;
     private String currentUserId;
@@ -62,7 +61,6 @@ public class ForumController implements Initializable {
         setupTabGroup();
         setupDynamicSearch();
         loadPosts();
-        loadActiveUsers();
     }
 
     private void setupDynamicSearch() {
@@ -134,57 +132,7 @@ public class ForumController implements Initializable {
         }
     }
 
-    private void loadActiveUsers() {
-        activeUsersContainer.getChildren().clear();
-        try {
-            List<String[]> users = forumService.getAllUsers();
-            int count = 0;
-            for (String[] user : users) {
-                if (count >= 5) break;
-                HBox userRow = createUserRow(user);
-                activeUsersContainer.getChildren().add(userRow);
-                count++;
-            }
-        } catch (SQLException e) {
-            // Ignore
-        }
-    }
 
-    private HBox createUserRow(String[] user) {
-        HBox row = new HBox(10);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setStyle("-fx-padding: 8 0;");
-        
-        // Avatar color based on role
-        String avatarColor = getRoleColor(user[3]);
-        Label avatar = new Label(getInitials(user[1]));
-        avatar.setStyle("-fx-background-color: " + avatarColor + "; -fx-background-radius: 20; " +
-                "-fx-min-width: 40; -fx-min-height: 40; -fx-max-width: 40; -fx-max-height: 40; " +
-                "-fx-alignment: center; -fx-text-fill: white; -fx-font-weight: bold;");
-        
-        VBox info = new VBox(2);
-        Label name = new Label(user[1]);
-        name.setStyle("-fx-text-fill: #e7e9ea; -fx-font-weight: bold;");
-        
-        // Role badge with color
-        Label role = new Label(capitalizeRole(user[3]));
-        role.setStyle("-fx-background-color: " + avatarColor + "; -fx-text-fill: white; " +
-                "-fx-padding: 2 8; -fx-background-radius: 10; -fx-font-size: 10px;");
-        info.getChildren().addAll(name, role);
-        
-        row.getChildren().addAll(avatar, info);
-        return row;
-    }
-
-    private String getRoleColor(String role) {
-        if (role == null) return "#456990";
-        switch (role.toLowerCase()) {
-            case "admin": return "#A62639";      // Brown Red for admins
-            case "investor": return "#9B7E46";   // Faded Copper for investors
-            case "innovator": return "#456990";  // Baltic Blue for innovators
-            default: return "#456990";
-        }
-    }
 
     private void setupCategoryFilter() {
         categoryFilter.getItems().addAll(
@@ -463,7 +411,7 @@ public class ForumController implements Initializable {
         dialog.setTitle("AI Summary");
 
         VBox root = new VBox(15);
-        root.setStyle("-fx-background-color: #000000; -fx-border-color: #9B7E46; " +
+        root.setStyle("-fx-background-color: #0f1114; -fx-border-color: #9B7E46; " +
                 "-fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 25; -fx-border-width: 2;");
         root.setPrefWidth(550);
         root.setMinWidth(500);
@@ -497,9 +445,10 @@ public class ForumController implements Initializable {
 
         root.getChildren().addAll(header, loadingBox);
 
-        Scene scene = new Scene(root, 550, 450);
+        Scene scene = new Scene(root, 550, 550);
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
         dialog.setScene(scene);
+        dialog.setResizable(true);
         dialog.show();
 
         // Generate summary in background
@@ -525,7 +474,7 @@ public class ForumController implements Initializable {
                     origText.setMaxWidth(480);
 
                     VBox origBox = new VBox(5);
-                    origBox.setStyle("-fx-background-color: #16181c; -fx-padding: 12; -fx-background-radius: 8;");
+                    origBox.setStyle("-fx-background-color: #1a1d23; -fx-padding: 12; -fx-background-radius: 8;");
                     origBox.getChildren().addAll(origLabel, origText);
 
                     // Summary section
@@ -537,10 +486,17 @@ public class ForumController implements Initializable {
                     summaryText.setWrapText(true);
                     summaryText.setMaxWidth(480);
 
+                    ScrollPane summaryScroll = new ScrollPane(summaryText);
+                    summaryScroll.setFitToWidth(true);
+                    summaryScroll.setStyle("-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;");
+                    summaryScroll.setPrefHeight(300);
+                    summaryScroll.setMaxHeight(400);
+
                     VBox summaryBox = new VBox(8);
                     summaryBox.setStyle("-fx-background-color: #1a1a2e; -fx-padding: 15; " +
                             "-fx-background-radius: 8; -fx-border-color: #9B7E46; -fx-border-radius: 8; -fx-border-width: 1;");
-                    summaryBox.getChildren().addAll(summaryLabel, summaryText);
+                    VBox.setVgrow(summaryBox, javafx.scene.layout.Priority.ALWAYS);
+                    summaryBox.getChildren().addAll(summaryLabel, summaryScroll);
 
                     // Close button
                     Button okBtn = new Button("Got it!");
@@ -667,7 +623,7 @@ public class ForumController implements Initializable {
     }
 
     private HBox createActionsRow(ForumPost post) {
-        HBox actions = new HBox(0);
+        HBox actions = new HBox(4);
         actions.setAlignment(Pos.CENTER_LEFT);
         actions.setStyle("-fx-padding: 10 0 0 0;");
         
@@ -677,17 +633,19 @@ public class ForumController implements Initializable {
             commentCount = forumService.getCommentCountByPost(post.getId());
         } catch (SQLException e) {}
         
-        Button commentBtn = new Button("💬 " + commentCount);
-        commentBtn.getStyleClass().add("action-btn");
+        Button commentBtn = new Button("\uD83D\uDCAC  " + commentCount);
+        commentBtn.getStyleClass().addAll("icon-btn", "icon-btn-comment");
+        commentBtn.setTooltip(new Tooltip("Comments"));
         commentBtn.setOnAction(e -> showPostDetails(post));
         
-        // Upvote (Faded Copper when active)
-        Button upvoteBtn = new Button("⬆ " + post.getUpvotes());
-        upvoteBtn.getStyleClass().addAll("action-btn", "vote-btn-up");
+        // Upvote
+        Button upvoteBtn = new Button("\u25B2  " + post.getUpvotes());
+        upvoteBtn.getStyleClass().addAll("icon-btn", "icon-btn-upvote");
+        upvoteBtn.setTooltip(new Tooltip("Upvote"));
         try {
             String vote = forumService.getUserVoteOnPost(post.getId(), currentUserId);
             if ("upvote".equals(vote)) {
-                upvoteBtn.setStyle("-fx-text-fill: #9B7E46;");
+                upvoteBtn.getStyleClass().add("icon-btn-upvote-active");
             }
         } catch (SQLException e) {}
         upvoteBtn.setOnAction(e -> {
@@ -695,13 +653,14 @@ public class ForumController implements Initializable {
             handleVote(post, "upvote");
         });
         
-        // Downvote (Brown Red when active)
-        Button downvoteBtn = new Button("⬇ " + post.getDownvotes());
-        downvoteBtn.getStyleClass().addAll("action-btn", "vote-btn-down");
+        // Downvote
+        Button downvoteBtn = new Button("\u25BC  " + post.getDownvotes());
+        downvoteBtn.getStyleClass().addAll("icon-btn", "icon-btn-downvote");
+        downvoteBtn.setTooltip(new Tooltip("Downvote"));
         try {
             String vote = forumService.getUserVoteOnPost(post.getId(), currentUserId);
             if ("downvote".equals(vote)) {
-                downvoteBtn.setStyle("-fx-text-fill: #A62639;");
+                downvoteBtn.getStyleClass().add("icon-btn-downvote-active");
             }
         } catch (SQLException e) {}
         downvoteBtn.setOnAction(e -> {
@@ -710,17 +669,17 @@ public class ForumController implements Initializable {
         });
         
         // Views
-        Label viewsLabel = new Label("👁 " + post.getViews());
-        viewsLabel.setStyle("-fx-text-fill: #71767b; -fx-font-size: 13px; -fx-padding: 8 12;");
+        Label viewsLabel = new Label("\uD83D\uDC41  " + post.getViews());
+        viewsLabel.setStyle("-fx-text-fill: #8899a6; -fx-font-size: 14px; -fx-padding: 6 14;");
         
         // Translate button with dropdown
-        MenuButton translateBtn = new MenuButton("🌐");
-        translateBtn.getStyleClass().add("action-btn");
-        translateBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #71767b;");
+        MenuButton translateBtn = new MenuButton("\uD83C\uDF10  Translate");
+        translateBtn.getStyleClass().addAll("icon-btn", "icon-btn-translate");
+        translateBtn.setTooltip(new Tooltip("Translate post"));
         
-        MenuItem toEnglish = new MenuItem("🇬🇧 English");
-        MenuItem toFrench = new MenuItem("🇫🇷 Français");
-        MenuItem toArabic = new MenuItem("🇸🇦 العربية");
+        MenuItem toEnglish = new MenuItem("\uD83C\uDDEC\uD83C\uDDE7  English");
+        MenuItem toFrench = new MenuItem("\uD83C\uDDEB\uD83C\uDDF7  Français");
+        MenuItem toArabic = new MenuItem("\uD83C\uDDF8\uD83C\uDDE6  العربية");
         
         toEnglish.setOnAction(e -> showTranslatedPost(post, Language.ENGLISH));
         toFrench.setOnAction(e -> showTranslatedPost(post, Language.FRENCH));
@@ -738,8 +697,9 @@ public class ForumController implements Initializable {
         boolean canModerate = isAdmin();
         
         if (isOwner) {
-            Button editBtn = new Button("✏");
-            editBtn.getStyleClass().add("action-btn");
+            Button editBtn = new Button("\u270E  Edit");
+            editBtn.getStyleClass().addAll("icon-btn", "icon-btn-edit");
+            editBtn.setTooltip(new Tooltip("Edit post"));
             editBtn.setOnAction(e -> {
                 e.consume();
                 showEditPostDialog(post);
@@ -748,10 +708,12 @@ public class ForumController implements Initializable {
         }
         
         if (isOwner || canModerate) {
-            Button deleteBtn = new Button("🗑");
-            deleteBtn.getStyleClass().addAll("action-btn", "btn-danger");
+            Button deleteBtn = new Button("\uD83D\uDDD1  Delete");
+            deleteBtn.getStyleClass().addAll("icon-btn", "icon-btn-delete");
             if (canModerate && !isOwner) {
-                deleteBtn.setTooltip(new Tooltip("Supprimer (Admin)"));
+                deleteBtn.setTooltip(new Tooltip("Delete (Admin)"));
+            } else {
+                deleteBtn.setTooltip(new Tooltip("Delete post"));
             }
             deleteBtn.setOnAction(e -> {
                 e.consume();
@@ -781,7 +743,7 @@ public class ForumController implements Initializable {
         dialog.setTitle("Translation");
 
         VBox root = new VBox(15);
-        root.setStyle("-fx-background-color: #000000; -fx-border-color: #2f3336; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 20;");
+        root.setStyle("-fx-background-color: #0f1114; -fx-border-color: #2a2d32; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 20;");
         root.setMaxWidth(600);
 
         // Header
@@ -824,7 +786,7 @@ public class ForumController implements Initializable {
                 origLabel.setStyle("-fx-text-fill: #71767b; -fx-font-size: 12px;");
                 
                 VBox origBox = new VBox(5);
-                origBox.setStyle("-fx-background-color: #16181c; -fx-padding: 10; -fx-background-radius: 8;");
+                origBox.setStyle("-fx-background-color: #1a1d23; -fx-padding: 10; -fx-background-radius: 8;");
                 
                 if (post.getTitle() != null && !post.getTitle().isEmpty()) {
                     Label origTitle = new Label(post.getTitle());
@@ -844,7 +806,7 @@ public class ForumController implements Initializable {
                 transLabel.setStyle("-fx-text-fill: #1d9bf0; -fx-font-size: 12px; -fx-padding: 10 0 0 0;");
                 
                 VBox transBox = new VBox(5);
-                transBox.setStyle("-fx-background-color: #16181c; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #1d9bf0; -fx-border-radius: 8;");
+                transBox.setStyle("-fx-background-color: #1a1d23; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #1d9bf0; -fx-border-radius: 8;");
                 
                 if (translatedTitle != null && !translatedTitle.isEmpty()) {
                     Label transTitle = new Label(translatedTitle);
@@ -908,13 +870,13 @@ public class ForumController implements Initializable {
         dialog.setTitle("Create Post");
         
         VBox root = new VBox(0);
-        root.setStyle("-fx-background-color: #000000; -fx-border-color: #2f3336; -fx-border-radius: 16; -fx-background-radius: 16;");
+        root.setStyle("-fx-background-color: #0f1114; -fx-border-color: #2a2d32; -fx-border-radius: 16; -fx-background-radius: 16;");
         root.setMaxWidth(600);
         
         // Header
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
-        header.setStyle("-fx-padding: 10 15; -fx-border-color: #2f3336; -fx-border-width: 0 0 1 0;");
+        header.setStyle("-fx-padding: 10 15; -fx-border-color: #2a2d32; -fx-border-width: 0 0 1 0;");
         
         Button closeBtn = new Button("✕");
         closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e7e9ea; -fx-font-size: 18px; -fx-cursor: hand;");
@@ -947,7 +909,7 @@ public class ForumController implements Initializable {
         categoryBox.getItems().addAll("General", "Tips & Advice", "Success Stories", 
                 "Investor Insights", "Collaboration", "Announcements");
         categoryBox.setValue("General");
-        categoryBox.setStyle("-fx-background-color: #16181c; -fx-text-fill: #e7e9ea;");
+        categoryBox.setStyle("-fx-background-color: #1a1d23; -fx-text-fill: #e7e9ea;");
         categoryBox.setMaxWidth(Double.MAX_VALUE);
         
         // Images preview
@@ -982,7 +944,7 @@ public class ForumController implements Initializable {
         // Footer
         HBox footer = new HBox();
         footer.setAlignment(Pos.CENTER_RIGHT);
-        footer.setStyle("-fx-padding: 15 20; -fx-border-color: #2f3336; -fx-border-width: 1 0 0 0;");
+        footer.setStyle("-fx-padding: 15 20; -fx-border-color: #2a2d32; -fx-border-width: 1 0 0 0;");
         
         Button postBtn = new Button("Post");
         postBtn.getStyleClass().add("btn-primary");
@@ -1038,13 +1000,13 @@ public class ForumController implements Initializable {
         dialog.initStyle(StageStyle.UNDECORATED);
         
         VBox root = new VBox(0);
-        root.setStyle("-fx-background-color: #000000; -fx-border-color: #2f3336; -fx-border-radius: 16; -fx-background-radius: 16;");
+        root.setStyle("-fx-background-color: #0f1114; -fx-border-color: #2a2d32; -fx-border-radius: 16; -fx-background-radius: 16;");
         root.setMaxWidth(600);
         
         // Header
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
-        header.setStyle("-fx-padding: 10 15; -fx-border-color: #2f3336; -fx-border-width: 0 0 1 0;");
+        header.setStyle("-fx-padding: 10 15; -fx-border-color: #2a2d32; -fx-border-width: 0 0 1 0;");
         
         Button closeBtn = new Button("✕");
         closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e7e9ea; -fx-font-size: 18px; -fx-cursor: hand;");
@@ -1073,7 +1035,7 @@ public class ForumController implements Initializable {
         categoryBox.getItems().addAll("General", "Tips & Advice", "Success Stories", 
                 "Investor Insights", "Collaboration", "Announcements");
         categoryBox.setValue(post.getCategory() != null ? post.getCategory() : "General");
-        categoryBox.setStyle("-fx-background-color: #16181c; -fx-text-fill: #e7e9ea;");
+        categoryBox.setStyle("-fx-background-color: #1a1d23; -fx-text-fill: #e7e9ea;");
         categoryBox.setMaxWidth(Double.MAX_VALUE);
         
         content.getChildren().addAll(titleField, contentArea, categoryBox);
@@ -1081,7 +1043,7 @@ public class ForumController implements Initializable {
         // Footer
         HBox footer = new HBox();
         footer.setAlignment(Pos.CENTER_RIGHT);
-        footer.setStyle("-fx-padding: 15 20; -fx-border-color: #2f3336; -fx-border-width: 1 0 0 0;");
+        footer.setStyle("-fx-padding: 15 20; -fx-border-color: #2a2d32; -fx-border-width: 1 0 0 0;");
         
         Button saveBtn = new Button("Save");
         saveBtn.getStyleClass().add("btn-primary");
@@ -1138,12 +1100,12 @@ public class ForumController implements Initializable {
         dialog.setTitle("Post");
         
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: #000000;");
+        root.setStyle("-fx-background-color: #0f1114;");
         
         // Header
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
-        header.setStyle("-fx-padding: 15 20; -fx-background-color: rgba(0,0,0,0.8); -fx-border-color: #2f3336; -fx-border-width: 0 0 1 0;");
+        header.setStyle("-fx-padding: 15 20; -fx-background-color: rgba(0,0,0,0.8); -fx-border-color: #2a2d32; -fx-border-width: 0 0 1 0;");
         
         Button backBtn = new Button("← Back");
         backBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e7e9ea; -fx-font-size: 15px; -fx-cursor: hand;");
@@ -1155,17 +1117,47 @@ public class ForumController implements Initializable {
         header.getChildren().addAll(backBtn, titleLbl);
         root.setTop(header);
         
-        // Content
+        // Content scroll
         ScrollPane scroll = new ScrollPane();
         scroll.setFitToWidth(true);
         scroll.getStyleClass().add("feed-scroll");
         
+        // Build content and set it
+        scroll.setContent(buildPostDetailsContent(post, dialog, scroll));
+        root.setCenter(scroll);
+        
+        Scene scene = new Scene(root, 700, 700);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+        
+        loadPosts();
+    }
+
+    /**
+     * Refreshes the post details content inside the existing dialog without closing/reopening.
+     */
+    private void refreshPostDetails(ForumPost post, Stage dialog, ScrollPane scroll) {
+        try {
+            // Re-fetch the post to get updated vote counts
+            ForumPost refreshedPost = forumService.getPostById(post.getId());
+            if (refreshedPost == null) refreshedPost = post;
+            scroll.setContent(buildPostDetailsContent(refreshedPost, dialog, scroll));
+            scroll.setVvalue(0);
+        } catch (SQLException e) {
+            scroll.setContent(buildPostDetailsContent(post, dialog, scroll));
+        }
+    }
+
+    /**
+     * Builds the VBox content for the post details view.
+     */
+    private VBox buildPostDetailsContent(ForumPost post, Stage dialog, ScrollPane scroll) {
         VBox content = new VBox(0);
-        content.setStyle("-fx-background-color: #000000;");
+        content.setStyle("-fx-background-color: #0f1114;");
         
         // Post
         VBox postBox = new VBox(10);
-        postBox.setStyle("-fx-padding: 20; -fx-border-color: #2f3336; -fx-border-width: 0 0 1 0;");
+        postBox.setStyle("-fx-padding: 20; -fx-border-color: #2a2d32; -fx-border-width: 0 0 1 0;");
         
         HBox postHeader = new HBox(12);
         Label avatar = new Label(getInitials(post.getAuthorName()));
@@ -1208,7 +1200,7 @@ public class ForumController implements Initializable {
         
         // Add comment box
         VBox addCommentBox = new VBox(10);
-        addCommentBox.setStyle("-fx-padding: 15 20; -fx-border-color: #2f3336; -fx-border-width: 0 0 1 0;");
+        addCommentBox.setStyle("-fx-padding: 15 20; -fx-border-color: #2a2d32; -fx-border-width: 0 0 1 0;");
         
         HBox commentRow = new HBox(12);
         Label commentAvatar = new Label(getInitials(currentUserName));
@@ -1236,8 +1228,7 @@ public class ForumController implements Initializable {
             ForumComment comment = new ForumComment(post.getId(), currentUserId, commentArea.getText().trim());
             try {
                 forumService.addComment(comment);
-                dialog.close();
-                showPostDetails(post);
+                refreshPostDetails(post, dialog, scroll);
             } catch (SQLException ex) {
                 showError("Failed to reply: " + ex.getMessage());
             }
@@ -1255,7 +1246,7 @@ public class ForumController implements Initializable {
         try {
             List<ForumComment> comments = forumService.getCommentsByPost(post.getId());
             for (ForumComment comment : comments) {
-                VBox commentCard = createCommentCard(comment, post, dialog, 0);
+                VBox commentCard = createCommentCard(comment, post, dialog, scroll, 0);
                 content.getChildren().add(commentCard);
             }
             
@@ -1270,17 +1261,10 @@ public class ForumController implements Initializable {
             content.getChildren().add(error);
         }
         
-        scroll.setContent(content);
-        root.setCenter(scroll);
-        
-        Scene scene = new Scene(root, 700, 700);
-        dialog.setScene(scene);
-        dialog.showAndWait();
-        
-        loadPosts();
+        return content;
     }
 
-    private VBox createCommentCard(ForumComment comment, ForumPost post, Stage dialog, int depth) {
+    private VBox createCommentCard(ForumComment comment, ForumPost post, Stage dialog, ScrollPane scroll, int depth) {
         VBox card = new VBox(8);
         card.getStyleClass().add(depth > 0 ? "comment-reply" : "comment-card");
         card.setStyle(card.getStyle() + "-fx-padding: 15 20;");
@@ -1306,56 +1290,58 @@ public class ForumController implements Initializable {
         contentLbl.setWrapText(true);
         
         // Actions
-        HBox actions = new HBox(15);
+        HBox actions = new HBox(4);
         actions.setStyle("-fx-padding: 8 0 0 0;");
         
-        Button upBtn = new Button("⬆ " + comment.getUpvotes());
-        upBtn.getStyleClass().addAll("action-btn", "vote-btn-up");
+        Button upBtn = new Button("\u25B2  " + comment.getUpvotes());
+        upBtn.getStyleClass().addAll("icon-btn", "icon-btn-upvote");
+        upBtn.setTooltip(new Tooltip("Upvote"));
         upBtn.setOnAction(e -> {
             try {
                 forumService.voteComment(comment.getId(), currentUserId, "upvote");
-                // Update button text directly instead of reopening dialog
                 ForumComment updated = forumService.getCommentById(comment.getId());
                 if (updated != null) {
-                    upBtn.setText("⬆ " + updated.getUpvotes());
-                    ((Button)actions.getChildren().get(1)).setText("⬇ " + updated.getDownvotes());
+                    upBtn.setText("\u25B2  " + updated.getUpvotes());
+                    ((Button)actions.getChildren().get(1)).setText("\u25BC  " + updated.getDownvotes());
                 }
             } catch (SQLException ex) {}
         });
         
-        Button downBtn = new Button("⬇ " + comment.getDownvotes());
-        downBtn.getStyleClass().addAll("action-btn", "vote-btn-down");
+        Button downBtn = new Button("\u25BC  " + comment.getDownvotes());
+        downBtn.getStyleClass().addAll("icon-btn", "icon-btn-downvote");
+        downBtn.setTooltip(new Tooltip("Downvote"));
         downBtn.setOnAction(e -> {
             try {
                 forumService.voteComment(comment.getId(), currentUserId, "downvote");
-                // Update button text directly instead of reopening dialog
                 ForumComment updated = forumService.getCommentById(comment.getId());
                 if (updated != null) {
-                    ((Button)actions.getChildren().get(0)).setText("⬆ " + updated.getUpvotes());
-                    downBtn.setText("⬇ " + updated.getDownvotes());
+                    ((Button)actions.getChildren().get(0)).setText("\u25B2  " + updated.getUpvotes());
+                    downBtn.setText("\u25BC  " + updated.getDownvotes());
                 }
             } catch (SQLException ex) {}
         });
         
-        Button replyBtn = new Button("↩ Reply");
-        replyBtn.getStyleClass().add("action-btn");
-        replyBtn.setOnAction(e -> showReplyDialog(comment, post, dialog));
+        Button replyBtn = new Button("\u21A9  Reply");
+        replyBtn.getStyleClass().addAll("icon-btn", "icon-btn-reply");
+        replyBtn.setTooltip(new Tooltip("Reply"));
+        replyBtn.setOnAction(e -> showReplyDialog(comment, post, dialog, scroll));
         
         actions.getChildren().addAll(upBtn, downBtn, replyBtn);
         
         // Delete button for own comments OR if user is admin
         boolean isCommentOwner = comment.getUserId() != null && comment.getUserId().equals(currentUserId);
         if (isCommentOwner || isAdmin()) {
-            Button deleteBtn = new Button("🗑");
-            deleteBtn.getStyleClass().addAll("action-btn", "btn-danger");
+            Button deleteBtn = new Button("\uD83D\uDDD1  Delete");
+            deleteBtn.getStyleClass().addAll("icon-btn", "icon-btn-delete");
             if (isAdmin() && !isCommentOwner) {
-                deleteBtn.setTooltip(new Tooltip("Supprimer (Admin)"));
+                deleteBtn.setTooltip(new Tooltip("Delete (Admin)"));
+            } else {
+                deleteBtn.setTooltip(new Tooltip("Delete comment"));
             }
             deleteBtn.setOnAction(e -> {
                 try {
                     forumService.deleteComment(comment.getId());
-                    dialog.close();
-                    showPostDetails(post);
+                    refreshPostDetails(post, dialog, scroll);
                 } catch (SQLException ex) {}
             });
             actions.getChildren().add(deleteBtn);
@@ -1366,7 +1352,7 @@ public class ForumController implements Initializable {
         // Nested replies
         if (comment.getReplies() != null && !comment.getReplies().isEmpty()) {
             for (ForumComment reply : comment.getReplies()) {
-                VBox replyCard = createCommentCard(reply, post, dialog, depth + 1);
+                VBox replyCard = createCommentCard(reply, post, dialog, scroll, depth + 1);
                 card.getChildren().add(replyCard);
             }
         }
@@ -1374,13 +1360,13 @@ public class ForumController implements Initializable {
         return card;
     }
 
-    private void showReplyDialog(ForumComment parent, ForumPost post, Stage parentDialog) {
+    private void showReplyDialog(ForumComment parent, ForumPost post, Stage parentDialog, ScrollPane parentScroll) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.initStyle(StageStyle.UNDECORATED);
         
         VBox root = new VBox(15);
-        root.setStyle("-fx-background-color: #000000; -fx-border-color: #2f3336; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 20;");
+        root.setStyle("-fx-background-color: #0f1114; -fx-border-color: #2a2d32; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 20;");
         
         Label title = new Label("Reply to " + (parent.getAuthorName() != null ? parent.getAuthorName() : "comment"));
         title.setStyle("-fx-text-fill: #e7e9ea; -fx-font-size: 16px; -fx-font-weight: bold;");
@@ -1415,8 +1401,7 @@ public class ForumController implements Initializable {
             try {
                 forumService.addComment(reply);
                 dialog.close();
-                parentDialog.close();
-                showPostDetails(post);
+                refreshPostDetails(post, parentDialog, parentScroll);
             } catch (SQLException ex) {
                 showError("Failed: " + ex.getMessage());
             }

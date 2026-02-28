@@ -13,7 +13,7 @@ public class BadWordsFilter {
 
     // ========== CONFIGURE YOUR BAD WORDS HERE ==========
     private static final String[] BLOCKED_WORDS = {
-       "fuck","shit","merde","pute","zebi","cunt","tahan","mkarrez","asba","nayek"    };
+       "fuck","shit","merde","pute","cunt"    };
     // ===================================================
 
     private static final Set<String> badWordsSet = new HashSet<>(Arrays.asList(BLOCKED_WORDS));

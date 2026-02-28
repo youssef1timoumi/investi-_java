@@ -11,23 +11,17 @@ import java.util.stream.Collectors;
 
 /**
  * AI-Powered Text Summarization
- * Uses Hugging Face API if configured, falls back to local TextRank algorithm
+ * Priority: 1) Groq API (free, fast) → 2) AWS Bedrock → 3) Local TextRank
+ *
+ * Configuration in .env:
+ *   GROQ_API_KEY=gsk_...        (primary - get from console.groq.com)
+ *   BEDROCK_API_KEY=ABSK...     (backup - get from AWS Bedrock console)
  */
 public class SummarizationService {
 
-    // ========== API KEY CONFIGURATION ==========
-    // Set your Hugging Face token as environment variable: HUGGINGFACE_API_KEY
-    // Or paste it here for local testing (DO NOT COMMIT TO GIT!)
-    private static final String HUGGINGFACE_API_KEY = System.getenv("HUGGINGFACE_API_KEY") != null 
-            ? System.getenv("HUGGINGFACE_API_KEY") 
-            : ""; // Leave empty or set locally
-    // ============================================
-
-    private static final String API_URL = "https://router.huggingface.co/hf-inference/models/facebook/bart-large-cnn";
     private static final int MIN_TEXT_LENGTH = 100;
-    private static final int MAX_RETRIES = 2;
+    private static final String GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-    // Stop words for local algorithm
     private static final Set<String> STOP_WORDS = new HashSet<>(Arrays.asList(
         "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with",
         "by", "from", "as", "is", "was", "are", "were", "been", "be", "have", "has", "had",
@@ -37,33 +31,39 @@ public class SummarizationService {
         "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very"
     ));
 
-    /**
-     * Generate a TL;DR summary for long text
-     */
     public static String summarize(String text) {
-        if (text == null || text.trim().length() < MIN_TEXT_LENGTH) {
-            return null;
-        }
+        if (text == null || text.trim().length() < MIN_TEXT_LENGTH) return null;
 
-        // Try API first if configured
-        if (isApiConfigured()) {
-            System.out.println("[Summarization] API key configured, attempting API call...");
+        // 1) Try Groq (free, fast, reliable)
+        if (EnvConfig.isSet("GROQ_API_KEY")) {
             try {
-                String result = callHuggingFaceAPI(text);
+                System.out.println("[Summarization] Trying Groq API...");
+                String result = callGroqAPI(text);
                 if (result != null && !result.isEmpty()) {
-                    System.out.println("[Summarization] ✓ AI summary generated successfully");
+                    System.out.println("[Summarization] ✓ Summary via Groq");
                     return result;
                 }
             } catch (Exception e) {
-                System.err.println("[Summarization] API exception: " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("[Summarization] Groq error: " + e.getMessage());
             }
-        } else {
-            System.out.println("[Summarization] API key not configured");
         }
 
-        // Fallback to local TextRank
-        System.out.println("[Summarization] Using local TextRank algorithm");
+        // 2) Try AWS Bedrock
+        if (EnvConfig.isSet("BEDROCK_API_KEY")) {
+            try {
+                System.out.println("[Summarization] Trying AWS Bedrock...");
+                String result = callBedrockAPI(text);
+                if (result != null && !result.isEmpty()) {
+                    System.out.println("[Summarization] ✓ Summary via Bedrock");
+                    return result;
+                }
+            } catch (Exception e) {
+                System.err.println("[Summarization] Bedrock error: " + e.getMessage());
+            }
+        }
+
+        // 3) Local fallback
+        System.out.println("[Summarization] Using local TextRank");
         return textRankSummarize(text);
     }
 
@@ -72,129 +72,183 @@ public class SummarizationService {
     }
 
     public static boolean isConfigured() {
-        return true; // Always true since we have local fallback
+        return true;
     }
 
-    private static boolean isApiConfigured() {
-        return HUGGINGFACE_API_KEY != null && 
-               !HUGGINGFACE_API_KEY.isEmpty() && 
-               !HUGGINGFACE_API_KEY.equals("PASTE_YOUR_TOKEN_HERE") &&
-               HUGGINGFACE_API_KEY.startsWith("hf_");
+    // ========== GROQ API ==========
+
+    private static String callGroqAPI(String text) throws Exception {
+        String truncated = text.length() > 6000 ? text.substring(0, 6000) : text;
+        String apiKey = EnvConfig.get("GROQ_API_KEY");
+
+        String body = "{\"model\":\"llama-3.1-8b-instant\","
+                + "\"messages\":[{\"role\":\"user\",\"content\":\""
+                + escapeJson("Summarize this in 2-3 short sentences:\n\n" + truncated)
+                + "\"}],\"max_tokens\":200,\"temperature\":0.3}";
+
+        URL url = new URL(GROQ_URL);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", "Bearer " + apiKey);
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(15000);
+        conn.setDoOutput(true);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(body.getBytes(StandardCharsets.UTF_8));
+        }
+
+        int code = conn.getResponseCode();
+        System.out.println("[Summarization] Groq response: " + code);
+
+        if (code == 200) {
+            String resp = readStream(conn);
+            // Extract content from: "content":"..."
+            String marker = "\"content\":\"";
+            int start = resp.lastIndexOf(marker);
+            if (start == -1) return null;
+            start += marker.length();
+            StringBuilder result = new StringBuilder();
+            for (int i = start; i < resp.length(); i++) {
+                char c = resp.charAt(i);
+                if (c == '\\' && i + 1 < resp.length()) {
+                    char next = resp.charAt(i + 1);
+                    if (next == '"') { result.append('"'); i++; }
+                    else if (next == 'n') { result.append(' '); i++; }
+                    else if (next == '\\') { result.append('\\'); i++; }
+                    else { result.append(c); }
+                } else if (c == '"') {
+                    break;
+                } else {
+                    result.append(c);
+                }
+            }
+            return result.toString().trim();
+        } else {
+            System.err.println("[Summarization] Groq error " + code + ": " + readErrorStream(conn));
+            return null;
+        }
     }
 
-    /**
-     * Call Hugging Face API
-     */
-    private static String callHuggingFaceAPI(String text) throws Exception {
-        String truncatedText = text.length() > 1024 ? text.substring(0, 1024) : text;
+    // ========== AWS BEDROCK API ==========
 
-        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            System.out.println("[Summarization] API attempt " + attempt + " to: " + API_URL);
-            
-            URL url = new URL(API_URL);
+    private static String callBedrockAPI(String text) throws Exception {
+        String truncated = text.length() > 6000 ? text.substring(0, 6000) : text;
+        String region = EnvConfig.get("AWS_REGION", "eu-west-3");
+        String apiKey = EnvConfig.get("BEDROCK_API_KEY");
+
+        String body = "{\"messages\":[{\"role\":\"user\",\"content\":[{\"text\":\""
+                + escapeJson("Summarize this in 2-3 short sentences:\n\n" + truncated)
+                + "\"}]}],\"inferenceConfig\":{\"maxTokens\":200,\"temperature\":0.3,\"topP\":0.9}}";
+
+        String[] models = {"eu.amazon.nova-micro-v1:0", "eu.amazon.nova-lite-v1:0", "mistral.mistral-7b-instruct-v0:2"};
+
+        for (String model : models) {
+            String endpoint = "https://bedrock-runtime." + region + ".amazonaws.com/model/" + model + "/converse";
+            System.out.println("[Summarization] Bedrock trying: " + model);
+
+            URL url = new URL(endpoint);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + HUGGINGFACE_API_KEY);
             conn.setRequestProperty("Content-Type", "application/json");
-            conn.setConnectTimeout(15000);
-            conn.setReadTimeout(30000);
+            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(20000);
             conn.setDoOutput(true);
 
-            String jsonPayload = "{\"inputs\": \"" + escapeJson(truncatedText) + "\"}";
-            System.out.println("[Summarization] Sending request...");
-
             try (OutputStream os = conn.getOutputStream()) {
-                os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
+                os.write(body.getBytes(StandardCharsets.UTF_8));
             }
 
-            int responseCode = conn.getResponseCode();
-            System.out.println("[Summarization] Response code: " + responseCode);
-
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                reader.close();
-                System.out.println("[Summarization] Response: " + response.toString().substring(0, Math.min(200, response.length())));
-                return extractSummary(response.toString());
-            } else if (responseCode == 503) {
-                System.out.println("[Summarization] Model loading, waiting 10s...");
-                Thread.sleep(10000);
-            } else {
-                BufferedReader err = new BufferedReader(
-                        new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8));
-                StringBuilder errResp = new StringBuilder();
-                String errLine;
-                while ((errLine = err.readLine()) != null) errResp.append(errLine);
-                err.close();
-                System.err.println("[Summarization] Error " + responseCode + ": " + errResp);
-                break;
-            }
-        }
-        return null;
-    }
-
-    private static String extractSummary(String json) {
-        for (String marker : new String[]{"\"summary_text\":\"", "\"summary_text\": \""}) {
-            int start = json.indexOf(marker);
-            if (start != -1) {
+            int code = conn.getResponseCode();
+            if (code == 200) {
+                String resp = readStream(conn);
+                String marker = "\"text\":\"";
+                int outIdx = resp.indexOf("\"output\"");
+                if (outIdx == -1) continue;
+                int start = resp.indexOf(marker, outIdx);
+                if (start == -1) continue;
                 start += marker.length();
-                int end = json.indexOf("\"", start);
-                if (end != -1) return json.substring(start, end).replace("\\n", " ");
+                int end = resp.indexOf("\"", start);
+                if (end == -1) continue;
+                return resp.substring(start, end).replace("\\n", " ").trim();
+            } else {
+                System.err.println("[Summarization] Bedrock " + model + " → " + code);
+                continue;
             }
         }
         return null;
     }
 
-    /**
-     * Local TextRank summarization
-     */
+    // ========== HELPERS ==========
+
+    private static String readStream(HttpURLConnection conn) throws Exception {
+        BufferedReader r = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = r.readLine()) != null) sb.append(line);
+        r.close();
+        return sb.toString();
+    }
+
+    private static String readErrorStream(HttpURLConnection conn) {
+        try {
+            BufferedReader r = new BufferedReader(new InputStreamReader(
+                    conn.getErrorStream() != null ? conn.getErrorStream() : conn.getInputStream(), StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = r.readLine()) != null) sb.append(line);
+            r.close();
+            return sb.toString();
+        } catch (Exception e) { return e.getMessage(); }
+    }
+
+    // ========== LOCAL TEXTRANK FALLBACK ==========
+
     private static String textRankSummarize(String text) {
         List<String> sentences = Arrays.stream(text.split("(?<=[.!?])\\s+"))
-                .filter(s -> s.trim().length() > 10)
-                .collect(Collectors.toList());
-
-        if (sentences.size() <= 3) {
+                .filter(s -> s.trim().length() > 10).collect(Collectors.toList());
+        if (sentences.size() <= 3)
             return text.length() > 300 ? text.substring(0, 297) + "..." : text;
-        }
 
         Map<String, Integer> wordFreq = new HashMap<>();
-        for (String word : text.toLowerCase().split("\\W+")) {
-            if (word.length() > 2 && !STOP_WORDS.contains(word)) {
+        for (String word : text.toLowerCase().split("\\W+"))
+            if (word.length() > 2 && !STOP_WORDS.contains(word))
                 wordFreq.merge(word, 1, Integer::sum);
-            }
-        }
 
         Map<Integer, Double> scores = new HashMap<>();
         for (int i = 0; i < sentences.size(); i++) {
-            double score = 0;
-            int count = 0;
-            for (String word : sentences.get(i).toLowerCase().split("\\W+")) {
+            double score = 0; int count = 0;
+            for (String word : sentences.get(i).toLowerCase().split("\\W+"))
                 if (word.length() > 2 && !STOP_WORDS.contains(word)) {
-                    score += wordFreq.getOrDefault(word, 0);
-                    count++;
+                    score += wordFreq.getOrDefault(word, 0); count++;
                 }
-            }
             scores.put(i, count > 0 ? (score / Math.sqrt(count)) * (i == 0 ? 1.5 : 1) : 0);
         }
 
         List<Integer> topIdx = scores.entrySet().stream()
                 .sorted(Map.Entry.<Integer, Double>comparingByValue().reversed())
-                .limit(3)
-                .map(Map.Entry::getKey)
-                .sorted()
-                .collect(Collectors.toList());
-
+                .limit(3).map(Map.Entry::getKey).sorted().collect(Collectors.toList());
         String result = topIdx.stream().map(sentences::get).collect(Collectors.joining(" "));
         return result.length() > 350 ? result.substring(0, 347) + "..." : result;
     }
 
     private static String escapeJson(String text) {
-        return text.replace("\\", "\\\\").replace("\"", "\\\"")
-                   .replace("\n", " ").replace("\r", "").replace("\t", " ");
+        if (text == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            switch (c) {
+                case '"': sb.append("\\\""); break;
+                case '\\': sb.append("\\\\"); break;
+                case '\n': sb.append("\\n"); break;
+                case '\r': sb.append("\\r"); break;
+                case '\t': sb.append("\\t"); break;
+                default:
+                    if (c < 0x20) sb.append(String.format("\\u%04x", (int) c));
+                    else sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }

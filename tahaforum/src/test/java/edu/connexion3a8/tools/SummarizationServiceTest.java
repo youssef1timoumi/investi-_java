@@ -58,9 +58,9 @@ public class SummarizationServiceTest {
     void testIsConfigured() {
         // Just log the status
         if (SummarizationService.isConfigured()) {
-            System.out.println("Hugging Face API is configured");
+            System.out.println("Summarization service is configured (local fallback always available)");
         } else {
-            System.out.println("Hugging Face API not configured - using local fallback");
+            System.out.println("Summarization service not configured");
         }
     }
 
