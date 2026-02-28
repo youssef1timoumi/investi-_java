@@ -24,7 +24,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -790,10 +792,52 @@ public class ForumController implements Initializable {
             }
         });
         
+        // Share button with dropdown
+        MenuButton shareBtn = new MenuButton("\uD83D\uDD17  Share");
+        shareBtn.getStyleClass().addAll("icon-btn", "icon-btn-comment");
+        shareBtn.setTooltip(new Tooltip("Share post"));
+        
+        String postUrl = "https://investi-forum.app/post/" + post.getId();
+        String postTitle = post.getTitle() != null ? post.getTitle() : "Check out this post";
+        
+        MenuItem shareFacebook = new MenuItem("\uD83D\uDCD8  Facebook");
+        shareFacebook.setOnAction(e -> {
+            try {
+                String url = "https://www.facebook.com/sharer/sharer.php?u=" + URLEncoder.encode(postUrl, "UTF-8")
+                        + "&quote=" + URLEncoder.encode(postTitle, "UTF-8");
+                java.awt.Desktop.getDesktop().browse(new URI(url));
+            } catch (Exception ex) {
+                showError("Could not open browser: " + ex.getMessage());
+            }
+        });
+        
+        MenuItem shareX = new MenuItem("\uD835\uDD4F  X (Twitter)");
+        shareX.setOnAction(e -> {
+            try {
+                String url = "https://twitter.com/intent/tweet?url=" + URLEncoder.encode(postUrl, "UTF-8")
+                        + "&text=" + URLEncoder.encode(postTitle + " — via INVESTI Forum", "UTF-8");
+                java.awt.Desktop.getDesktop().browse(new URI(url));
+            } catch (Exception ex) {
+                showError("Could not open browser: " + ex.getMessage());
+            }
+        });
+        
+        MenuItem shareLinkedIn = new MenuItem("\uD83D\uDCBC  LinkedIn");
+        shareLinkedIn.setOnAction(e -> {
+            try {
+                String url = "https://www.linkedin.com/sharing/share-offsite/?url=" + URLEncoder.encode(postUrl, "UTF-8");
+                java.awt.Desktop.getDesktop().browse(new URI(url));
+            } catch (Exception ex) {
+                showError("Could not open browser: " + ex.getMessage());
+            }
+        });
+        
+        shareBtn.getItems().addAll(shareFacebook, shareX, shareLinkedIn);
+        
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        actions.getChildren().addAll(commentBtn, upvoteBtn, downvoteBtn, viewsLabel, translateBtn, bookmarkBtn, spacer);
+        actions.getChildren().addAll(commentBtn, upvoteBtn, downvoteBtn, viewsLabel, translateBtn, bookmarkBtn, shareBtn, spacer);
         
         // Edit/Delete for own posts OR if user is admin
         boolean isOwner = post.getUserId() != null && post.getUserId().equals(currentUserId);
@@ -1282,17 +1326,28 @@ public class ForumController implements Initializable {
         postBox.getChildren().add(postHeader);
         
         if (post.getTitle() != null && !post.getTitle().isEmpty()) {
-            Label title = new Label(post.getTitle());
-            title.setStyle("-fx-text-fill: " + ThemeManager.text() + "; -fx-font-size: 22px; -fx-font-weight: bold;");
-            title.setWrapText(true);
-            postBox.getChildren().add(title);
+            if (MentionParser.hasMentions(post.getTitle())) {
+                TextFlow titleFlow = MentionParser.createStyledText(post.getTitle(), ThemeManager.text(), "22px");
+                titleFlow.setStyle("-fx-font-weight: bold;");
+                postBox.getChildren().add(titleFlow);
+            } else {
+                Label title = new Label(post.getTitle());
+                title.setStyle("-fx-text-fill: " + ThemeManager.text() + "; -fx-font-size: 22px; -fx-font-weight: bold;");
+                title.setWrapText(true);
+                postBox.getChildren().add(title);
+            }
         }
         
         if (post.getContent() != null && !post.getContent().isEmpty()) {
-            Label contentLbl = new Label(post.getContent());
-            contentLbl.setStyle("-fx-text-fill: " + ThemeManager.text() + "; -fx-font-size: 16px;");
-            contentLbl.setWrapText(true);
-            postBox.getChildren().add(contentLbl);
+            if (MentionParser.hasMentions(post.getContent())) {
+                TextFlow contentFlow = MentionParser.createStyledText(post.getContent(), ThemeManager.text(), "16px");
+                postBox.getChildren().add(contentFlow);
+            } else {
+                Label contentLbl = new Label(post.getContent());
+                contentLbl.setStyle("-fx-text-fill: " + ThemeManager.text() + "; -fx-font-size: 16px;");
+                contentLbl.setWrapText(true);
+                postBox.getChildren().add(contentLbl);
+            }
         }
         
         if (post.hasImages()) {
