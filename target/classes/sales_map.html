@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="leaflet.css" />
     <script src="leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
     <style>
         html,
         body,
@@ -85,6 +86,7 @@
         <input type="text" id="searchInput" placeholder="Aller à une ville..." />
         <button onclick="searchAddress()">🔍</button>
         <button onclick="locateMe()" title="Ma position">📍</button>
+        <button id="toggleHeatmapBtn" onclick="toggleHeatmap()" title="Basculer vers Heatmap">🔥 Heatmap</button>
     </div>
 
     <div id="map"></div>
@@ -100,6 +102,23 @@
 
         var map;
         var markers = L.layerGroup();
+        var heatLayer;
+        var heatPoints = [];
+        var showHeatmap = false;
+
+        function toggleHeatmap() {
+            if (!heatLayer) return;
+            showHeatmap = !showHeatmap;
+            if (showHeatmap) {
+                map.removeLayer(markers);
+                map.addLayer(heatLayer);
+                document.getElementById('toggleHeatmapBtn').innerHTML = '📍 Marqueurs';
+            } else {
+                map.removeLayer(heatLayer);
+                map.addLayer(markers);
+                document.getElementById('toggleHeatmapBtn').innerHTML = '🔥 Heatmap';
+            }
+        }
 
         function locateMe() {
             document.getElementById('status').textContent = 'Position via IP recherchée...';
@@ -152,6 +171,8 @@
             L.tileLayer(tileUrl, { maxZoom: 18, tileSize: 256, detectRetina: false }).addTo(map);
             markers.addTo(map);
 
+            heatLayer = L.heatLayer([], { radius: 25, blur: 15, maxZoom: 14 });
+
             map.on('locationfound', function (e) {
                 map.setView(e.latlng, 14);
                 document.getElementById('status').textContent = 'Position trouvée';
@@ -188,6 +209,7 @@
             function geocodeNext() {
                 if (i >= validSales.length) {
                     document.getElementById('status').textContent = validSales.length + " ventes mappées.";
+                    heatLayer.setLatLngs(heatPoints);
                     if (bounds.isValid()) map.fitBounds(bounds, { padding: [50, 50] });
                     return;
                 }
@@ -206,6 +228,7 @@
 
                             var marker = L.marker([lat, lon]).bindPopup(popupContent);
                             markers.addLayer(marker);
+                            heatPoints.push([lat, lon, 1]); // Add to heatmap
                             bounds.extend([lat, lon]);
                         }
                     })
