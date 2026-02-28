@@ -122,6 +122,25 @@ CREATE TABLE IF NOT EXISTS forum_bookmarks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Tracks bookmarked/saved posts per user';
 
+-- Create forum_notifications table for @mention notifications
+CREATE TABLE IF NOT EXISTS forum_notifications (
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    recipient_user_id CHAR(36) NOT NULL,
+    sender_user_id CHAR(36) NOT NULL,
+    post_id CHAR(36) NOT NULL,
+    comment_id CHAR(36) NULL,
+    type VARCHAR(50) NOT NULL DEFAULT 'mention',
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (recipient_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
+    INDEX idx_forum_notif_recipient (recipient_user_id),
+    INDEX idx_forum_notif_read (recipient_user_id, is_read)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+COMMENT='Notifications for @mention tags - notifies users when they are tagged';
+
 -- Insert some sample data for testing (optional)
 -- Make sure you have at least one user in the users table first
 

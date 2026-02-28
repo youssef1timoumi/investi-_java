@@ -14,6 +14,48 @@ public class ForumPostService {
 
     public ForumPostService() {
         this.connection = new MyConnection().getCnx();
+        ensureBookmarksTable();
+        ensureNotificationsTable();
+    }
+
+    private void ensureNotificationsTable() {
+        try (Statement stmt = connection.createStatement()) {
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS forum_notifications (" +
+                "id CHAR(36) PRIMARY KEY DEFAULT (UUID()), " +
+                "recipient_user_id CHAR(36) NOT NULL, " +
+                "sender_user_id CHAR(36) NOT NULL, " +
+                "post_id CHAR(36) NOT NULL, " +
+                "comment_id CHAR(36) NULL, " +
+                "type VARCHAR(50) NOT NULL DEFAULT 'mention', " +
+                "message TEXT NOT NULL, " +
+                "is_read BOOLEAN DEFAULT FALSE, " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "INDEX idx_forum_notif_recipient (recipient_user_id), " +
+                "INDEX idx_forum_notif_read (recipient_user_id, is_read)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+            );
+        } catch (SQLException e) {
+            System.out.println("Note: Could not ensure notifications table: " + e.getMessage());
+        }
+    }
+
+    private void ensureBookmarksTable() {
+        try (Statement stmt = connection.createStatement()) {
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS forum_bookmarks (" +
+                "id CHAR(36) PRIMARY KEY DEFAULT (UUID()), " +
+                "post_id CHAR(36) NOT NULL, " +
+                "user_id CHAR(36) NOT NULL, " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "UNIQUE KEY unique_bookmark (post_id, user_id), " +
+                "INDEX idx_forum_bookmarks_user_id (user_id), " +
+                "INDEX idx_forum_bookmarks_post_id (post_id)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+            );
+        } catch (SQLException e) {
+            System.out.println("Note: Could not ensure bookmarks table: " + e.getMessage());
+        }
     }
 
     // ========== POST CRUD OPERATIONS ==========
@@ -917,8 +959,7 @@ public class ForumPostService {
 
     public void addBookmark(String postId, String userId) throws SQLException {
         String query = "INSERT IGNORE INTO forum_bookmarks (id, post_id, user_id) VALUES (UUID(), ?, ?)";
-        try (var conn = MyConnection.getInstance().getCnx();
-             var ps = conn.prepareStatement(query)) {
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, postId);
             ps.setString(2, userId);
             ps.executeUpdate();
@@ -927,8 +968,7 @@ public class ForumPostService {
 
     public void removeBookmark(String postId, String userId) throws SQLException {
         String query = "DELETE FROM forum_bookmarks WHERE post_id = ? AND user_id = ?";
-        try (var conn = MyConnection.getInstance().getCnx();
-             var ps = conn.prepareStatement(query)) {
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, postId);
             ps.setString(2, userId);
             ps.executeUpdate();
@@ -937,11 +977,10 @@ public class ForumPostService {
 
     public boolean isBookmarked(String postId, String userId) throws SQLException {
         String query = "SELECT COUNT(*) FROM forum_bookmarks WHERE post_id = ? AND user_id = ?";
-        try (var conn = MyConnection.getInstance().getCnx();
-             var ps = conn.prepareStatement(query)) {
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, postId);
             ps.setString(2, userId);
-            var rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
             return rs.next() && rs.getInt(1) > 0;
         }
     }
@@ -954,10 +993,131 @@ public class ForumPostService {
                 "JOIN forum_bookmarks b ON b.post_id = p.id " +
                 "WHERE b.user_id = ? AND p.is_deleted = FALSE " +
                 "ORDER BY b.created_at DESC";
-        try (var conn = MyConnection.getInstance().getCnx();
-             var ps = conn.prepareStatement(query)) {
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setString(1, userId);
-            var rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ForumPost post = extractPostFromResultSet(rs);
+                post.setImagePaths(getPostImages(post.getId()));
+                posts.add(post);
+            }
+        }
+        return posts;
+    }
+
+    // =====================================================
+    // Notification Methods (for @mention tagging)
+    // =====================================================
+
+    /**
+     * Find user ID by name (case-insensitive match).
+     * Returns null if no user found.
+     */
+    public String findUserIdByName(String name) throws SQLException {
+        String query = "SELECT id FROM users WHERE LOWER(name) = LOWER(?) AND is_active = TRUE";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, name.trim());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("id");
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Create a mention notification for a user.
+     */
+    public void createMentionNotification(String recipientUserId, String senderUserId,
+                                           String postId, String commentId, String message) throws SQLException {
+        String query = "INSERT INTO forum_notifications (recipient_user_id, sender_user_id, post_id, comment_id, type, message) " +
+                "VALUES (?, ?, ?, ?, 'mention', ?)";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, recipientUserId);
+            ps.setString(2, senderUserId);
+            ps.setString(3, postId);
+            ps.setString(4, commentId);
+            ps.setString(5, message);
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Get all unread notifications for a user.
+     * Returns list of: [notificationId, senderName, postId, commentId, message, createdAt]
+     */
+    public List<String[]> getUnreadNotifications(String userId) throws SQLException {
+        List<String[]> notifications = new ArrayList<>();
+        String query = "SELECT n.id, u.name as sender_name, n.post_id, n.comment_id, n.message, n.created_at " +
+                "FROM forum_notifications n " +
+                "JOIN users u ON n.sender_user_id = u.id " +
+                "WHERE n.recipient_user_id = ? AND n.is_read = FALSE " +
+                "ORDER BY n.created_at DESC";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, userId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                notifications.add(new String[]{
+                    rs.getString("id"),
+                    rs.getString("sender_name"),
+                    rs.getString("post_id"),
+                    rs.getString("comment_id"),
+                    rs.getString("message"),
+                    rs.getTimestamp("created_at").toString()
+                });
+            }
+        }
+        return notifications;
+    }
+
+    /**
+     * Get count of unread notifications for a user.
+     */
+    public int getUnreadNotificationCount(String userId) throws SQLException {
+        String query = "SELECT COUNT(*) FROM forum_notifications WHERE recipient_user_id = ? AND is_read = FALSE";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, userId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+
+    /**
+     * Mark a single notification as read.
+     */
+    public void markNotificationRead(String notificationId) throws SQLException {
+        String query = "UPDATE forum_notifications SET is_read = TRUE WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, notificationId);
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Mark all notifications as read for a user.
+     */
+    public void markAllNotificationsRead(String userId) throws SQLException {
+        String query = "UPDATE forum_notifications SET is_read = TRUE WHERE recipient_user_id = ? AND is_read = FALSE";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Get posts where a user has been mentioned (for Activity tab).
+     */
+    public List<ForumPost> getPostsWhereMentioned(String userId) throws SQLException {
+        List<ForumPost> posts = new ArrayList<>();
+        String query = "SELECT DISTINCT p.*, u.name as author_name, u.avatar_url as author_avatar " +
+                "FROM forum_posts p " +
+                "JOIN users u ON p.user_id = u.id " +
+                "JOIN forum_notifications n ON n.post_id = p.id " +
+                "WHERE n.recipient_user_id = ? AND n.type = 'mention' AND p.is_deleted = FALSE " +
+                "ORDER BY n.created_at DESC";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, userId);
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 ForumPost post = extractPostFromResultSet(rs);
                 post.setImagePaths(getPostImages(post.getId()));

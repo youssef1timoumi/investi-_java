@@ -55,6 +55,7 @@ public class ForumController implements Initializable {
     @FXML private Label homeTitleLabel;
     @FXML private Button themeToggleBtn;
     @FXML private ToggleButton savedPostsTab;
+    @FXML private ScrollPane feedScroll;
 
     private ForumPostService forumService;
     private String currentUserId;
@@ -64,10 +65,13 @@ public class ForumController implements Initializable {
     private String currentCategory = "All";
     private List<String[]> allUsers;
     private List<String> pendingImages = new ArrayList<>();
+    private Button notificationBell;
+    private Label notificationBadge;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         forumService = new ForumPostService();
+        setupNotificationBell();
         loadUsers();
         setupCategoryFilter();
         setupTabGroup();
@@ -78,6 +82,7 @@ public class ForumController implements Initializable {
         javafx.application.Platform.runLater(() -> {
             if (rootPane.getScene() != null) {
                 ThemeManager.registerScene(rootPane.getScene());
+                applyThemeToMainUI();
             }
         });
     }
@@ -96,27 +101,130 @@ public class ForumController implements Initializable {
         String text = ThemeManager.text();
         String headerBg = ThemeManager.headerBg();
         String card = ThemeManager.card();
+        String textSec = ThemeManager.textSec();
+        String inputBg = ThemeManager.inputBg();
+        String textMuted = ThemeManager.textMuted();
 
+        // Main layout panes
         rootPane.setStyle("-fx-background-color: " + bg + ";");
         sidebarPane.setStyle("-fx-background-color: " + bg + "; -fx-padding: 20 15; -fx-min-width: 260; -fx-max-width: 260;");
         centerPane.setStyle("-fx-background-color: " + bg + "; -fx-border-color: " + border + "; -fx-border-width: 0 0 0 1;");
         headerPane.setStyle("-fx-padding: 15 25; -fx-background-color: " + headerBg + "; -fx-border-color: " + border + "; -fx-border-width: 0 0 1 0;");
         homeTitleLabel.setStyle("-fx-text-fill: " + text + "; -fx-font-size: 20px; -fx-font-weight: bold;");
-        postsContainer.setStyle("-fx-background-color: " + bg + ";");
         currentUserLabel.setStyle("-fx-text-fill: " + text + "; -fx-font-weight: bold; -fx-font-size: 14px;");
 
-        // Update user row background
-        if (sidebarPane.getChildren().size() > 0) {
-            // Find the user HBox (last VBox child contains it)
-            for (javafx.scene.Node node : sidebarPane.getChildren()) {
-                if (node instanceof VBox) {
-                    VBox vbox = (VBox) node;
-                    for (javafx.scene.Node child : vbox.getChildren()) {
-                        if (child instanceof HBox) {
-                            child.setStyle("-fx-padding: 10; -fx-background-color: " + ThemeManager.userRowBg() + "; -fx-background-radius: 50; -fx-cursor: hand;");
-                        }
+        // Feed scroll and posts container
+        feedScroll.setStyle("-fx-background: " + bg + "; -fx-background-color: " + bg + ";");
+        postsContainer.setStyle("-fx-background-color: " + bg + ";");
+
+        // Search field — -fx-control-inner-background forces internal bg color
+        searchField.setStyle(
+            "-fx-background-color: " + inputBg + "; -fx-text-fill: " + text + "; " +
+            "-fx-prompt-text-fill: " + textMuted + "; -fx-background-radius: 22; " +
+            "-fx-padding: 10 20; -fx-border-color: " + border + "; -fx-border-radius: 22; " +
+            "-fx-border-width: 1; -fx-control-inner-background: " + inputBg + ";"
+        );
+
+        // Compose textarea — -fx-control-inner-background forces internal bg color
+        composeTextArea.setStyle(
+            "-fx-background-color: " + inputBg + "; -fx-text-fill: " + text + "; " +
+            "-fx-prompt-text-fill: " + textMuted + "; -fx-font-size: 17px; " +
+            "-fx-border-width: 1; -fx-border-color: " + border + "; " +
+            "-fx-background-radius: 14; -fx-border-radius: 14; -fx-padding: 14; " +
+            "-fx-control-inner-background: " + inputBg + ";"
+        );
+
+        // Category filter — ButtonCell ensures the displayed cell respects theme
+        categoryFilter.setStyle(
+            "-fx-background-color: " + inputBg + "; -fx-background-radius: 20; " +
+            "-fx-padding: 8 15; -fx-border-color: " + border + "; -fx-border-radius: 20;"
+        );
+        categoryFilter.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+                setStyle("-fx-background-color: transparent; -fx-text-fill: " + text + "; -fx-padding: 0;");
+            }
+        });
+
+        // User selector — ButtonCell ensures the displayed cell respects theme
+        userSelector.setStyle("-fx-background-color: transparent; -fx-font-size: 13px;");
+        userSelector.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+                setStyle("-fx-background-color: transparent; -fx-text-fill: " + textSec + "; -fx-padding: 0;");
+            }
+        });
+
+        // Force-style internal child nodes after two layout passes for reliability
+        javafx.application.Platform.runLater(() -> javafx.application.Platform.runLater(() -> {
+            // TextArea internal nodes
+            composeTextArea.lookupAll(".content").forEach(n ->
+                n.setStyle("-fx-background-color: " + inputBg + ";")
+            );
+            composeTextArea.lookupAll(".scroll-pane").forEach(n ->
+                n.setStyle("-fx-background-color: " + inputBg + ";")
+            );
+            composeTextArea.lookupAll(".viewport").forEach(n ->
+                n.setStyle("-fx-background-color: " + inputBg + ";")
+            );
+
+            // Category combo internal nodes
+            categoryFilter.lookupAll(".list-cell").forEach(n ->
+                n.setStyle("-fx-background-color: transparent; -fx-text-fill: " + text + ";")
+            );
+            categoryFilter.lookupAll(".arrow-button").forEach(n ->
+                n.setStyle("-fx-background-color: transparent;")
+            );
+            categoryFilter.lookupAll(".arrow").forEach(n ->
+                n.setStyle("-fx-background-color: " + textSec + ";")
+            );
+
+            // User selector internal nodes
+            userSelector.lookupAll(".list-cell").forEach(n ->
+                n.setStyle("-fx-background-color: transparent; -fx-text-fill: " + textSec + ";")
+            );
+            userSelector.lookupAll(".arrow-button").forEach(n ->
+                n.setStyle("-fx-background-color: transparent;")
+            );
+            userSelector.lookupAll(".arrow").forEach(n ->
+                n.setStyle("-fx-background-color: " + textSec + ";")
+            );
+
+            // Search field internal
+            searchField.lookupAll(".content").forEach(n ->
+                n.setStyle("-fx-background-color: " + inputBg + ";")
+            );
+        }));
+
+        // Update sidebar children: separators, labels, user row
+        for (javafx.scene.Node node : sidebarPane.getChildren()) {
+            if (node instanceof Separator) {
+                node.setStyle("-fx-background-color: " + border + ";");
+            } else if (node instanceof Label) {
+                Label lbl = (Label) node;
+                if (lbl != currentUserLabel && lbl != userAvatarLabel && lbl != composeAvatarLabel) {
+                    lbl.setStyle("-fx-text-fill: " + textSec + "; -fx-font-size: 13px; -fx-padding: 10 12 5 12;");
+                }
+            } else if (node instanceof VBox) {
+                VBox vbox = (VBox) node;
+                for (javafx.scene.Node child : vbox.getChildren()) {
+                    if (child instanceof Separator) {
+                        child.setStyle("-fx-background-color: " + border + ";");
+                    } else if (child instanceof HBox) {
+                        child.setStyle("-fx-padding: 10; -fx-background-color: " + ThemeManager.userRowBg() + "; -fx-background-radius: 50; -fx-cursor: hand;");
                     }
                 }
+            }
+        }
+
+        // Update compose box area
+        for (javafx.scene.Node node : centerPane.getChildren()) {
+            if (node instanceof VBox && node.getStyleClass().contains("compose-box")) {
+                node.setStyle("-fx-background-color: " + (ThemeManager.isDark() ? bg : card) + "; -fx-padding: 18 25; -fx-border-color: " + border + "; -fx-border-width: 0 0 1 0;");
             }
         }
 
@@ -127,6 +235,193 @@ public class ForumController implements Initializable {
             themeToggleBtn.setText("🌙  Dark Mode");
         }
     }
+
+    private void setupNotificationBell() {
+        // Create notification bell button with badge
+        StackPane bellContainer = new StackPane();
+        bellContainer.setAlignment(Pos.CENTER);
+
+        notificationBell = new Button("🔔");
+        notificationBell.setStyle("-fx-background-color: transparent; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 6 10;");
+        notificationBell.setTooltip(new Tooltip("Notifications"));
+        notificationBell.setOnAction(e -> showNotificationsPopup());
+
+        notificationBadge = new Label("0");
+        notificationBadge.setStyle(
+            "-fx-background-color: #A62639; -fx-text-fill: white; -fx-font-size: 10px; " +
+            "-fx-font-weight: bold; -fx-min-width: 18; -fx-min-height: 18; " +
+            "-fx-max-width: 18; -fx-max-height: 18; -fx-background-radius: 9; -fx-alignment: center;"
+        );
+        notificationBadge.setVisible(false);
+        StackPane.setAlignment(notificationBadge, Pos.TOP_RIGHT);
+
+        bellContainer.getChildren().addAll(notificationBell, notificationBadge);
+
+        // Add bell to header, before the search field
+        headerPane.getChildren().add(1, bellContainer);
+    }
+
+    private void updateNotificationBadge() {
+        if (notificationBadge == null || currentUserId == null) return;
+        try {
+            int count = forumService.getUnreadNotificationCount(currentUserId);
+            if (count > 0) {
+                notificationBadge.setText(count > 9 ? "9+" : String.valueOf(count));
+                notificationBadge.setVisible(true);
+            } else {
+                notificationBadge.setVisible(false);
+            }
+        } catch (SQLException e) {
+            // Silently ignore
+        }
+    }
+
+    private void showNotificationsPopup() {
+        try {
+            List<String[]> notifications = forumService.getUnreadNotifications(currentUserId);
+
+            Stage dialog = new Stage();
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.initStyle(StageStyle.UNDECORATED);
+
+            VBox root = new VBox(0);
+            root.setStyle("-fx-background-color: " + ThemeManager.bg() + "; -fx-border-color: " + ThemeManager.border() +
+                    "; -fx-border-radius: 16; -fx-background-radius: 16; -fx-border-width: 1;");
+            root.setPrefWidth(420);
+
+            // Header
+            HBox header = new HBox(10);
+            header.setAlignment(Pos.CENTER_LEFT);
+            header.setStyle("-fx-padding: 15 20; -fx-border-color: " + ThemeManager.border() + "; -fx-border-width: 0 0 1 0;");
+
+            Button closeBtn = new Button("✕");
+            closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + ThemeManager.text() + "; -fx-font-size: 18px; -fx-cursor: hand;");
+            closeBtn.setOnAction(e -> dialog.close());
+
+            Label titleLbl = new Label("🔔 Notifications");
+            titleLbl.setStyle("-fx-text-fill: " + ThemeManager.text() + "; -fx-font-size: 18px; -fx-font-weight: bold;");
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            Button markAllBtn = new Button("Mark all read");
+            markAllBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #456990; -fx-cursor: hand; -fx-font-size: 13px;");
+            markAllBtn.setOnAction(e -> {
+                try {
+                    forumService.markAllNotificationsRead(currentUserId);
+                    updateNotificationBadge();
+                    dialog.close();
+                } catch (SQLException ex) {
+                    showError("Failed: " + ex.getMessage());
+                }
+            });
+
+            header.getChildren().addAll(closeBtn, titleLbl, spacer, markAllBtn);
+            root.getChildren().add(header);
+
+            // Notification list
+            VBox listBox = new VBox(0);
+            ScrollPane scroll = new ScrollPane(listBox);
+            scroll.setFitToWidth(true);
+            scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+            scroll.setPrefHeight(350);
+
+            if (notifications.isEmpty()) {
+                Label emptyLbl = new Label("No new notifications");
+                emptyLbl.setStyle("-fx-text-fill: " + ThemeManager.textSec() + "; -fx-font-size: 14px; -fx-padding: 30;");
+                emptyLbl.setAlignment(Pos.CENTER);
+                emptyLbl.setMaxWidth(Double.MAX_VALUE);
+                listBox.getChildren().add(emptyLbl);
+            } else {
+                for (String[] notif : notifications) {
+                    // notif: [id, senderName, postId, commentId, message, createdAt]
+                    HBox row = new HBox(10);
+                    row.setAlignment(Pos.CENTER_LEFT);
+                    row.setStyle("-fx-padding: 12 20; -fx-border-color: " + ThemeManager.border() + "; -fx-border-width: 0 0 1 0; -fx-cursor: hand;");
+
+                    Label icon = new Label("@");
+                    icon.setStyle("-fx-background-color: #456990; -fx-text-fill: white; -fx-font-weight: bold; " +
+                            "-fx-min-width: 32; -fx-min-height: 32; -fx-max-width: 32; -fx-max-height: 32; " +
+                            "-fx-background-radius: 16; -fx-alignment: center; -fx-font-size: 14px;");
+
+                    VBox textCol = new VBox(2);
+                    HBox.setHgrow(textCol, Priority.ALWAYS);
+
+                    Label msgLbl = new Label(notif[4]);
+                    msgLbl.setStyle("-fx-text-fill: " + ThemeManager.text() + "; -fx-font-size: 13px;");
+                    msgLbl.setWrapText(true);
+
+                    Label timeLbl = new Label(notif[5]);
+                    timeLbl.setStyle("-fx-text-fill: " + ThemeManager.textSec() + "; -fx-font-size: 11px;");
+
+                    textCol.getChildren().addAll(msgLbl, timeLbl);
+                    row.getChildren().addAll(icon, textCol);
+
+                    // Click to open the post and mark as read
+                    final String notifId = notif[0];
+                    final String postId = notif[2];
+                    row.setOnMouseClicked(e -> {
+                        try {
+                            forumService.markNotificationRead(notifId);
+                            updateNotificationBadge();
+                            dialog.close();
+                            ForumPost post = forumService.getPostById(postId);
+                            if (post != null) {
+                                showPostDetails(post);
+                            }
+                        } catch (SQLException ex) {
+                            showError("Failed: " + ex.getMessage());
+                        }
+                    });
+
+                    // Hover effect
+                    String hoverBg = ThemeManager.isDark() ? "#1a1d23" : "#f0f2f5";
+                    row.setOnMouseEntered(e -> row.setStyle("-fx-padding: 12 20; -fx-border-color: " + ThemeManager.border() +
+                            "; -fx-border-width: 0 0 1 0; -fx-cursor: hand; -fx-background-color: " + hoverBg + ";"));
+                    row.setOnMouseExited(e -> row.setStyle("-fx-padding: 12 20; -fx-border-color: " + ThemeManager.border() +
+                            "; -fx-border-width: 0 0 1 0; -fx-cursor: hand;"));
+
+                    listBox.getChildren().add(row);
+                }
+            }
+
+            root.getChildren().add(scroll);
+
+            Scene scene = new Scene(root);
+            scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+            dialog.setScene(scene);
+            ThemeManager.registerScene(scene);
+            dialog.showAndWait();
+
+        } catch (SQLException e) {
+            showError("Failed to load notifications: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Process @mentions in text and create notifications for mentioned users.
+     * @param text the text containing @mentions
+     * @param postId the post ID where the mention occurred
+     * @param commentId the comment ID (null if mention is in a post, not a comment)
+     */
+    private void processMentionNotifications(String text, String postId, String commentId) {
+        if (text == null || !MentionParser.hasMentions(text)) return;
+
+        List<String> mentionedNames = MentionParser.extractMentions(text);
+        for (String name : mentionedNames) {
+            try {
+                String mentionedUserId = forumService.findUserIdByName(name);
+                if (mentionedUserId != null && !mentionedUserId.equals(currentUserId)) {
+                    String context = commentId != null ? "a comment" : "a post";
+                    String message = currentUserName + " tagged you in " + context;
+                    forumService.createMentionNotification(mentionedUserId, currentUserId, postId, commentId, message);
+                }
+            } catch (SQLException e) {
+                System.out.println("Note: Could not create mention notification for @" + name + ": " + e.getMessage());
+            }
+        }
+    }
+
 
     private void setupDynamicSearch() {
         // Add listener for dynamic search as user types
@@ -194,6 +489,7 @@ public class ForumController implements Initializable {
             String initials = getInitials(currentUserName);
             userAvatarLabel.setText(initials);
             composeAvatarLabel.setText(initials);
+            updateNotificationBadge();
         }
     }
 
@@ -297,10 +593,15 @@ public class ForumController implements Initializable {
                 return;
             }
             
-            forumService.addPost(post);
+            String newPostId = forumService.addPost(post);
+            // Process @mention notifications
+            if (newPostId != null) {
+                processMentionNotifications(content, newPostId, null);
+            }
             composeTextArea.clear();
             pendingImages.clear();
             loadPosts();
+            updateNotificationBadge();
             showSuccess("Post published!");
         } catch (SQLException e) {
             showError("Failed to post: " + e.getMessage());
@@ -319,6 +620,13 @@ public class ForumController implements Initializable {
                     posts = forumService.getPostsCommentedByUser(currentUserId);
                     List<ForumPost> votedPosts = forumService.getPostsVotedByUser(currentUserId);
                     for (ForumPost p : votedPosts) {
+                        if (posts.stream().noneMatch(post -> post.getId().equals(p.getId()))) {
+                            posts.add(p);
+                        }
+                    }
+                    // Include posts where user was @mentioned
+                    List<ForumPost> mentionedPosts = forumService.getPostsWhereMentioned(currentUserId);
+                    for (ForumPost p : mentionedPosts) {
                         if (posts.stream().noneMatch(post -> post.getId().equals(p.getId()))) {
                             posts.add(p);
                         }
@@ -368,6 +676,14 @@ public class ForumController implements Initializable {
     private VBox createPostCard(ForumPost post) {
         VBox card = new VBox(10);
         card.getStyleClass().add("post-card");
+        
+        String normalBg = ThemeManager.bg();
+        String hoverBg = ThemeManager.isDark() ? "#141720" : "#f0f2f5";
+        String borderColor = ThemeManager.border();
+        String baseStyle = "-fx-padding: 18 25; -fx-border-color: " + borderColor + "; -fx-border-width: 0 0 1 0; -fx-cursor: hand;";
+        card.setStyle("-fx-background-color: " + normalBg + "; " + baseStyle);
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: " + hoverBg + "; " + baseStyle));
+        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + normalBg + "; " + baseStyle));
         
         // Main content row
         HBox mainRow = new HBox(12);
@@ -553,7 +869,7 @@ public class ForumController implements Initializable {
 
                     Label origText = new Label(textToSummarize.length() > 150 ? 
                             textToSummarize.substring(0, 150) + "..." : textToSummarize);
-                    origText.setStyle("-fx-text-fill: #a0a0a0; -fx-font-size: 12px;");
+                    origText.setStyle("-fx-text-fill: " + ThemeManager.textSec() + "; -fx-font-size: 12px;");
                     origText.setWrapText(true);
                     origText.setMaxWidth(480);
 
@@ -663,7 +979,7 @@ public class ForumController implements Initializable {
             
             // Add image count indicator
             Label countLabel = new Label(imagePaths.size() + " images");
-            countLabel.setStyle("-fx-text-fill: #71767b; -fx-font-size: 12px; -fx-padding: 5 0 0 0;");
+            countLabel.setStyle("-fx-text-fill: " + ThemeManager.textSec() + "; -fx-font-size: 12px; -fx-padding: 5 0 0 0;");
             
             VBox wrapper = new VBox(5);
             wrapper.getChildren().addAll(scrollPane, countLabel);
@@ -797,15 +1113,20 @@ public class ForumController implements Initializable {
         shareBtn.getStyleClass().addAll("icon-btn", "icon-btn-comment");
         shareBtn.setTooltip(new Tooltip("Share post"));
         
-        String postUrl = "https://investi-forum.app/post/" + post.getId();
-        String postTitle = post.getTitle() != null ? post.getTitle() : "Check out this post";
+        String shareTitle = post.getTitle() != null ? post.getTitle() : "";
+        String shareContent = post.getContent() != null ? post.getContent() : "";
+        String shareText = (shareTitle.isEmpty() ? "" : shareTitle + "\n\n") + shareContent + "\n\n— Shared from INVESTI Forum";
         
         MenuItem shareFacebook = new MenuItem("\uD83D\uDCD8  Facebook");
         shareFacebook.setOnAction(e -> {
             try {
-                String url = "https://www.facebook.com/sharer/sharer.php?u=" + URLEncoder.encode(postUrl, "UTF-8")
-                        + "&quote=" + URLEncoder.encode(postTitle, "UTF-8");
-                java.awt.Desktop.getDesktop().browse(new URI(url));
+                // Facebook doesn't support pre-filled text via URL, so we copy to clipboard and open Facebook
+                javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+                javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
+                cc.putString(shareText);
+                clipboard.setContent(cc);
+                java.awt.Desktop.getDesktop().browse(new URI("https://www.facebook.com/"));
+                showSuccess("Post content copied! Paste it on Facebook.");
             } catch (Exception ex) {
                 showError("Could not open browser: " + ex.getMessage());
             }
@@ -814,8 +1135,8 @@ public class ForumController implements Initializable {
         MenuItem shareX = new MenuItem("\uD835\uDD4F  X (Twitter)");
         shareX.setOnAction(e -> {
             try {
-                String url = "https://twitter.com/intent/tweet?url=" + URLEncoder.encode(postUrl, "UTF-8")
-                        + "&text=" + URLEncoder.encode(postTitle + " — via INVESTI Forum", "UTF-8");
+                String tweetText = shareText.length() > 280 ? shareText.substring(0, 277) + "..." : shareText;
+                String url = "https://twitter.com/intent/tweet?text=" + URLEncoder.encode(tweetText, "UTF-8");
                 java.awt.Desktop.getDesktop().browse(new URI(url));
             } catch (Exception ex) {
                 showError("Could not open browser: " + ex.getMessage());
@@ -825,14 +1146,28 @@ public class ForumController implements Initializable {
         MenuItem shareLinkedIn = new MenuItem("\uD83D\uDCBC  LinkedIn");
         shareLinkedIn.setOnAction(e -> {
             try {
-                String url = "https://www.linkedin.com/sharing/share-offsite/?url=" + URLEncoder.encode(postUrl, "UTF-8");
-                java.awt.Desktop.getDesktop().browse(new URI(url));
+                // LinkedIn doesn't support pre-filled text via URL, so we copy to clipboard and open LinkedIn share
+                javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+                javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
+                cc.putString(shareText);
+                clipboard.setContent(cc);
+                java.awt.Desktop.getDesktop().browse(new URI("https://www.linkedin.com/feed/"));
+                showSuccess("Post content copied! Paste it on LinkedIn.");
             } catch (Exception ex) {
                 showError("Could not open browser: " + ex.getMessage());
             }
         });
         
-        shareBtn.getItems().addAll(shareFacebook, shareX, shareLinkedIn);
+        MenuItem copyText = new MenuItem("\uD83D\uDCCB  Copy Text");
+        copyText.setOnAction(e -> {
+            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
+            cc.putString(shareText);
+            clipboard.setContent(cc);
+            showSuccess("Post content copied to clipboard!");
+        });
+        
+        shareBtn.getItems().addAll(shareFacebook, shareX, shareLinkedIn, copyText);
         
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -1123,9 +1458,15 @@ public class ForumController implements Initializable {
                     return;
                 }
                 
-                forumService.addPost(newPost);
+                String newPostId = forumService.addPost(newPost);
+                // Process @mention notifications
+                if (newPostId != null) {
+                    String fullText = (title.isEmpty() ? "" : title + " ") + postContent;
+                    processMentionNotifications(fullText, newPostId, null);
+                }
                 dialog.close();
                 loadPosts();
+                updateNotificationBadge();
                 showSuccess("Post published!");
             } catch (SQLException ex) {
                 showError("Failed to create post: " + ex.getMessage());
@@ -1263,7 +1604,7 @@ public class ForumController implements Initializable {
         backBtn.setOnAction(e -> dialog.close());
         
         Label titleLbl = new Label("Post");
-        titleLbl.setStyle("-fx-text-fill: #e7e9ea; -fx-font-size: 18px; -fx-font-weight: bold; -fx-padding: 0 0 0 20;");
+        titleLbl.setStyle("-fx-text-fill: " + ThemeManager.text() + "; -fx-font-size: 18px; -fx-font-weight: bold; -fx-padding: 0 0 0 20;");
         
         header.getChildren().addAll(backBtn, titleLbl);
         root.setTop(header);
@@ -1272,6 +1613,7 @@ public class ForumController implements Initializable {
         ScrollPane scroll = new ScrollPane();
         scroll.setFitToWidth(true);
         scroll.getStyleClass().add("feed-scroll");
+        scroll.setStyle("-fx-background: " + ThemeManager.bg() + "; -fx-background-color: " + ThemeManager.bg() + ";");
         
         // Build content and set it
         scroll.setContent(buildPostDetailsContent(post, dialog, scroll));
@@ -1390,7 +1732,10 @@ public class ForumController implements Initializable {
             
             ForumComment comment = new ForumComment(post.getId(), currentUserId, commentArea.getText().trim());
             try {
-                forumService.addComment(comment);
+                String commentId = forumService.addComment(comment);
+                // Process @mention notifications in comment
+                processMentionNotifications(commentArea.getText().trim(), post.getId(), commentId);
+                updateNotificationBadge();
                 refreshPostDetails(post, dialog, scroll);
             } catch (SQLException ex) {
                 showError("Failed to reply: " + ex.getMessage());
@@ -1575,7 +1920,10 @@ public class ForumController implements Initializable {
             reply.setParentCommentId(parent.getId());
             
             try {
-                forumService.addComment(reply);
+                String replyId = forumService.addComment(reply);
+                // Process @mention notifications in reply
+                processMentionNotifications(replyArea.getText().trim(), post.getId(), replyId);
+                updateNotificationBadge();
                 dialog.close();
                 refreshPostDetails(post, parentDialog, parentScroll);
             } catch (SQLException ex) {

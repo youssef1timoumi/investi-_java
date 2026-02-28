@@ -492,10 +492,225 @@ public class ForumPostServiceTest {
         }
     }
 
-    // ========== DELETE TESTS (Run Last) ==========
+    // ========== BOOKMARK TESTS ==========
 
     @Test
     @Order(21)
+    @DisplayName("Test Add Bookmark")
+    public void testAddBookmark() {
+        try {
+            // Should not be bookmarked initially
+            assertFalse(forumService.isBookmarked(testPostId, TEST_USER_ID), "Post should not be bookmarked initially");
+
+            forumService.addBookmark(testPostId, TEST_USER_ID);
+            System.out.println("[DEBUG_LOG] Added bookmark for post: " + testPostId);
+
+            assertTrue(forumService.isBookmarked(testPostId, TEST_USER_ID), "Post should be bookmarked after adding");
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(22)
+    @DisplayName("Test Get Bookmarked Posts")
+    public void testGetBookmarkedPosts() {
+        try {
+            List<ForumPost> bookmarked = forumService.getBookmarkedPosts(TEST_USER_ID);
+            System.out.println("[DEBUG_LOG] Bookmarked posts: " + bookmarked.size());
+
+            assertNotNull(bookmarked, "Bookmarked list should not be null");
+            boolean found = bookmarked.stream().anyMatch(p -> p.getId().equals(testPostId));
+            assertTrue(found, "Test post should be in bookmarked list");
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(23)
+    @DisplayName("Test Toggle Bookmark Off")
+    public void testToggleBookmarkOff() {
+        try {
+            // Post is currently bookmarked from previous test
+            assertTrue(forumService.isBookmarked(testPostId, TEST_USER_ID));
+
+            forumService.toggleBookmark(testPostId, TEST_USER_ID);
+            System.out.println("[DEBUG_LOG] Toggled bookmark off for post: " + testPostId);
+
+            assertFalse(forumService.isBookmarked(testPostId, TEST_USER_ID), "Post should not be bookmarked after toggle off");
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(24)
+    @DisplayName("Test Toggle Bookmark On")
+    public void testToggleBookmarkOn() {
+        try {
+            // Post is currently NOT bookmarked
+            assertFalse(forumService.isBookmarked(testPostId, TEST_USER_ID));
+
+            forumService.toggleBookmark(testPostId, TEST_USER_ID);
+            System.out.println("[DEBUG_LOG] Toggled bookmark on for post: " + testPostId);
+
+            assertTrue(forumService.isBookmarked(testPostId, TEST_USER_ID), "Post should be bookmarked after toggle on");
+
+            // Clean up bookmark for next tests
+            forumService.removeBookmark(testPostId, TEST_USER_ID);
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(25)
+    @DisplayName("Test Remove Bookmark")
+    public void testRemoveBookmark() {
+        try {
+            forumService.addBookmark(testPostId, TEST_USER_ID);
+            assertTrue(forumService.isBookmarked(testPostId, TEST_USER_ID));
+
+            forumService.removeBookmark(testPostId, TEST_USER_ID);
+            System.out.println("[DEBUG_LOG] Removed bookmark for post: " + testPostId);
+
+            assertFalse(forumService.isBookmarked(testPostId, TEST_USER_ID), "Post should not be bookmarked after removal");
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    // ========== NOTIFICATION TESTS ==========
+
+    @Test
+    @Order(26)
+    @DisplayName("Test Unread Notification Count Initially Zero")
+    public void testUnreadNotificationCountZero() {
+        try {
+            // Mark all existing notifications as read first
+            forumService.markAllNotificationsRead(TEST_USER_ID);
+
+            int count = forumService.getUnreadNotificationCount(TEST_USER_ID);
+            System.out.println("[DEBUG_LOG] Unread notification count: " + count);
+
+            assertEquals(0, count, "Unread count should be 0 after marking all read");
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(27)
+    @DisplayName("Test Create Mention Notification")
+    public void testCreateMentionNotification() {
+        try {
+            // Get a real user to use as sender (different from recipient)
+            List<String[]> users = forumService.getAllUsers();
+            if (users.size() < 2) {
+                System.out.println("[DEBUG_LOG] Skipping: need at least 2 users for notification test");
+                return;
+            }
+            String senderId = users.get(0)[0];
+            String recipientId = users.get(1)[0];
+
+            // Mark all read first
+            forumService.markAllNotificationsRead(recipientId);
+
+            forumService.createMentionNotification(recipientId, senderId, testPostId, null, "Test user tagged you in a post");
+            System.out.println("[DEBUG_LOG] Created mention notification");
+
+            int count = forumService.getUnreadNotificationCount(recipientId);
+            assertTrue(count >= 1, "Should have at least 1 unread notification");
+
+            System.out.println("[DEBUG_LOG] Verified: Notification created, unread count = " + count);
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(28)
+    @DisplayName("Test Get Unread Notifications")
+    public void testGetUnreadNotifications() {
+        try {
+            List<String[]> users = forumService.getAllUsers();
+            if (users.size() < 2) return;
+            String recipientId = users.get(1)[0];
+
+            List<String[]> notifications = forumService.getUnreadNotifications(recipientId);
+            System.out.println("[DEBUG_LOG] Unread notifications: " + notifications.size());
+
+            assertNotNull(notifications, "Notifications list should not be null");
+            assertFalse(notifications.isEmpty(), "Should have at least one unread notification");
+
+            // Each notification should have 6 fields
+            String[] notif = notifications.get(0);
+            assertEquals(6, notif.length, "Notification should have 6 fields");
+            assertNotNull(notif[0], "Notification ID should not be null");
+            assertNotNull(notif[4], "Notification message should not be null");
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(29)
+    @DisplayName("Test Mark All Notifications Read")
+    public void testMarkAllNotificationsRead() {
+        try {
+            List<String[]> users = forumService.getAllUsers();
+            if (users.size() < 2) return;
+            String recipientId = users.get(1)[0];
+
+            forumService.markAllNotificationsRead(recipientId);
+            System.out.println("[DEBUG_LOG] Marked all notifications as read");
+
+            int count = forumService.getUnreadNotificationCount(recipientId);
+            assertEquals(0, count, "Unread count should be 0 after marking all read");
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(30)
+    @DisplayName("Test Find User ID By Name")
+    public void testFindUserIdByName() {
+        try {
+            List<String[]> users = forumService.getAllUsers();
+            if (users.isEmpty()) return;
+
+            String expectedId = users.get(0)[0];
+            String name = users.get(0)[1];
+
+            String foundId = forumService.findUserIdByName(name);
+            System.out.println("[DEBUG_LOG] Found user ID for '" + name + "': " + foundId);
+
+            assertEquals(expectedId, foundId, "Found user ID should match expected");
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(31)
+    @DisplayName("Test Find User ID By Name - Not Found")
+    public void testFindUserIdByNameNotFound() {
+        try {
+            String foundId = forumService.findUserIdByName("NonExistentUser12345");
+            System.out.println("[DEBUG_LOG] Found user ID for nonexistent user: " + foundId);
+
+            assertNull(foundId, "Should return null for nonexistent user");
+        } catch (SQLException e) {
+            fail("Should not throw SQLException: " + e.getMessage());
+        }
+    }
+
+    // ========== DELETE TESTS (Run Last) ==========
+
+    @Test
+    @Order(40)
     @DisplayName("Test Delete Comment (Soft Delete)")
     public void testDeleteComment() {
         try {
@@ -514,7 +729,7 @@ public class ForumPostServiceTest {
     }
 
     @Test
-    @Order(22)
+    @Order(41)
     @DisplayName("Test Delete Post (Soft Delete)")
     public void testDeletePost() {
         try {
