@@ -141,6 +141,17 @@
                     <VBox.margin><javafx.geometry.Insets top="30" bottom="30" /></VBox.margin>
                     <HBox fx:id="categoryContainer" styleClass="category-container" spacing="15" />
                     <Region HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnCompare" onAction="#handleCompareAction" styleClass="primary-btn" style="-fx-background-color: #10b981;" text="Compare (0/2)" visible="false" managed="false">
+                        <graphic>
+                            <FontIcon iconLiteral="fth-layers" styleClass="nav-icon" />
+                        </graphic>
+                    </Button>
+                    <Button fx:id="aiSearchBtn" onAction="#handleAiSearch" styleClass="secondary-btn" style="-fx-text-fill: #a855f7;">
+                        <graphic>
+                            <FontIcon iconLiteral="fth-zap" styleClass="nav-icon" />
+                        </graphic>
+                        <tooltip><Tooltip text="AI Semantic Search (Description)" /></tooltip>
+                    </Button>
                     <Button onAction="#handleImageSearch" styleClass="secondary-btn">
                         <graphic>
                             <FontIcon iconLiteral="fth-image" styleClass="nav-icon" />

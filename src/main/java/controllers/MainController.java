@@ -80,10 +80,14 @@ public class MainController implements Initializable {
     private VBox orderHistoryPage, ordersContainer;
 
     private List<Product> allProducts = new ArrayList<>();
+    private List<Product> selectedProducts = new ArrayList<>();
     private List<Sale> allSales = new ArrayList<>();
     private String activeCategory = "All";
     private String activeSaleStatus = "All";
     private String activeTab = "products";
+
+    @FXML
+    private Button btnCompare;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -356,6 +360,310 @@ public class MainController implements Initializable {
         }
     }
 
+    @FXML
+    private void handleAiSearch() {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Assistant de Recherche IA");
+
+        // Custom Header with Gradient
+        VBox header = new VBox(10);
+        header.setStyle("-fx-background-color: linear-gradient(to right, #6366f1, #a855f7); -fx-padding: 20;");
+        Label headerTitle = new Label("✨ Recherche Sémantique");
+        headerTitle.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+        Label headerSub = new Label("Décrivez ce que vous cherchez, l'IA s'occupe du reste.");
+        headerSub.setStyle("-fx-text-fill: rgba(255,255,255,0.8); -fx-font-size: 12px;");
+        header.getChildren().addAll(headerTitle, headerSub);
+
+        // Content Area
+        VBox content = new VBox(15);
+        content.setStyle("-fx-padding: 25; -fx-background-color: white;");
+
+        TextArea textArea = new TextArea();
+        textArea.setPromptText("Exemple: Je cherche un cadeau pour un gamer passionné de rétro...");
+        textArea.setWrapText(true);
+        textArea.setPrefRowCount(3);
+        textArea.setStyle(
+                "-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #e0e0e0; -fx-font-size: 14px;");
+
+        content.getChildren().addAll(new Label("Votre description :"), textArea);
+
+        dialog.getDialogPane().setHeader(header);
+        dialog.getDialogPane().setContent(content);
+
+        ButtonType searchBtnType = new ButtonType("Lancer la recherche", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(searchBtnType, ButtonType.CANCEL);
+
+        Button searchBtn = (Button) dialog.getDialogPane().lookupButton(searchBtnType);
+        searchBtn.setStyle(
+                "-fx-background-color: linear-gradient(to right, #6366f1, #a855f7); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 20; -fx-background-radius: 6;");
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == searchBtnType)
+                return textArea.getText();
+            return null;
+        });
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(requirement -> {
+            if (requirement.trim().isEmpty())
+                return;
+
+            System.out.println("LOG: AI Search for: " + requirement);
+
+            navyApiService.searchProductsByText(requirement, allProducts)
+                    .thenAccept(matchingIds -> {
+                        Platform.runLater(() -> {
+                            if (matchingIds.isEmpty()) {
+                                showAlert(Alert.AlertType.INFORMATION, "Aucun Résultat",
+                                        "L'IA n'a trouvé aucun produit correspondant à votre description.");
+                                return;
+                            }
+                            renderFilteredProducts(matchingIds);
+                        });
+                    })
+                    .exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
+        });
+    }
+
+    private void toggleProductSelection(Product p, FontIcon icon) {
+        if (selectedProducts.contains(p)) {
+            selectedProducts.remove(p);
+            icon.setIconLiteral("fth-square");
+        } else {
+            if (selectedProducts.size() >= 2) {
+                showAlert(Alert.AlertType.WARNING, "Maximum atteint",
+                        "Vous ne pouvez comparer que deux produits à la fois.");
+                return;
+            }
+            selectedProducts.add(p);
+            icon.setIconLiteral("fth-check-square");
+        }
+        updateCompareButton();
+    }
+
+    private void updateCompareButton() {
+        if (btnCompare != null) {
+            int count = selectedProducts.size();
+            btnCompare.setText("Compare (" + count + "/2)");
+            btnCompare.setVisible(count > 0);
+            btnCompare.setManaged(count > 0);
+
+            // Highlight if exactly 2
+            if (count == 2) {
+                btnCompare.setStyle("-fx-background-color: linear-gradient(to right, #6366f1, #a855f7);");
+            } else {
+                btnCompare.setStyle("-fx-background-color: #10b981;");
+            }
+        }
+    }
+
+    @FXML
+    private void handleCompareAction() {
+        if (selectedProducts.size() < 2) {
+            showAlert(Alert.AlertType.INFORMATION, "Action Requise",
+                    "Veuillez sélectionner deux produits pour lancer la comparaison.");
+            return;
+        }
+
+        showComparisonOverlay(selectedProducts.get(0), selectedProducts.get(1));
+    }
+
+    private void showComparisonOverlay(Product p1, Product p2) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Comparaison & Assistant IA");
+        dialog.getDialogPane().setPrefSize(1000, 800);
+
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color: #f8fafc;");
+
+        // Header
+        HBox header = new HBox(15);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setStyle("-fx-background-color: linear-gradient(to right, #6366f1, #a855f7); -fx-padding: 20;");
+        Label headerTitle = new Label("✨ Assistant Comparatif IA");
+        headerTitle.setStyle("-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Button closeBtn = new Button("Fermer");
+        closeBtn.setStyle(
+                "-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 8 15;");
+        closeBtn.setOnAction(e -> dialog.close());
+        header.getChildren().addAll(headerTitle, spacer, closeBtn);
+
+        // Add hidden button type to allow closing
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+        javafx.scene.Node cancelBtn = dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
+        cancelBtn.setVisible(false);
+        cancelBtn.setManaged(false);
+
+        // Content Split: Comparison (Left) | Chatbot (Right)
+        HBox mainContent = new HBox(0);
+        VBox.setVgrow(mainContent, Priority.ALWAYS);
+
+        // Left Side: Products and Analysis
+        VBox leftSide = new VBox(20);
+        leftSide.setPrefWidth(550);
+        leftSide.setStyle("-fx-padding: 25; -fx-background-color: white;");
+
+        HBox productsBox = new HBox(20);
+        productsBox.setAlignment(Pos.CENTER);
+        productsBox.getChildren().addAll(createSimpleProductView(p1), new Label("VS"), createSimpleProductView(p2));
+        ((Label) productsBox.getChildren().get(1))
+                .setStyle("-fx-font-weight: bold; -fx-font-size: 24px; -fx-text-fill: #cbd5e1;");
+
+        VBox analysisBox = new VBox(10);
+        analysisBox.setStyle("-fx-padding: 20; -fx-background-color: #f1f5f9; -fx-background-radius: 12;");
+        Label analysisTitle = new Label("🔍 Analyse de l'Expert IA");
+        analysisTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #1e293b;");
+
+        ScrollPane scrollAnalysis = new ScrollPane();
+        scrollAnalysis.setFitToWidth(true);
+        scrollAnalysis.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        Label analysisContent = new Label("Analyse en cours...");
+        analysisContent.setWrapText(true);
+        analysisContent.setStyle("-fx-font-size: 14px; -fx-text-fill: #334155; -fx-line-spacing: 5;");
+        scrollAnalysis.setContent(analysisContent);
+
+        analysisBox.getChildren().addAll(analysisTitle, scrollAnalysis);
+        leftSide.getChildren().addAll(productsBox, analysisBox);
+
+        // Right Side: Chatbot
+        VBox rightSide = new VBox(0);
+        HBox.setHgrow(rightSide, Priority.ALWAYS);
+        rightSide.setStyle("-fx-background-color: #f8fafc; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 0 1;");
+
+        Label chatHeader = new Label("💬 Chatbot Produits");
+        chatHeader.setStyle(
+                "-fx-padding: 15; -fx-font-weight: bold; -fx-background-color: white; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;");
+        chatHeader.setMaxWidth(Double.MAX_VALUE);
+
+        VBox messageContainer = new VBox(15);
+        messageContainer.setStyle("-fx-padding: 20;");
+        ScrollPane chatScroll = new ScrollPane(messageContainer);
+        chatScroll.setFitToWidth(true);
+        VBox.setVgrow(chatScroll, Priority.ALWAYS);
+        chatScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        // Auto-scroll logic
+        messageContainer.heightProperty().addListener((obs, oldVal, newVal) -> chatScroll.setVvalue(1.0));
+
+        HBox inputZone = new HBox(10);
+        inputZone.setStyle(
+                "-fx-padding: 15; -fx-background-color: white; -fx-border-color: #e2e8f0; -fx-border-width: 1 0 0 0;");
+        TextField chatInput = new TextField();
+        chatInput.setPromptText("Posez une question...");
+        HBox.setHgrow(chatInput, Priority.ALWAYS);
+        chatInput.setStyle("-fx-background-radius: 20; -fx-padding: 10 15;");
+
+        Button sendBtn = new Button();
+        sendBtn.setGraphic(new FontIcon("fth-send"));
+        sendBtn.setStyle(
+                "-fx-background-color: #6366f1; -fx-text-fill: white; -fx-background-radius: 50%; -fx-min-width: 40; -fx-min-height: 40;");
+        inputZone.getChildren().addAll(chatInput, sendBtn);
+
+        rightSide.getChildren().addAll(chatHeader, chatScroll, inputZone);
+        mainContent.getChildren().addAll(leftSide, rightSide);
+
+        root.getChildren().addAll(header, mainContent);
+        dialog.getDialogPane().setContent(root);
+
+        // Actions
+        navyApiService.compareProducts(p1, p2).thenAccept(res -> {
+            Platform.runLater(() -> analysisContent.setText(cleanAiText(res)));
+        });
+
+        addChatMessage(messageContainer, "IA",
+                "Bonjour ! Je suis prêt à répondre à vos questions sur ces deux produits.");
+
+        Runnable sendAction = () -> {
+            String text = chatInput.getText().trim();
+            if (text.isEmpty())
+                return;
+
+            addChatMessage(messageContainer, "Vous", text);
+            chatInput.clear();
+
+            navyApiService.chatAboutProducts(p1, p2, text).thenAccept(reply -> {
+                Platform.runLater(() -> addChatMessage(messageContainer, "IA", cleanAiText(reply)));
+            });
+        };
+
+        sendBtn.setOnAction(e -> sendAction.run());
+        chatInput.setOnAction(e -> sendAction.run());
+
+        dialog.show();
+    }
+
+    private void addChatMessage(VBox container, String sender, String message) {
+        Platform.runLater(() -> {
+            VBox bubbleBox = new VBox(5);
+            bubbleBox.setAlignment(sender.equals("Vous") ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+            Label label = new Label(message);
+            label.setWrapText(true);
+            label.setMaxWidth(300);
+
+            if (sender.equals("Vous")) {
+                label.setStyle(
+                        "-fx-background-color: #6366f1; -fx-text-fill: white; -fx-padding: 10 15; -fx-background-radius: 15 15 2 15;");
+            } else {
+                label.setStyle(
+                        "-fx-background-color: #e2e8f0; -fx-text-fill: #1e293b; -fx-padding: 10 15; -fx-background-radius: 15 15 15 2;");
+            }
+
+            bubbleBox.getChildren().add(label);
+            container.getChildren().add(bubbleBox);
+        });
+    }
+
+    private String cleanAiText(String text) {
+        if (text == null)
+            return "";
+        return text.replace("**", "").replace("*", "").replace("###", "").trim();
+    }
+
+    private VBox createSimpleProductView(Product p) {
+        VBox box = new VBox(10);
+        box.setAlignment(Pos.CENTER);
+        box.setStyle(
+                "-fx-padding: 15; -fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius: 12;");
+        box.setPrefWidth(220);
+
+        ImageView iv = new ImageView();
+        try {
+            iv.setImage(new Image(p.getImage(), true));
+        } catch (Exception e) {
+            iv.setImage(new Image("https://via.placeholder.com/100", true));
+        }
+        iv.setFitWidth(100);
+        iv.setFitHeight(100);
+        iv.setPreserveRatio(true);
+
+        Label name = new Label(p.getName());
+        name.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        name.setWrapText(true);
+        name.setAlignment(Pos.CENTER);
+
+        Label price = new Label(p.getCurrency() + " " + p.getPrice());
+        price.setStyle("-fx-text-fill: #6366f1; -fx-font-weight: bold;");
+
+        box.getChildren().addAll(iv, name, price);
+        return box;
+    }
+
+    private void renderFilteredProducts(List<Long> matchingIds) {
+        productGrid.getChildren().clear();
+        for (Product p : allProducts) {
+            if (matchingIds.contains((long) p.getId())) {
+                VBox card = createProductCard(p);
+                productGrid.getChildren().add(card);
+            }
+        }
+    }
+
     private void renderProducts() {
         productGrid.getChildren().clear();
         List<Product> filtered = allProducts.stream()
@@ -395,7 +703,22 @@ public class MainController implements Initializable {
         iv.setPreserveRatio(true);
         iv.setEffect(new DropShadow(15, Color.rgb(0, 0, 0, 0.2)));
 
-        imgContainer.getChildren().addAll(iv);
+        imgContainer.getChildren().add(iv);
+
+        // Selection Marker (for comparison)
+        FontIcon selectIcon = new FontIcon(selectedProducts.contains(p) ? "fth-check-square" : "fth-square");
+        selectIcon.getStyleClass().add("selection-marker");
+        selectIcon.setStyle("-fx-icon-color: #a855f7; -fx-icon-size: 20;");
+        StackPane.setAlignment(selectIcon, Pos.TOP_RIGHT);
+        StackPane.setMargin(selectIcon, new javafx.geometry.Insets(10));
+
+        selectIcon.setCursor(javafx.scene.Cursor.HAND);
+        selectIcon.setOnMouseClicked(e -> {
+            e.consume(); // Prevent card details from opening
+            toggleProductSelection(p, selectIcon);
+        });
+
+        imgContainer.getChildren().add(selectIcon);
 
         VBox content = new VBox(15);
         content.getStyleClass().add("card-content");

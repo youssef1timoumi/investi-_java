@@ -287,6 +287,67 @@ public class NavyApiService {
         });
     }
 
+    public CompletableFuture<List<Long>> searchProductsByText(String userRequirement, List<models.Product> catalog) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("model", "gpt-4.1-nano");
+                payload.put("response_format", new JSONObject().put("type", "json_object"));
+
+                JSONArray messages = new JSONArray();
+                JSONObject userMessage = new JSONObject();
+                userMessage.put("role", "user");
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(
+                        "You are a semantic product search engine. A user is looking for a product with this requirement: '")
+                        .append(userRequirement).append("'\n");
+                sb.append(
+                        "Analyze the provided catalog and return the IDs of the products that best satisfy the user's need.\n");
+                sb.append(
+                        "Return ONLY a JSON object: {\"matching_ids\": [1, 5, 8]}. If no products match, return an empty array.\n\n");
+                sb.append("Catalog:\n[\n");
+                for (models.Product p : catalog) {
+                    sb.append(String.format(
+                            "  {\"id\": %d, \"name\": \"%s\", \"category\": \"%s\", \"description\": \"%s\"},\n",
+                            p.getId(), p.getName().replace("\"", "\\\""),
+                            p.getCategoryName() != null ? p.getCategoryName() : "Unknown",
+                            p.getDescription() != null ? p.getDescription().replace("\"", "\\\"") : ""));
+                }
+                sb.append("]");
+
+                userMessage.put("content", sb.toString());
+                messages.put(userMessage);
+                payload.put("messages", messages);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_URL))
+                        .header("Authorization", "Bearer " + API_KEY)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 200) {
+                    JSONObject jsonResponse = new JSONObject(response.body());
+                    String content = jsonResponse.getJSONArray("choices").getJSONObject(0).getJSONObject("message")
+                            .getString("content").trim();
+                    JSONObject aiResult = new JSONObject(cleanJsonResponse(content));
+                    JSONArray array = aiResult.optJSONArray("matching_ids");
+                    List<Long> ids = new java.util.ArrayList<>();
+                    if (array != null) {
+                        for (int i = 0; i < array.length(); i++)
+                            ids.add(array.getLong(i));
+                    }
+                    return ids;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return new java.util.ArrayList<>();
+        });
+    }
+
     public CompletableFuture<List<Long>> searchProductsByImage(File imageFile, List<models.Product> catalog) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -377,6 +438,48 @@ public class NavyApiService {
                 throw new RuntimeException("Failed to perform semantic search: " + e.getMessage(), e);
             }
             return new java.util.ArrayList<>();
+        });
+    }
+
+    public CompletableFuture<String> compareProducts(models.Product p1, models.Product p2) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String prompt = String.format(
+                        "Compare ces deux produits de manière professionnelle en français.\n" +
+                                "Produit 1: %s (%s) - %s\n" +
+                                "Produit 2: %s (%s) - %s\n" +
+                                "Donne les points forts de chacun et une recommandation selon l'usage. " +
+                                "IMPORTANT: N'utilise JAMAIS d'étoiles (*) ou de symboles markdown. Utilise des tirets (-) simples pour les listes. "
+                                +
+                                "Formatte la réponse avec des sauts de ligne clairs.",
+                        p1.getName(), p1.getCategory() != null ? p1.getCategory() : "Inconnue", p1.getDescription(),
+                        p2.getName(), p2.getCategory() != null ? p2.getCategory() : "Inconnue", p2.getDescription());
+                return generateContent(prompt).get();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Erreur lors de la comparaison.";
+            }
+        });
+    }
+
+    public CompletableFuture<String> chatAboutProducts(models.Product p1, models.Product p2, String query) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String prompt = String.format(
+                        "Tu es un expert en produits. Réponds à la question suivante en te basant sur ces deux produits :\n"
+                                +
+                                "1. %s: %s\n" +
+                                "2. %s: %s\n\n" +
+                                "Question: %s\n\n" +
+                                "Réponds de manière concise et utile en français. N'utilise JAMAIS de symboles markdown comme les étoiles (**).",
+                        p1.getName(), p1.getDescription(),
+                        p2.getName(), p2.getDescription(),
+                        query);
+                return generateContent(prompt).get();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Erreur lors de la discussion.";
+            }
         });
     }
 
