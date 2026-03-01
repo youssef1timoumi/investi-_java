@@ -27,6 +27,8 @@
         
         <Label text="📚 Course Catalog" styleClass="page-title" HBox.hgrow="ALWAYS"/>
         
+        <Button fx:id="nightModeToggle" text="🌙 Night Mode" onAction="#toggleNightMode" styleClass="btn, btn-secondary"/>
+        <Button text="📚 My History" onAction="#handleViewHistory" styleClass="btn, btn-primary"/>
         <Button text="← Back" onAction="#handleBack" styleClass="btn, btn-dark"/>
     </HBox>
 

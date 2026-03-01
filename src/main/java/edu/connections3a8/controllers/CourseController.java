@@ -43,6 +43,7 @@ public class CourseController {
     @FXML private TextField languageField;
     @FXML private TextField durationField;
     @FXML private TextField rewardPointsField;
+    @FXML private TextField minimumPointsField;
     @FXML private TextField thumbnailField;
     @FXML private Label statusLabel;
     @FXML private VBox courseListContainer;
@@ -366,16 +367,23 @@ public class CourseController {
             try {
                 int durationValue = Integer.parseInt(duration.trim());
                 int rewardPointsValue = Integer.parseInt(rewardPoints.trim());
+                
+                String minimumPoints = minimumPointsField.getText();
+                int minimumPointsValue = 0;
+                if (minimumPoints != null && !minimumPoints.trim().isEmpty()) {
+                    minimumPointsValue = Integer.parseInt(minimumPoints.trim());
+                }
 
-                if (durationValue < 0 || rewardPointsValue < 0) {
-                    showError("Duration and Reward Points must be positive numbers!");
+                if (durationValue < 0 || rewardPointsValue < 0 || minimumPointsValue < 0) {
+                    showError("Duration, Reward Points, and Minimum Points must be positive numbers!");
                     return;
                 }
                 
                 course.setEstimatedDuration(durationValue);
                 course.setRewardPoints(rewardPointsValue);
+                course.setMinimumPointsRequired(minimumPointsValue);
             } catch (NumberFormatException e) {
-                showError("Duration and Reward Points must be valid numbers!");
+                showError("Duration, Reward Points, and Minimum Points must be valid numbers!");
                 return;
             }
             
@@ -432,6 +440,7 @@ public class CourseController {
         languageField.clear();
         durationField.clear();
         rewardPointsField.clear();
+        minimumPointsField.clear();
         thumbnailField.clear();
         statusLabel.setText("");
     }
@@ -730,6 +739,7 @@ public class CourseController {
         languageField.setText(course.getLanguage());
         durationField.setText(String.valueOf(course.getEstimatedDuration()));
         rewardPointsField.setText(String.valueOf(course.getRewardPoints()));
+        minimumPointsField.setText(String.valueOf(course.getMinimumPointsRequired()));
         thumbnailField.setText(course.getThumbnailUrl());
         
         statusLabel.setStyle("-fx-text-fill: #456990; -fx-font-size: 14px;");

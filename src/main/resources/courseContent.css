@@ -300,3 +300,148 @@
     -fx-border-width: 1px;
     -fx-border-radius: 4px;
 }
+
+
+/* ============================================================
+   DARK MODE STYLES
+   ============================================================ */
+
+.dark-mode .root-container {
+    -fx-background: linear-gradient(to bottom right, #12122A, #0A0A18, #100F22);
+}
+
+.dark-mode .root .label {
+    -fx-text-fill: #E8E8E8 !important;
+}
+
+.dark-mode .label {
+    -fx-text-fill: #E8E8E8 !important;
+}
+
+.dark-mode .text {
+    -fx-fill: #E8E8E8 !important;
+}
+
+.dark-mode .glass-header {
+    -fx-background-color: rgba(18, 18, 42, 0.95);
+    -fx-border-color: rgba(70, 70, 100, 0.6);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 30, 0, 0, 6);
+}
+
+.dark-mode .page-title {
+    -fx-text-fill: #F0F2FA;
+}
+
+.dark-mode .info-summary-box {
+    -fx-background-color: #161630;
+    -fx-border-color: rgba(70, 70, 100, 0.6);
+}
+
+.dark-mode .info-badge {
+    -fx-text-fill: #E8E8E8;
+    -fx-background-color: rgba(155, 126, 70, 0.2);
+}
+
+.dark-mode .content-section {
+    -fx-background-color: #161630;
+    -fx-border-color: rgba(70, 70, 100, 0.6);
+}
+
+.dark-mode .section-title {
+    -fx-text-fill: #F0F2FA;
+}
+
+.dark-mode .badge-count {
+    -fx-text-fill: #8D96A6;
+}
+
+.dark-mode .media-container {
+    -fx-background-color: #0A0A18;
+}
+
+.dark-mode .pdf-container {
+    -fx-background-color: #161630;
+    -fx-border-color: #DC3545;
+}
+
+.dark-mode .quiz-card {
+    -fx-background-color: #161630;
+    -fx-border-color: rgba(155, 126, 70, 0.6);
+}
+
+.dark-mode .quiz-card:hover {
+    -fx-border-color: #C8A84E;
+    -fx-effect: dropshadow(gaussian, rgba(200, 168, 78, 0.4), 28, 0, 0, 8);
+}
+
+.dark-mode .quiz-title {
+    -fx-text-fill: #F0F2FA;
+}
+
+.dark-mode .quiz-details {
+    -fx-text-fill: #8D96A6;
+}
+
+.dark-mode .btn-primary {
+    -fx-background-color: linear-gradient(to bottom, #5179A0, #3A5A7D, #2A4A6D);
+}
+
+.dark-mode .btn-primary:hover {
+    -fx-background-color: linear-gradient(to bottom, #6B93B8, #4A6A8D, #3A5A7D);
+}
+
+.dark-mode .btn-secondary {
+    -fx-background-color: linear-gradient(to bottom, #E4C45E, #C8A84E, #9B7E46);
+}
+
+.dark-mode .btn-secondary:hover {
+    -fx-background-color: linear-gradient(to bottom, #F0D46E, #D8B85E, #AB8E56);
+}
+
+.dark-mode .btn-dark {
+    -fx-background-color: linear-gradient(to bottom, #5E5E78, #4A4A5E, #3A3A4E);
+}
+
+.dark-mode .btn-dark:hover {
+    -fx-background-color: linear-gradient(to bottom, #6E6E88, #5A5A6E, #4A4A5E);
+}
+
+.dark-mode .styled-separator .line {
+    -fx-border-color: rgba(70, 70, 100, 0.6);
+}
+
+.dark-mode .separator .line {
+    -fx-border-color: rgba(70, 70, 100, 0.6);
+}
+
+.dark-mode .scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: rgba(70, 70, 100, 0.2);
+}
+
+.dark-mode .scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(155, 126, 70, 0.5);
+}
+
+.dark-mode .scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(155, 126, 70, 0.7);
+}
+
+.dark-mode .empty-state {
+    -fx-text-fill: #8D96A6;
+}
+
+.dark-mode .pdf-embed-container {
+    -fx-background-color: #161630;
+    -fx-border-color: rgba(70, 70, 100, 0.6);
+}
+
+
+/* Dark mode for ScrollPane */
+.dark-mode .scroll-pane {
+    -fx-background: #0A0A18;
+    -fx-background-color: #0A0A18;
+}
+
+.dark-mode .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}

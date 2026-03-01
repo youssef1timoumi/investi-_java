@@ -21,8 +21,8 @@ public class CouseService implements ICourse {
     public void addCourse(Course course) throws SQLException {
         String query = "INSERT INTO course (title, slug, description, content_url, content_type, " +
                 "difficulty_level, category, language, estimated_duration, reward_points, " +
-                "status, visibility, thumbnail_url, published_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                "minimum_points_required, status, visibility, thumbnail_url, published_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
         
         PreparedStatement pst = cnx.prepareStatement(query);
         pst.setString(1, course.getTitle());
@@ -35,9 +35,10 @@ public class CouseService implements ICourse {
         pst.setString(8, course.getLanguage());
         pst.setInt(9, course.getEstimatedDuration());
         pst.setInt(10, course.getRewardPoints());
-        pst.setString(11, course.getStatus() != null ? course.getStatus() : "published");
-        pst.setString(12, course.getVisibility() != null ? course.getVisibility() : "public");
-        pst.setString(13, course.getThumbnailUrl());
+        pst.setInt(11, course.getMinimumPointsRequired());
+        pst.setString(12, course.getStatus() != null ? course.getStatus() : "published");
+        pst.setString(13, course.getVisibility() != null ? course.getVisibility() : "public");
+        pst.setString(14, course.getThumbnailUrl());
         
         pst.executeUpdate();
     }
@@ -46,8 +47,8 @@ public class CouseService implements ICourse {
     public void addDraftCourse(Course course) throws SQLException {
         String query = "INSERT INTO course (title, slug, description, content_url, content_type, " +
                 "difficulty_level, category, language, estimated_duration, reward_points, " +
-                "status, visibility, thumbnail_url) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', 'private', ?)";
+                "minimum_points_required, status, visibility, thumbnail_url) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', 'private', ?)";
         
         PreparedStatement pst = cnx.prepareStatement(query);
         pst.setString(1, course.getTitle());
@@ -60,7 +61,8 @@ public class CouseService implements ICourse {
         pst.setString(8, course.getLanguage());
         pst.setInt(9, course.getEstimatedDuration());
         pst.setInt(10, course.getRewardPoints());
-        pst.setString(11, course.getThumbnailUrl());
+        pst.setInt(11, course.getMinimumPointsRequired());
+        pst.setString(12, course.getThumbnailUrl());
         
         pst.executeUpdate();
     }
@@ -163,7 +165,7 @@ public class CouseService implements ICourse {
     public void updateCourse(Course course, long id) throws SQLException {
         String query = "UPDATE course SET title = ?, slug = ?, description = ?, content_url = ?, " +
                 "content_type = ?, difficulty_level = ?, category = ?, language = ?, " +
-                "estimated_duration = ?, reward_points = ?, status = ?, visibility = ?, " +
+                "estimated_duration = ?, reward_points = ?, minimum_points_required = ?, status = ?, visibility = ?, " +
                 "thumbnail_url = ? WHERE id = ?";
         
         PreparedStatement pst = cnx.prepareStatement(query);
@@ -177,10 +179,11 @@ public class CouseService implements ICourse {
         pst.setString(8, course.getLanguage());
         pst.setInt(9, course.getEstimatedDuration());
         pst.setInt(10, course.getRewardPoints());
-        pst.setString(11, course.getStatus());
-        pst.setString(12, course.getVisibility());
-        pst.setString(13, course.getThumbnailUrl());
-        pst.setLong(14, id);
+        pst.setInt(11, course.getMinimumPointsRequired());
+        pst.setString(12, course.getStatus());
+        pst.setString(13, course.getVisibility());
+        pst.setString(14, course.getThumbnailUrl());
+        pst.setLong(15, id);
         
         pst.executeUpdate();
     }
@@ -232,6 +235,7 @@ public class CouseService implements ICourse {
         course.setLanguage(rs.getString("language"));
         course.setEstimatedDuration(rs.getInt("estimated_duration"));
         course.setRewardPoints(rs.getInt("reward_points"));
+        course.setMinimumPointsRequired(rs.getInt("minimum_points_required"));
         course.setStatus(rs.getString("status"));
         course.setVisibility(rs.getString("visibility"));
         course.setThumbnailUrl(rs.getString("thumbnail_url"));
@@ -330,5 +334,107 @@ public class CouseService implements ICourse {
         }
         return quizIds;
     }
-}
 
+    /* ===== COURSE HISTORY ===== */
+
+    public void addCourseVisit(int userId, long courseId) throws SQLException {
+        // Check if user has visited this course before
+        String checkQuery = "SELECT id FROM course_history WHERE user_id = ? AND course_id = ?";
+        PreparedStatement checkPst = cnx.prepareStatement(checkQuery);
+        checkPst.setInt(1, userId);
+        checkPst.setLong(2, courseId);
+        ResultSet rs = checkPst.executeQuery();
+        
+        if (rs.next()) {
+            // Update existing record with new visit time
+            String updateQuery = "UPDATE course_history SET visited_at = NOW() WHERE user_id = ? AND course_id = ?";
+            PreparedStatement updatePst = cnx.prepareStatement(updateQuery);
+            updatePst.setInt(1, userId);
+            updatePst.setLong(2, courseId);
+            updatePst.executeUpdate();
+        } else {
+            // Insert new visit record
+            String insertQuery = "INSERT INTO course_history (user_id, course_id, visited_at) VALUES (?, ?, NOW())";
+            PreparedStatement insertPst = cnx.prepareStatement(insertQuery);
+            insertPst.setInt(1, userId);
+            insertPst.setLong(2, courseId);
+            insertPst.executeUpdate();
+        }
+    }
+
+    public List<edu.connections3a8.entities.CourseHistory> getUserCourseHistory(int userId, int limit) throws SQLException {
+        List<edu.connections3a8.entities.CourseHistory> history = new ArrayList<>();
+        String query = "SELECT ch.*, c.* FROM course_history ch " +
+                      "JOIN course c ON ch.course_id = c.id " +
+                      "WHERE ch.user_id = ? " +
+                      "ORDER BY ch.visited_at DESC " +
+                      "LIMIT ?";
+        
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        pst.setInt(2, limit);
+        
+        ResultSet rs = pst.executeQuery();
+        while (rs.next()) {
+            edu.connections3a8.entities.CourseHistory historyItem = new edu.connections3a8.entities.CourseHistory();
+            historyItem.setId(rs.getLong("ch.id"));
+            historyItem.setUserId(rs.getInt("ch.user_id"));
+            historyItem.setCourseId(rs.getLong("ch.course_id"));
+            historyItem.setVisitedAt(rs.getTimestamp("ch.visited_at"));
+            historyItem.setLastPosition(rs.getInt("ch.last_position"));
+            historyItem.setCompletionPercentage(rs.getInt("ch.completion_percentage"));
+            
+            // Map course data
+            Course course = new Course();
+            course.setId(rs.getLong("c.id"));
+            course.setTitle(rs.getString("c.title"));
+            course.setSlug(rs.getString("c.slug"));
+            course.setDescription(rs.getString("c.description"));
+            course.setContentUrl(rs.getString("c.content_url"));
+            course.setContentType(rs.getString("c.content_type"));
+            course.setDifficultyLevel(rs.getString("c.difficulty_level"));
+            course.setCategory(rs.getString("c.category"));
+            course.setLanguage(rs.getString("c.language"));
+            course.setEstimatedDuration(rs.getInt("c.estimated_duration"));
+            course.setRewardPoints(rs.getInt("c.reward_points"));
+            course.setMinimumPointsRequired(rs.getInt("c.minimum_points_required"));
+            course.setStatus(rs.getString("c.status"));
+            course.setVisibility(rs.getString("c.visibility"));
+            course.setThumbnailUrl(rs.getString("c.thumbnail_url"));
+            
+            historyItem.setCourse(course);
+            history.add(historyItem);
+        }
+        
+        return history;
+    }
+
+    public void updateCourseProgress(int userId, long courseId, int completionPercentage) throws SQLException {
+        String query = "UPDATE course_history SET completion_percentage = ? WHERE user_id = ? AND course_id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, completionPercentage);
+        pst.setInt(2, userId);
+        pst.setLong(3, courseId);
+        pst.executeUpdate();
+    }
+
+    public int getCourseVisitCount(int userId, long courseId) throws SQLException {
+        String query = "SELECT COUNT(*) as count FROM course_history WHERE user_id = ? AND course_id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        pst.setLong(2, courseId);
+        
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            return rs.getInt("count");
+        }
+        return 0;
+    }
+
+    public void clearUserHistory(int userId) throws SQLException {
+        String query = "DELETE FROM course_history WHERE user_id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        pst.executeUpdate();
+    }
+}

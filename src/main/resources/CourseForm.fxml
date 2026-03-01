@@ -101,9 +101,14 @@
         <TextField fx:id="rewardPointsField" promptText="100" styleClass="modern-text-field"
                    GridPane.columnIndex="1" GridPane.rowIndex="9"/>
 
+        <!-- Minimum Points Required -->
+        <Label text="Min Points Required:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
+        <TextField fx:id="minimumPointsField" promptText="0 (unlocked) or points needed" styleClass="modern-text-field"
+                   GridPane.columnIndex="1" GridPane.rowIndex="10"/>
+
         <!-- Thumbnail URL -->
-        <Label text="Thumbnail URL:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
-        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="10">
+        <Label text="Thumbnail URL:" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="11"/>
+        <HBox spacing="10" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="11">
             <TextField fx:id="thumbnailField" promptText="https://example.com/image.jpg or local file path" 
                        styleClass="modern-text-field" HBox.hgrow="ALWAYS"/>
             <Button text="🖼️ Browse" onAction="#handleBrowseThumbnail" 

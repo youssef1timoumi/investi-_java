@@ -19,6 +19,7 @@ public class Course {
 
     private int estimatedDuration;
     private int rewardPoints;
+    private int minimumPointsRequired;
 
     private String status;
     private String visibility;
@@ -148,6 +149,14 @@ public class Course {
 
     public void setRewardPoints(int rewardPoints) {
         this.rewardPoints = rewardPoints;
+    }
+
+    public int getMinimumPointsRequired() {
+        return minimumPointsRequired;
+    }
+
+    public void setMinimumPointsRequired(int minimumPointsRequired) {
+        this.minimumPointsRequired = minimumPointsRequired;
     }
 
     public String getStatus() {

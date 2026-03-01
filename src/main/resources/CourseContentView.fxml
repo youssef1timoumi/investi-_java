@@ -27,6 +27,7 @@
         
         <Label fx:id="courseTitleLabel" text="Course Content" styleClass="page-title" HBox.hgrow="ALWAYS"/>
         
+        <Button fx:id="nightModeToggle" text="🌙 Night Mode" onAction="#toggleNightMode" styleClass="btn, btn-secondary"/>
         <Button text="← Back to Catalog" onAction="#handleBack" styleClass="btn, btn-dark"/>
     </HBox>
 

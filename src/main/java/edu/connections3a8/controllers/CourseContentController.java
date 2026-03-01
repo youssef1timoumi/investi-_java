@@ -4,6 +4,8 @@ import edu.connections3a8.entities.Course;
 import edu.connections3a8.entities.Quiz;
 import edu.connections3a8.services.CouseService;
 import edu.connections3a8.services.GamificationService;
+import edu.connections3a8.services.LibreTranslateService;
+import edu.connections3a8.utils.ThemeManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
@@ -30,11 +32,13 @@ public class CourseContentController {
     @FXML private VBox mediaContainer;
     @FXML private VBox quizzesContainer;
     @FXML private Label quizCountLabel;
+    @FXML private Button nightModeToggle;
 
     private CouseService courseService;
     private GamificationService gamificationService;
     private Course currentCourse;
     private MediaPlayer mediaPlayer; // Keep reference to stop when leaving
+    private int currentUserId = 1; // TODO: Get from session/login
 
     public void initialize() {
         courseService = new CouseService();
@@ -43,7 +47,110 @@ public class CourseContentController {
 
     public void setCourse(Course course) {
         this.currentCourse = course;
+        
+        // Log course visit
+        try {
+            courseService.addCourseVisit(currentUserId, course.getId());
+            System.out.println("Course visit logged for user " + currentUserId + ", course " + course.getId());
+        } catch (SQLException e) {
+            System.err.println("Error logging course visit: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
         loadCourseContent();
+        // Apply theme after content is loaded with a longer delay
+        javafx.application.Platform.runLater(() -> {
+            try {
+                Thread.sleep(100); // Small delay to ensure scene is fully loaded
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (ThemeManager.getInstance().isDarkMode()) {
+                System.out.println("Applying dark mode after course content loaded");
+                applyTheme();
+                updateThemeButton();
+            }
+        });
+    }
+    
+    public void setDarkMode(boolean darkMode) {
+        System.out.println("CourseContent setDarkMode called with: " + darkMode);
+        ThemeManager.getInstance().setDarkMode(darkMode);
+        // Don't apply theme here - wait for setCourse to finish loading
+    }
+    
+    @FXML
+    private void toggleNightMode() {
+        ThemeManager.getInstance().toggleDarkMode();
+        System.out.println("CourseContent toggleNightMode clicked. New isDarkMode = " + ThemeManager.getInstance().isDarkMode());
+        applyTheme();
+        updateThemeButton();
+    }
+    
+    private void applyTheme() {
+        System.out.println("CourseContent applyTheme called. isDarkMode = " + ThemeManager.getInstance().isDarkMode());
+        
+        // Find the ScrollPane root
+        if (courseTitleLabel != null && courseTitleLabel.getScene() != null) {
+            javafx.scene.Parent root = courseTitleLabel.getScene().getRoot();
+            System.out.println("CourseContent root type: " + root.getClass().getName());
+            
+            if (root instanceof ScrollPane) {
+                ScrollPane scrollPane = (ScrollPane) root;
+                VBox vbox = null;
+                
+                if (scrollPane.getContent() instanceof VBox) {
+                    vbox = (VBox) scrollPane.getContent();
+                    System.out.println("Found VBox in ScrollPane");
+                }
+                
+                // Apply to ScrollPane with !important equivalent (multiple properties)
+                if (ThemeManager.getInstance().isDarkMode()) {
+                    String darkStyle = "-fx-background: #0A0A18; -fx-background-color: #0A0A18; -fx-border-color: transparent;";
+                    scrollPane.setStyle(darkStyle);
+                    if (!scrollPane.getStyleClass().contains("dark-mode")) {
+                        scrollPane.getStyleClass().add("dark-mode");
+                    }
+                    System.out.println("Applied dark mode to ScrollPane with style: " + darkStyle);
+                    System.out.println("ScrollPane actual style: " + scrollPane.getStyle());
+                } else {
+                    scrollPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+                    scrollPane.getStyleClass().remove("dark-mode");
+                    System.out.println("Applied light mode to ScrollPane");
+                }
+                
+                // Apply to VBox
+                if (vbox != null) {
+                    if (ThemeManager.getInstance().isDarkMode()) {
+                        if (!vbox.getStyleClass().contains("dark-mode")) {
+                            vbox.getStyleClass().add("dark-mode");
+                        }
+                        String vboxStyle = "-fx-background: linear-gradient(to bottom right, #12122A, #0A0A18, #100F22); -fx-background-color: #0A0A18;";
+                        vbox.setStyle(vboxStyle);
+                        System.out.println("Applied dark mode to VBox");
+                        System.out.println("VBox actual style: " + vbox.getStyle());
+                    } else {
+                        vbox.getStyleClass().remove("dark-mode");
+                        vbox.setStyle("");
+                        System.out.println("Applied light mode to VBox");
+                    }
+                }
+            } else {
+                System.out.println("Root is not a ScrollPane!");
+            }
+        } else {
+            System.out.println("courseTitleLabel or scene is null!");
+        }
+    }
+    
+    private void updateThemeButton() {
+        if (nightModeToggle != null) {
+            if (ThemeManager.getInstance().isDarkMode()) {
+                nightModeToggle.setText("☀️ Light Mode");
+            } else {
+                nightModeToggle.setText("🌙 Night Mode");
+            }
+        }
     }
 
     private void loadCourseContent() {
@@ -75,6 +182,12 @@ public class CourseContentController {
             return;
         }
 
+        // Check if it's a YouTube URL
+        if (isYouTubeUrl(contentUrl)) {
+            loadYouTubeVideo(contentUrl);
+            return;
+        }
+
         File mediaFile = new File(contentUrl);
 
         if (mediaFile.exists()) {
@@ -92,7 +205,7 @@ public class CourseContentController {
                 mediaContainer.getChildren().add(unsupportedLabel);
             }
         } else {
-            // External URL
+            // External URL (not YouTube)
             Label urlLabel = new Label("External Content:");
             urlLabel.setStyle("-fx-font-weight: 600; -fx-text-fill: #456990; -fx-font-size: 14px;");
 
@@ -110,6 +223,191 @@ public class CourseContentController {
             urlBox.setPadding(new Insets(15));
             urlBox.setStyle("-fx-background-color: white; -fx-background-radius: 8px; -fx-border-color: #456990; -fx-border-width: 2px; -fx-border-radius: 8px;");
             mediaContainer.getChildren().add(urlBox);
+        }
+    }
+
+    private boolean isYouTubeUrl(String url) {
+        return url.contains("youtube.com") || url.contains("youtu.be");
+    }
+
+    private String extractYouTubeVideoId(String url) {
+        // Handle different YouTube URL formats
+        // https://www.youtube.com/watch?v=VIDEO_ID
+        // https://youtu.be/VIDEO_ID
+        // https://www.youtube.com/embed/VIDEO_ID
+        
+        try {
+            if (url.contains("youtu.be/")) {
+                String[] parts = url.split("youtu.be/");
+                if (parts.length > 1) {
+                    String videoId = parts[1].split("[?&]")[0];
+                    return videoId;
+                }
+            } else if (url.contains("youtube.com/watch")) {
+                String[] parts = url.split("v=");
+                if (parts.length > 1) {
+                    String videoId = parts[1].split("[&]")[0];
+                    return videoId;
+                }
+            } else if (url.contains("youtube.com/embed/")) {
+                String[] parts = url.split("embed/");
+                if (parts.length > 1) {
+                    String videoId = parts[1].split("[?&]")[0];
+                    return videoId;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+
+    private void loadYouTubeVideo(String youtubeUrl) {
+        String videoId = extractYouTubeVideoId(youtubeUrl);
+        
+        if (videoId == null || videoId.isEmpty()) {
+            Label errorLabel = new Label("Invalid YouTube URL format");
+            errorLabel.setStyle("-fx-text-fill: #DC3545; -fx-font-size: 13px;");
+            mediaContainer.getChildren().add(errorLabel);
+            return;
+        }
+
+        try {
+            // Create container with prominent "Watch on YouTube" option
+            VBox videoContainer = new VBox(20);
+            videoContainer.setAlignment(Pos.CENTER);
+            videoContainer.setPadding(new Insets(40));
+            videoContainer.setStyle("-fx-background-color: " + 
+                (ThemeManager.getInstance().isDarkMode() ? "#161630" : "white") + "; " +
+                "-fx-background-radius: 12px; -fx-border-color: " +
+                (ThemeManager.getInstance().isDarkMode() ? "rgba(70,70,100,0.6)" : "#456990") + "; " +
+                "-fx-border-width: 2px; -fx-border-radius: 12px;");
+            
+            // YouTube icon
+            Label youtubeIcon = new Label("▶️");
+            youtubeIcon.setStyle("-fx-font-size: 64px;");
+            
+            // Title
+            Label titleLabel = new Label("YouTube Video");
+            titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 600; " +
+                              "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
+            
+            // Info message
+            Label infoLabel = new Label("Due to technical limitations with embedded players,\nplease watch this video on YouTube.");
+            infoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + 
+                (ThemeManager.getInstance().isDarkMode() ? "#8D96A6" : "#6B7280") + "; " +
+                "-fx-text-alignment: center;");
+            infoLabel.setWrapText(true);
+            infoLabel.setMaxWidth(600);
+            infoLabel.setAlignment(Pos.CENTER);
+            
+            // Large "Watch on YouTube" button
+            Button watchBtn = new Button("🎬 Watch on YouTube");
+            watchBtn.setStyle("-fx-background-color: #DC3545; -fx-text-fill: white; " +
+                           "-fx-font-weight: 600; -fx-background-radius: 8px; " +
+                           "-fx-padding: 16 32; -fx-cursor: hand; -fx-font-size: 16px;");
+            watchBtn.setPrefWidth(250);
+            watchBtn.setOnAction(e -> {
+                try {
+                    java.awt.Desktop.getDesktop().browse(new java.net.URI(youtubeUrl));
+                } catch (Exception ex) {
+                    showError("Could not open browser: " + ex.getMessage());
+                }
+            });
+            
+            watchBtn.setOnMouseEntered(e -> {
+                watchBtn.setStyle("-fx-background-color: #c82333; -fx-text-fill: white; " +
+                               "-fx-font-weight: 600; -fx-background-radius: 8px; " +
+                               "-fx-padding: 16 32; -fx-cursor: hand; -fx-font-size: 16px;");
+            });
+            
+            watchBtn.setOnMouseExited(e -> {
+                watchBtn.setStyle("-fx-background-color: #DC3545; -fx-text-fill: white; " +
+                               "-fx-font-weight: 600; -fx-background-radius: 8px; " +
+                               "-fx-padding: 16 32; -fx-cursor: hand; -fx-font-size: 16px;");
+            });
+            
+            // Video URL display
+            Label urlLabel = new Label("Video URL:");
+            urlLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 600; " +
+                            "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#6189B0" : "#456990") + ";");
+            
+            TextField urlField = new TextField(youtubeUrl);
+            urlField.setEditable(false);
+            urlField.setPrefWidth(500);
+            urlField.setStyle("-fx-background-color: " + 
+                (ThemeManager.getInstance().isDarkMode() ? "#0A0A18" : "#F7F0F5") + "; " +
+                "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#E8E8E8" : "#000501") + "; " +
+                "-fx-font-size: 11px; -fx-padding: 8;");
+            
+            // Copy URL button
+            Button copyBtn = new Button("📋 Copy URL");
+            copyBtn.setStyle("-fx-background-color: " + 
+                (ThemeManager.getInstance().isDarkMode() ? "#2A2A3E" : "#E5E7EB") + "; " +
+                "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#E8E8E8" : "#000501") + "; " +
+                "-fx-font-weight: 600; -fx-background-radius: 6px; " +
+                "-fx-padding: 8 16; -fx-cursor: hand; -fx-font-size: 12px;");
+            copyBtn.setOnAction(e -> {
+                javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+                javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+                content.putString(youtubeUrl);
+                clipboard.setContent(content);
+                
+                copyBtn.setText("✅ Copied!");
+                javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
+                pause.setOnFinished(ev -> copyBtn.setText("📋 Copy URL"));
+                pause.play();
+            });
+            
+            HBox urlBox = new HBox(10, urlField, copyBtn);
+            urlBox.setAlignment(Pos.CENTER);
+            
+            VBox urlContainer = new VBox(5, urlLabel, urlBox);
+            urlContainer.setAlignment(Pos.CENTER);
+            
+            // Video ID display
+            Label videoIdLabel = new Label("Video ID: " + videoId);
+            videoIdLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: " + 
+                (ThemeManager.getInstance().isDarkMode() ? "#6B7280" : "#9CA3AF") + ";");
+            
+            videoContainer.getChildren().addAll(youtubeIcon, titleLabel, infoLabel, watchBtn, 
+                                               new Separator(), urlContainer, videoIdLabel);
+            mediaContainer.getChildren().add(videoContainer);
+            
+        } catch (Exception e) {
+            // Fallback error display
+            VBox errorContainer = new VBox(15);
+            errorContainer.setAlignment(Pos.CENTER);
+            errorContainer.setPadding(new Insets(30));
+            errorContainer.setStyle("-fx-background-color: " + 
+                (ThemeManager.getInstance().isDarkMode() ? "#161630" : "white") + "; " +
+                "-fx-background-radius: 12px; -fx-border-color: #DC3545; " +
+                "-fx-border-width: 2px; -fx-border-radius: 12px;");
+            
+            Label errorIcon = new Label("⚠️");
+            errorIcon.setStyle("-fx-font-size: 48px;");
+            
+            Label errorLabel = new Label("Unable to load YouTube video");
+            errorLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 600; " +
+                              "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
+            
+            Button openBtn = new Button("🎬 Watch on YouTube");
+            openBtn.setStyle("-fx-background-color: #DC3545; -fx-text-fill: white; " +
+                           "-fx-font-weight: 600; -fx-background-radius: 8px; " +
+                           "-fx-padding: 12 24; -fx-cursor: hand; -fx-font-size: 14px;");
+            openBtn.setOnAction(ev -> {
+                try {
+                    java.awt.Desktop.getDesktop().browse(new java.net.URI(youtubeUrl));
+                } catch (Exception ex) {
+                    showError("Could not open browser: " + ex.getMessage());
+                }
+            });
+            
+            errorContainer.getChildren().addAll(errorIcon, errorLabel, openBtn);
+            mediaContainer.getChildren().add(errorContainer);
+            
+            e.printStackTrace();
         }
     }
 
@@ -172,37 +470,56 @@ public class CourseContentController {
     private void loadPDFViewer(File pdfFile) {
         VBox pdfContainer = new VBox(20);
         pdfContainer.getStyleClass().add("pdf-container");
-        pdfContainer.setAlignment(Pos.CENTER);
-        pdfContainer.setPadding(new Insets(40));
-        pdfContainer.setStyle("-fx-background-color: white; -fx-background-radius: 12px; " +
-                             "-fx-border-color: #DC3545; -fx-border-width: 2px; -fx-border-radius: 12px;");
+        pdfContainer.setAlignment(Pos.TOP_CENTER);
+        pdfContainer.setPadding(new Insets(30));
+        pdfContainer.setStyle("-fx-background-color: " + 
+            (ThemeManager.getInstance().isDarkMode() ? "#161630" : "white") + "; " +
+            "-fx-background-radius: 12px; -fx-border-color: " + 
+            (ThemeManager.getInstance().isDarkMode() ? "rgba(70,70,100,0.6)" : "#DC3545") + "; " +
+            "-fx-border-width: 2px; -fx-border-radius: 12px;");
 
-        // PDF Icon
+        // PDF Header
+        HBox headerBox = new HBox(15);
+        headerBox.setAlignment(Pos.CENTER);
+        
         Label pdfIcon = new Label("📄");
-        pdfIcon.setStyle("-fx-font-size: 72px;");
+        pdfIcon.setStyle("-fx-font-size: 48px;");
 
-        // PDF Info
-        VBox infoBox = new VBox(8);
-        infoBox.setAlignment(Pos.CENTER);
+        VBox infoBox = new VBox(5);
+        infoBox.setAlignment(Pos.CENTER_LEFT);
         
         Label titleLabel = new Label("PDF Document");
-        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000501;");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; " +
+            "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
         
         Label fileNameLabel = new Label(pdfFile.getName());
-        fileNameLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #6B7280;");
+        fileNameLabel.setStyle("-fx-font-size: 14px; " +
+            "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#8D96A6" : "#6B7280") + ";");
         
-        // File size
         long fileSizeBytes = pdfFile.length();
         String fileSize = formatFileSize(fileSizeBytes);
         Label fileSizeLabel = new Label("Size: " + fileSize);
-        fileSizeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #6B7280;");
+        fileSizeLabel.setStyle("-fx-font-size: 13px; " +
+            "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#8D96A6" : "#6B7280") + ";");
         
         infoBox.getChildren().addAll(titleLabel, fileNameLabel, fileSizeLabel);
+        headerBox.getChildren().addAll(pdfIcon, infoBox);
 
-        // Open PDF Button
-        Button openPdfBtn = new Button("📖 Open PDF in Viewer");
+        // Extract text button
+        Button extractBtn = new Button("📖 Extract & Read Text");
+        extractBtn.getStyleClass().addAll("btn", "btn-primary");
+        extractBtn.setPrefWidth(200);
+        extractBtn.setStyle("-fx-background-color: #456990; -fx-text-fill: white; " +
+            "-fx-font-weight: 600; -fx-background-radius: 8px; " +
+            "-fx-padding: 12 24; -fx-cursor: hand; -fx-font-size: 14px;");
+        
+        // Open PDF button
+        Button openPdfBtn = new Button("🔗 Open in PDF Viewer");
         openPdfBtn.getStyleClass().addAll("btn", "btn-danger");
-        openPdfBtn.setPrefWidth(220);
+        openPdfBtn.setPrefWidth(200);
+        openPdfBtn.setStyle("-fx-background-color: #DC3545; -fx-text-fill: white; " +
+            "-fx-font-weight: 600; -fx-background-radius: 8px; " +
+            "-fx-padding: 12 24; -fx-cursor: hand; -fx-font-size: 14px;");
         openPdfBtn.setOnAction(e -> {
             try {
                 java.awt.Desktop.getDesktop().open(pdfFile);
@@ -211,15 +528,396 @@ public class CourseContentController {
             }
         });
 
-        // Info message
-        Label infoMessage = new Label("Click the button above to open this PDF in your default PDF viewer");
-        infoMessage.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280; -fx-font-style: italic;");
-        infoMessage.setWrapText(true);
-        infoMessage.setMaxWidth(500);
-        infoMessage.setAlignment(Pos.CENTER);
+        HBox buttonBox = new HBox(15, extractBtn, openPdfBtn);
+        buttonBox.setAlignment(Pos.CENTER);
 
-        pdfContainer.getChildren().addAll(pdfIcon, infoBox, openPdfBtn, infoMessage);
+        // Text area for extracted content (initially hidden)
+        VBox textContainer = new VBox(10);
+        textContainer.setVisible(false);
+        textContainer.setManaged(false);
+        
+        Label textLabel = new Label("📝 Extracted Text:");
+        textLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 600; " +
+            "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
+        
+        ScrollPane textScrollPane = new ScrollPane();
+        textScrollPane.setFitToWidth(true);
+        textScrollPane.setPrefHeight(400);
+        textScrollPane.setMaxHeight(600);
+        textScrollPane.setStyle("-fx-background-color: transparent; -fx-border-color: " +
+            (ThemeManager.getInstance().isDarkMode() ? "rgba(70,70,100,0.6)" : "#E5E7EB") + "; " +
+            "-fx-border-width: 1px; -fx-border-radius: 8px;");
+        
+        TextArea textArea = new TextArea();
+        textArea.setWrapText(true);
+        textArea.setEditable(false);
+        textArea.setPrefHeight(400);
+        textArea.setStyle("-fx-control-inner-background: " + 
+            (ThemeManager.getInstance().isDarkMode() ? "#0A0A18" : "#F7F0F5") + "; " +
+            "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#E8E8E8" : "#000501") + "; " +
+            "-fx-font-size: 13px; -fx-font-family: 'Segoe UI', Arial, sans-serif; " +
+            "-fx-padding: 15;");
+        
+        textScrollPane.setContent(textArea);
+        
+        // Translation controls
+        HBox translationBox = new HBox(10);
+        translationBox.setAlignment(Pos.CENTER_LEFT);
+        translationBox.setPadding(new Insets(10, 0, 0, 0));
+        translationBox.setVisible(false);
+        translationBox.setManaged(false);
+        
+        Label translateLabel = new Label("🌐 Translate to:");
+        translateLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 600; " +
+            "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
+        
+        ComboBox<LibreTranslateService.Language> languageCombo = new ComboBox<>();
+        languageCombo.getItems().addAll(LibreTranslateService.getSupportedLanguages());
+        languageCombo.setValue(new LibreTranslateService.Language("en", "English"));
+        languageCombo.setPrefWidth(150);
+        
+        Button translateBtn = new Button("🔄 Translate");
+        translateBtn.setStyle("-fx-background-color: #9B7E46; -fx-text-fill: white; " +
+            "-fx-font-weight: 600; -fx-background-radius: 6px; " +
+            "-fx-padding: 8 16; -fx-cursor: hand; -fx-font-size: 12px;");
+        
+        Button showOriginalBtn = new Button("📄 Show Original");
+        showOriginalBtn.setStyle("-fx-background-color: #6B7280; -fx-text-fill: white; " +
+            "-fx-font-weight: 600; -fx-background-radius: 6px; " +
+            "-fx-padding: 8 16; -fx-cursor: hand; -fx-font-size: 12px;");
+        showOriginalBtn.setVisible(false);
+        showOriginalBtn.setManaged(false);
+        
+        translationBox.getChildren().addAll(translateLabel, languageCombo, translateBtn, showOriginalBtn);
+        
+        textContainer.getChildren().addAll(textLabel, textScrollPane, translationBox);
+        
+        // Store original text for "Show Original" button
+        final String[] originalText = {""};
+        
+        // Translate button action
+        translateBtn.setOnAction(e -> {
+            String textToTranslate = textArea.getText();
+            if (textToTranslate == null || textToTranslate.trim().isEmpty()) {
+                showError("No text to translate. Please extract text first.");
+                return;
+            }
+            
+            // Remove the header section before translation (lines starting with ═)
+            String[] lines = textToTranslate.split("\n");
+            StringBuilder cleanText = new StringBuilder();
+            boolean headerEnded = false;
+            
+            for (String line : lines) {
+                if (!headerEnded && line.contains("═══════")) {
+                    continue; // Skip header separator lines
+                }
+                if (!headerEnded && (line.startsWith("PDF Document:") || 
+                                    line.startsWith("Total Pages:") || 
+                                    line.startsWith("Extraction Method:"))) {
+                    continue; // Skip header info lines
+                }
+                headerEnded = true;
+                cleanText.append(line).append("\n");
+            }
+            
+            String finalText = cleanText.toString().trim();
+            if (finalText.isEmpty()) {
+                showError("No translatable text found.");
+                return;
+            }
+            
+            // Store original if not already stored
+            if (originalText[0].isEmpty()) {
+                originalText[0] = textToTranslate;
+            }
+            
+            LibreTranslateService.Language targetLang = languageCombo.getValue();
+            if (targetLang == null) {
+                showError("Please select a target language.");
+                return;
+            }
+            
+            translateBtn.setDisable(true);
+            translateBtn.setText("⏳ Translating...");
+            
+            // Translate in background
+            new Thread(() -> {
+                try {
+                    LibreTranslateService translateService = new LibreTranslateService();
+                    String translated = translateService.translate(finalText, "auto", targetLang.code);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        textArea.setText(translated);
+                        translateBtn.setText("✅ Translated");
+                        translateBtn.setStyle("-fx-background-color: #28A745; -fx-text-fill: white; " +
+                            "-fx-font-weight: 600; -fx-background-radius: 6px; " +
+                            "-fx-padding: 8 16; -fx-font-size: 12px;");
+                        showOriginalBtn.setVisible(true);
+                        showOriginalBtn.setManaged(true);
+                        
+                        // Reset button after 2 seconds
+                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
+                        pause.setOnFinished(ev -> {
+                            translateBtn.setText("🔄 Translate");
+                            translateBtn.setStyle("-fx-background-color: #9B7E46; -fx-text-fill: white; " +
+                                "-fx-font-weight: 600; -fx-background-radius: 6px; " +
+                                "-fx-padding: 8 16; -fx-cursor: hand; -fx-font-size: 12px;");
+                        });
+                        pause.play();
+                        
+                        translateBtn.setDisable(false);
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        translateBtn.setText("❌ Failed");
+                        translateBtn.setStyle("-fx-background-color: #DC3545; -fx-text-fill: white; " +
+                            "-fx-font-weight: 600; -fx-background-radius: 6px; " +
+                            "-fx-padding: 8 16; -fx-font-size: 12px;");
+                        translateBtn.setDisable(false);
+                        
+                        String errorMsg = ex.getMessage();
+                        showError("Translation failed: " + (errorMsg != null ? errorMsg : "Unknown error. Please try again."));
+                        
+                        // Reset button after 3 seconds
+                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
+                        pause.setOnFinished(ev -> {
+                            translateBtn.setText("🔄 Translate");
+                            translateBtn.setStyle("-fx-background-color: #9B7E46; -fx-text-fill: white; " +
+                                "-fx-font-weight: 600; -fx-background-radius: 6px; " +
+                                "-fx-padding: 8 16; -fx-cursor: hand; -fx-font-size: 12px;");
+                        });
+                        pause.play();
+                    });
+                }
+            }).start();
+        });
+        
+        // Show original button action
+        // Show original button action
+        showOriginalBtn.setOnAction(e -> {
+            textArea.setText(originalText[0]);
+            showOriginalBtn.setVisible(false);
+            showOriginalBtn.setManaged(false);
+        });
+
+        // Extract button action
+        extractBtn.setOnAction(e -> {
+            extractBtn.setDisable(true);
+            extractBtn.setText("⏳ Extracting...");
+            
+            // Extract in background thread
+            new Thread(() -> {
+                try {
+                    String extractedText = extractTextFromPDF(pdfFile);
+                    
+                    // Update UI on JavaFX thread
+                    javafx.application.Platform.runLater(() -> {
+                        if (extractedText != null && !extractedText.trim().isEmpty()) {
+                            textArea.setText(extractedText);
+                            originalText[0] = extractedText; // Store original
+                            textContainer.setVisible(true);
+                            textContainer.setManaged(true);
+                            translationBox.setVisible(true);
+                            translationBox.setManaged(true);
+                            extractBtn.setText("✅ Text Extracted");
+                            extractBtn.setStyle("-fx-background-color: #28A745; -fx-text-fill: white; " +
+                                "-fx-font-weight: 600; -fx-background-radius: 8px; " +
+                                "-fx-padding: 12 24; -fx-font-size: 14px;");
+                        } else {
+                            extractBtn.setText("❌ No Text Found");
+                            extractBtn.setStyle("-fx-background-color: #DC3545; -fx-text-fill: white; " +
+                                "-fx-font-weight: 600; -fx-background-radius: 8px; " +
+                                "-fx-padding: 12 24; -fx-font-size: 14px;");
+                            showError("Could not extract text from PDF. The PDF might be image-based or encrypted.");
+                        }
+                        extractBtn.setDisable(false);
+                    });
+                    
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        extractBtn.setText("❌ Extraction Failed");
+                        extractBtn.setStyle("-fx-background-color: #DC3545; -fx-text-fill: white; " +
+                            "-fx-font-weight: 600; -fx-background-radius: 8px; " +
+                            "-fx-padding: 12 24; -fx-font-size: 14px;");
+                        extractBtn.setDisable(false);
+                        showError("Error extracting text: " + ex.getMessage());
+                    });
+                    ex.printStackTrace();
+                }
+            }).start();
+        });
+
+        pdfContainer.getChildren().addAll(headerBox, new Separator(), buttonBox, textContainer);
         mediaContainer.getChildren().add(pdfContainer);
+    }
+    
+    /**
+     * Extracts text from PDF using Apache PDFBox
+     * If no text found, tries AI OCR with Tesseract
+     */
+    private String extractTextFromPDF(File pdfFile) throws Exception {
+        org.apache.pdfbox.pdmodel.PDDocument document = null;
+        try {
+            document = org.apache.pdfbox.pdmodel.PDDocument.load(pdfFile);
+            
+            if (document.isEncrypted()) {
+                throw new Exception("PDF is encrypted and cannot be read");
+            }
+            
+            org.apache.pdfbox.text.PDFTextStripper stripper = new org.apache.pdfbox.text.PDFTextStripper();
+            
+            // Extract text from all pages
+            String text = stripper.getText(document);
+            
+            // Get page count
+            int pageCount = document.getNumberOfPages();
+            
+            // If no text found, try OCR (for scanned PDFs)
+            if (text.trim().isEmpty() || text.trim().length() < 50) {
+                System.out.println("No text found with PDFBox, trying AI OCR...");
+                document.close();
+                document = null;
+                
+                String ocrText = extractTextWithOCR(pdfFile);
+                if (ocrText != null && !ocrText.trim().isEmpty()) {
+                    String header = "═══════════════════════════════════════════════\n";
+                    header += "PDF Document: " + pdfFile.getName() + "\n";
+                    header += "Total Pages: " + pageCount + "\n";
+                    header += "Extraction Method: AI OCR (Tesseract)\n";
+                    header += "═══════════════════════════════════════════════\n\n";
+                    return header + ocrText;
+                }
+            }
+            
+            // Add header with page count
+            String header = "═══════════════════════════════════════════════\n";
+            header += "PDF Document: " + pdfFile.getName() + "\n";
+            header += "Total Pages: " + pageCount + "\n";
+            header += "Extraction Method: Standard Text Extraction\n";
+            header += "═══════════════════════════════════════════════\n\n";
+            
+            return header + text;
+            
+        } finally {
+            if (document != null) {
+                document.close();
+            }
+        }
+    }
+    
+    /**
+     * Extracts text from scanned PDF using AI OCR (Tesseract)
+     * This is a fallback when PDFBox finds no text
+     */
+    private String extractTextWithOCR(File pdfFile) {
+        try {
+            // Convert PDF pages to images and run OCR
+            org.apache.pdfbox.pdmodel.PDDocument document = org.apache.pdfbox.pdmodel.PDDocument.load(pdfFile);
+            org.apache.pdfbox.rendering.PDFRenderer pdfRenderer = new org.apache.pdfbox.rendering.PDFRenderer(document);
+            
+            StringBuilder allText = new StringBuilder();
+            int pageCount = document.getNumberOfPages();
+            
+            // Limit to first 10 pages for performance (can be adjusted)
+            int maxPages = Math.min(pageCount, 10);
+            
+            net.sourceforge.tess4j.Tesseract tesseract = new net.sourceforge.tess4j.Tesseract();
+            
+            // Try to find tessdata in multiple locations
+            String[] possiblePaths = {
+                "E:\\Tesseract\\tessdata",  // User's custom installation
+                "C:\\Program Files\\Tesseract-OCR\\tessdata",
+                "C:\\Program Files (x86)\\Tesseract-OCR\\tessdata",
+                System.getenv("TESSDATA_PREFIX"),
+                System.getenv("PROGRAMFILES") + "\\Tesseract-OCR\\tessdata",
+                System.getenv("PROGRAMFILES(X86)") + "\\Tesseract-OCR\\tessdata",
+                "tessdata",
+                "./tessdata",
+                "../tessdata"
+            };
+            
+            boolean tessdataFound = false;
+            String foundPath = null;
+            
+            for (String path : possiblePaths) {
+                if (path != null) {
+                    java.io.File tessdataDir = new java.io.File(path);
+                    java.io.File engFile = new java.io.File(tessdataDir, "eng.traineddata");
+                    
+                    if (tessdataDir.exists() && engFile.exists()) {
+                        tesseract.setDatapath(path);
+                        tessdataFound = true;
+                        foundPath = path;
+                        System.out.println("✅ Using tessdata from: " + path);
+                        break;
+                    }
+                }
+            }
+            
+            if (!tessdataFound) {
+                System.err.println("❌ Tessdata not found in any location!");
+                System.err.println("Searched locations:");
+                for (String path : possiblePaths) {
+                    if (path != null) {
+                        System.err.println("  - " + path);
+                    }
+                }
+                System.err.println("");
+                System.err.println("Please run SETUP_TESSERACT.bat to configure Tesseract automatically.");
+                document.close();
+                return null;
+            }
+            
+            tesseract.setLanguage("eng"); // English
+            tesseract.setPageSegMode(1); // Automatic page segmentation with OSD
+            tesseract.setOcrEngineMode(1); // Neural nets LSTM engine only
+            
+            System.out.println("Starting AI OCR extraction...");
+            System.out.println("Processing " + maxPages + " pages (this may take 30-60 seconds)...");
+            
+            for (int page = 0; page < maxPages; page++) {
+                try {
+                    // Render PDF page to image at 300 DPI for better OCR
+                    java.awt.image.BufferedImage image = pdfRenderer.renderImageWithDPI(page, 300);
+                    
+                    // Run OCR on the image
+                    String pageText = tesseract.doOCR(image);
+                    
+                    if (pageText != null && !pageText.trim().isEmpty()) {
+                        allText.append("\n--- Page ").append(page + 1).append(" ---\n");
+                        allText.append(pageText);
+                        allText.append("\n");
+                    }
+                    
+                    System.out.println("✅ OCR completed for page " + (page + 1) + "/" + maxPages);
+                    
+                } catch (Exception e) {
+                    System.err.println("❌ Error processing page " + (page + 1) + ": " + e.getMessage());
+                }
+            }
+            
+            document.close();
+            
+            if (maxPages < pageCount) {
+                allText.append("\n\n[Note: Only first ").append(maxPages)
+                       .append(" pages were processed. Full document has ")
+                       .append(pageCount).append(" pages.]\n");
+            }
+            
+            if (allText.length() == 0) {
+                System.err.println("❌ No text extracted from any page");
+                return null;
+            }
+            
+            System.out.println("✅ AI OCR extraction complete! Extracted " + allText.length() + " characters.");
+            return allText.toString();
+            
+        } catch (Exception e) {
+            System.err.println("❌ OCR extraction failed: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
     
     private String formatFileSize(long bytes) {
@@ -299,15 +997,22 @@ public class CourseContentController {
     }
 
     private void openQuiz(Quiz quiz) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Quiz: " + quiz.getTitle());
-        alert.setHeaderText("Quiz Details");
-        alert.setContentText("Quiz Title: " + quiz.getTitle() + "\n" +
-                           "Questions: " + quiz.getQuestionCount() + "\n" +
-                           "Points: " + quiz.getPointsReward() + "\n" +
-                           "Difficulty: " + quiz.getDifficultyLevel() + "\n\n" +
-                           "Quiz-taking interface coming soon!");
-        alert.showAndWait();
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                getClass().getResource("/QuizTakingView.fxml"));
+            javafx.scene.Parent root = loader.load();
+            
+            QuizTakingController controller = loader.getController();
+            controller.setQuizAndCourse(quiz, currentCourse);
+            controller.setDarkMode(ThemeManager.getInstance().isDarkMode());
+
+            javafx.stage.Stage stage = (javafx.stage.Stage) courseTitleLabel.getScene().getWindow();
+            stage.getScene().setRoot(root);
+            stage.setTitle("Quiz - " + quiz.getTitle());
+        } catch (Exception e) {
+            showError("Error loading quiz: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -321,6 +1026,10 @@ public class CourseContentController {
         try {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/CourseCatalogView.fxml"));
             javafx.scene.Parent root = loader.load();
+            
+            // Pass the dark mode state back to catalog
+            CourseCatalogController controller = loader.getController();
+            controller.setDarkMode(ThemeManager.getInstance().isDarkMode());
 
             javafx.stage.Stage stage = (javafx.stage.Stage) courseTitleLabel.getScene().getWindow();
             stage.getScene().setRoot(root);
