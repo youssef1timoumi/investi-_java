@@ -437,4 +437,110 @@ public class CouseService implements ICourse {
         pst.setInt(1, userId);
         pst.executeUpdate();
     }
+    
+    /* ===== COURSE REPORTS ===== */
+    
+    public void submitCourseReport(edu.connections3a8.entities.CourseReport report) throws SQLException {
+        String query = "INSERT INTO course_reports (course_id, user_id, report_reason, description, status) " +
+                      "VALUES (?, ?, ?, ?, 'pending')";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, report.getCourseId());
+        pst.setInt(2, report.getUserId());
+        pst.setString(3, report.getReportReason());
+        pst.setString(4, report.getDescription());
+        pst.executeUpdate();
+    }
+    
+    public List<edu.connections3a8.entities.CourseReport> getAllReports() throws SQLException {
+        List<edu.connections3a8.entities.CourseReport> reports = new ArrayList<>();
+        String query = "SELECT cr.*, c.title as course_name " +
+                      "FROM course_reports cr " +
+                      "JOIN course c ON cr.course_id = c.id " +
+                      "ORDER BY cr.created_at DESC";
+        Statement st = cnx.createStatement();
+        ResultSet rs = st.executeQuery(query);
+        
+        while (rs.next()) {
+            edu.connections3a8.entities.CourseReport report = mapResultSetToReport(rs);
+            report.setCourseName(rs.getString("course_name"));
+            reports.add(report);
+        }
+        return reports;
+    }
+    
+    public List<edu.connections3a8.entities.CourseReport> getReportsByStatus(String status) throws SQLException {
+        List<edu.connections3a8.entities.CourseReport> reports = new ArrayList<>();
+        String query = "SELECT cr.*, c.title as course_name " +
+                      "FROM course_reports cr " +
+                      "JOIN course c ON cr.course_id = c.id " +
+                      "WHERE cr.status = ? " +
+                      "ORDER BY cr.created_at DESC";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setString(1, status);
+        ResultSet rs = pst.executeQuery();
+        
+        while (rs.next()) {
+            edu.connections3a8.entities.CourseReport report = mapResultSetToReport(rs);
+            report.setCourseName(rs.getString("course_name"));
+            reports.add(report);
+        }
+        return reports;
+    }
+    
+    public edu.connections3a8.entities.CourseReport getReportById(long id) throws SQLException {
+        String query = "SELECT cr.*, c.title as course_name " +
+                      "FROM course_reports cr " +
+                      "JOIN course c ON cr.course_id = c.id " +
+                      "WHERE cr.id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, id);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            edu.connections3a8.entities.CourseReport report = mapResultSetToReport(rs);
+            report.setCourseName(rs.getString("course_name"));
+            return report;
+        }
+        return null;
+    }
+    
+    public void updateReportStatus(long reportId, String status) throws SQLException {
+        String query = "UPDATE course_reports SET status = ? WHERE id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setString(1, status);
+        pst.setLong(2, reportId);
+        pst.executeUpdate();
+    }
+    
+    public void deleteReport(long reportId) throws SQLException {
+        String query = "DELETE FROM course_reports WHERE id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, reportId);
+        pst.executeUpdate();
+    }
+    
+    public int getReportCountByCourse(long courseId) throws SQLException {
+        String query = "SELECT COUNT(*) as count FROM course_reports WHERE course_id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, courseId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            return rs.getInt("count");
+        }
+        return 0;
+    }
+    
+    private edu.connections3a8.entities.CourseReport mapResultSetToReport(ResultSet rs) throws SQLException {
+        edu.connections3a8.entities.CourseReport report = new edu.connections3a8.entities.CourseReport();
+        report.setId(rs.getLong("id"));
+        report.setCourseId(rs.getLong("course_id"));
+        report.setUserId(rs.getInt("user_id"));
+        report.setReportReason(rs.getString("report_reason"));
+        report.setDescription(rs.getString("description"));
+        report.setStatus(rs.getString("status"));
+        report.setCreatedAt(rs.getTimestamp("created_at"));
+        report.setUpdatedAt(rs.getTimestamp("updated_at"));
+        return report;
+    }
 }

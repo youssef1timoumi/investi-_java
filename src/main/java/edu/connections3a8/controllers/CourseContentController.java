@@ -5,6 +5,7 @@ import edu.connections3a8.entities.Quiz;
 import edu.connections3a8.services.CouseService;
 import edu.connections3a8.services.GamificationService;
 import edu.connections3a8.services.LibreTranslateService;
+import edu.connections3a8.services.TextToSpeechService;
 import edu.connections3a8.utils.ThemeManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -38,11 +39,13 @@ public class CourseContentController {
     private GamificationService gamificationService;
     private Course currentCourse;
     private MediaPlayer mediaPlayer; // Keep reference to stop when leaving
+    private TextToSpeechService ttsService; // Text-to-Speech service
     private int currentUserId = 1; // TODO: Get from session/login
 
     public void initialize() {
         courseService = new CouseService();
         gamificationService = new GamificationService();
+        ttsService = new TextToSpeechService();
     }
 
     public void setCourse(Course course) {
@@ -590,7 +593,41 @@ public class CourseContentController {
         
         translationBox.getChildren().addAll(translateLabel, languageCombo, translateBtn, showOriginalBtn);
         
-        textContainer.getChildren().addAll(textLabel, textScrollPane, translationBox);
+        // Text-to-Speech controls
+        HBox ttsBox = new HBox(10);
+        ttsBox.setAlignment(Pos.CENTER_LEFT);
+        ttsBox.setPadding(new Insets(10, 0, 0, 0));
+        ttsBox.setVisible(false);
+        ttsBox.setManaged(false);
+        
+        Label ttsLabel = new Label("🔊 Listen:");
+        ttsLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: 600; " +
+            "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
+        
+        Button playBtn = new Button("▶️ Play");
+        playBtn.setStyle("-fx-background-color: #28A745; -fx-text-fill: white; " +
+            "-fx-font-weight: 600; -fx-background-radius: 6px; " +
+            "-fx-padding: 8 16; -fx-cursor: hand; -fx-font-size: 12px;");
+        
+        Button stopBtn = new Button("⏹️ Stop");
+        stopBtn.setStyle("-fx-background-color: #DC3545; -fx-text-fill: white; " +
+            "-fx-font-weight: 600; -fx-background-radius: 6px; " +
+            "-fx-padding: 8 16; -fx-cursor: hand; -fx-font-size: 12px;");
+        stopBtn.setDisable(true);
+        
+        Label speedLabel = new Label("Speed:");
+        speedLabel.setStyle("-fx-font-size: 12px; " +
+            "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#8D96A6" : "#6B7280") + ";");
+        
+        ComboBox<String> speedCombo = new ComboBox<>();
+        speedCombo.getItems().addAll("Slow (100)", "Normal (150)", "Fast (200)");
+        speedCombo.setValue("Normal (150)");
+        speedCombo.setPrefWidth(120);
+        speedCombo.setStyle("-fx-font-size: 11px;");
+        
+        ttsBox.getChildren().addAll(ttsLabel, playBtn, stopBtn, speedLabel, speedCombo);
+        
+        textContainer.getChildren().addAll(textLabel, textScrollPane, translationBox, ttsBox);
         
         // Store original text for "Show Original" button
         final String[] originalText = {""};
@@ -694,11 +731,58 @@ public class CourseContentController {
         });
         
         // Show original button action
-        // Show original button action
         showOriginalBtn.setOnAction(e -> {
             textArea.setText(originalText[0]);
             showOriginalBtn.setVisible(false);
             showOriginalBtn.setManaged(false);
+        });
+        
+        // TTS Play button action
+        playBtn.setOnAction(e -> {
+            String textToSpeak = textArea.getText();
+            if (textToSpeak == null || textToSpeak.trim().isEmpty()) {
+                showError("No text to read. Please extract text first.");
+                return;
+            }
+            
+            if (!ttsService.isAvailable()) {
+                showError("Text-to-Speech is not available. Please check your system configuration.");
+                return;
+            }
+            
+            // Set speed based on selection
+            String speed = speedCombo.getValue();
+            if (speed.contains("100")) {
+                ttsService.setRate(100);
+            } else if (speed.contains("200")) {
+                ttsService.setRate(200);
+            } else {
+                ttsService.setRate(150); // Normal
+            }
+            
+            // Start speaking
+            playBtn.setDisable(true);
+            stopBtn.setDisable(false);
+            playBtn.setText("🔊 Speaking...");
+            
+            new Thread(() -> {
+                ttsService.speak(textToSpeak);
+                
+                // Re-enable play button after speech completes
+                javafx.application.Platform.runLater(() -> {
+                    playBtn.setDisable(false);
+                    stopBtn.setDisable(true);
+                    playBtn.setText("▶️ Play");
+                });
+            }).start();
+        });
+        
+        // TTS Stop button action
+        stopBtn.setOnAction(e -> {
+            ttsService.stop();
+            playBtn.setDisable(false);
+            stopBtn.setDisable(true);
+            playBtn.setText("▶️ Play");
         });
 
         // Extract button action
@@ -720,6 +804,8 @@ public class CourseContentController {
                             textContainer.setManaged(true);
                             translationBox.setVisible(true);
                             translationBox.setManaged(true);
+                            ttsBox.setVisible(true);
+                            ttsBox.setManaged(true);
                             extractBtn.setText("✅ Text Extracted");
                             extractBtn.setStyle("-fx-background-color: #28A745; -fx-text-fill: white; " +
                                 "-fx-font-weight: 600; -fx-background-radius: 8px; " +
@@ -963,12 +1049,28 @@ public class CourseContentController {
         card.setAlignment(Pos.CENTER_LEFT);
         card.getStyleClass().add("quiz-card");
 
+        // Check quiz access status
+        String accessError = null;
+        try {
+            accessError = gamificationService.canUserTakeQuiz(currentUserId, quiz.getId());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        boolean isPassed = accessError != null && accessError.contains("already passed");
+        boolean isLocked = accessError != null && accessError.contains("wait");
+
         // Quiz icon
         StackPane iconContainer = new StackPane();
         iconContainer.setPrefSize(50, 50);
-        iconContainer.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(155,126,70,0.25), rgba(155,126,70,0.1)); -fx-background-radius: 10;");
+        
+        String iconBg = isPassed ? "rgba(76,175,80,0.25)" : 
+                       isLocked ? "rgba(220,53,69,0.25)" : 
+                       "rgba(155,126,70,0.25)";
+        iconContainer.setStyle("-fx-background-color: linear-gradient(to bottom right, " + iconBg + ", " + iconBg + "); -fx-background-radius: 10;");
 
-        Label iconLabel = new Label("📝");
+        String iconEmoji = isPassed ? "✅" : isLocked ? "🔒" : "📝";
+        Label iconLabel = new Label(iconEmoji);
         iconLabel.setStyle("-fx-font-size: 24px;");
         iconContainer.getChildren().add(iconLabel);
 
@@ -979,16 +1081,26 @@ public class CourseContentController {
         Label quizTitle = new Label(quiz.getTitle());
         quizTitle.getStyleClass().add("quiz-title");
 
+        String statusText = isPassed ? " (Completed ✓)" : isLocked ? " (Locked 🔒)" : "";
         Label quizDetails = new Label(quiz.getQuestionCount() + " questions • " + 
                                      quiz.getPointsReward() + " points • " + 
-                                     quiz.getDifficultyLevel());
+                                     quiz.getDifficultyLevel() + statusText);
         quizDetails.getStyleClass().add("quiz-details");
 
         quizInfo.getChildren().addAll(quizTitle, quizDetails);
 
         // Take quiz button
-        Button takeQuizBtn = new Button("Take Quiz");
+        Button takeQuizBtn = new Button(isPassed ? "Completed" : isLocked ? "Locked" : "Take Quiz");
         takeQuizBtn.getStyleClass().addAll("btn", "btn-primary");
+        
+        if (isPassed) {
+            takeQuizBtn.setStyle("-fx-background-color: #4CAF50; -fx-cursor: not-allowed;");
+            takeQuizBtn.setDisable(true);
+        } else if (isLocked) {
+            takeQuizBtn.setStyle("-fx-background-color: #DC3545; -fx-cursor: not-allowed;");
+            takeQuizBtn.setDisable(false); // Keep enabled to show message
+        }
+        
         takeQuizBtn.setOnAction(e -> openQuiz(quiz));
 
         card.getChildren().addAll(iconContainer, quizInfo, takeQuizBtn);
@@ -998,6 +1110,24 @@ public class CourseContentController {
 
     private void openQuiz(Quiz quiz) {
         try {
+            // Check if user can take this quiz
+            String accessError = gamificationService.canUserTakeQuiz(currentUserId, quiz.getId());
+            
+            if (accessError != null) {
+                // User cannot take quiz - show error
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Quiz Access Restricted");
+                alert.setHeaderText("Cannot Take Quiz");
+                alert.setContentText(accessError);
+                
+                // Style the dialog
+                styleDialog(alert);
+                
+                alert.showAndWait();
+                return;
+            }
+            
+            // User can take quiz - proceed
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
                 getClass().getResource("/QuizTakingView.fxml"));
             javafx.scene.Parent root = loader.load();
@@ -1009,9 +1139,86 @@ public class CourseContentController {
             javafx.stage.Stage stage = (javafx.stage.Stage) courseTitleLabel.getScene().getWindow();
             stage.getScene().setRoot(root);
             stage.setTitle("Quiz - " + quiz.getTitle());
+        } catch (SQLException e) {
+            showError("Error checking quiz access: " + e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
             showError("Error loading quiz: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Style dialog based on current theme
+     */
+    private void styleDialog(Alert alert) {
+        if (ThemeManager.getInstance().isDarkMode()) {
+            javafx.scene.control.DialogPane dialogPane = alert.getDialogPane();
+            dialogPane.setStyle(
+                "-fx-background-color: #161630; " +
+                "-fx-border-color: rgba(70,70,100,0.6); " +
+                "-fx-border-width: 2px; " +
+                "-fx-border-radius: 12px; " +
+                "-fx-background-radius: 12px;"
+            );
+            
+            // Style header
+            if (dialogPane.lookup(".header-panel") != null) {
+                dialogPane.lookup(".header-panel").setStyle(
+                    "-fx-background-color: #12122A; " +
+                    "-fx-background-radius: 12px 12px 0 0;"
+                );
+            }
+            
+            // Style labels
+            for (javafx.scene.Node node : dialogPane.getChildren()) {
+                if (node instanceof javafx.scene.control.Label) {
+                    node.setStyle("-fx-text-fill: #F0F2FA;");
+                }
+            }
+            
+            // Style content area
+            if (dialogPane.lookup(".content") != null) {
+                dialogPane.lookup(".content").setStyle("-fx-background-color: #161630;");
+            }
+            
+            // Style buttons
+            for (javafx.scene.control.ButtonType buttonType : alert.getButtonTypes()) {
+                javafx.scene.control.Button button = (javafx.scene.control.Button) dialogPane.lookupButton(buttonType);
+                if (button != null) {
+                    button.setStyle(
+                        "-fx-background-color: linear-gradient(to bottom, #E4C45E, #C8A84E, #9B7E46); " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-background-radius: 6px; " +
+                        "-fx-padding: 8 20;"
+                    );
+                }
+            }
+        } else {
+            // Light mode styling
+            javafx.scene.control.DialogPane dialogPane = alert.getDialogPane();
+            dialogPane.setStyle(
+                "-fx-background-color: white; " +
+                "-fx-border-color: #456990; " +
+                "-fx-border-width: 2px; " +
+                "-fx-border-radius: 12px; " +
+                "-fx-background-radius: 12px;"
+            );
+            
+            // Style buttons
+            for (javafx.scene.control.ButtonType buttonType : alert.getButtonTypes()) {
+                javafx.scene.control.Button button = (javafx.scene.control.Button) dialogPane.lookupButton(buttonType);
+                if (button != null) {
+                    button.setStyle(
+                        "-fx-background-color: linear-gradient(to bottom, #E4C45E, #C8A84E, #9B7E46); " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-background-radius: 6px; " +
+                        "-fx-padding: 8 20;"
+                    );
+                }
+            }
         }
     }
 
@@ -1021,6 +1228,11 @@ public class CourseContentController {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.dispose();
+        }
+        
+        // Stop TTS if speaking
+        if (ttsService != null) {
+            ttsService.stop();
         }
 
         try {

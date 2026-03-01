@@ -21,7 +21,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 public class CourseCatalogController {
 
     @FXML private TextField searchField;
@@ -384,28 +383,74 @@ public class CourseCatalogController {
     }
 
     private void handleReport(Course course) {
-        TextInputDialog dialog = new TextInputDialog();
+        // Create custom dialog with reason dropdown and description
+        Dialog<edu.connections3a8.entities.CourseReport> dialog = new Dialog<>();
         dialog.setTitle("Report Course");
         dialog.setHeaderText("Report: " + course.getTitle());
-        dialog.setContentText("Please provide a reason for reporting this course:");
         
-        dialog.showAndWait().ifPresent(reason -> {
-            if (reason != null && !reason.trim().isEmpty()) {
-                try {
-                    CourseInteraction interaction = new CourseInteraction(currentUserId, course.getId(), "report");
-                    interaction.setReportReason(reason.trim());
-                    courseService.addCourseInteraction(interaction);
-                    
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Report Submitted");
-                    alert.setHeaderText("Thank you for your feedback");
-                    alert.setContentText("Your report has been submitted. We'll review it shortly.");
-                    alert.showAndWait();
-                    
-                } catch (SQLException e) {
-                    showError("Error submitting report: " + e.getMessage());
-                    e.printStackTrace();
+        // Create form
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+        
+        ComboBox<String> reasonCombo = new ComboBox<>();
+        reasonCombo.getItems().addAll(
+            "Inappropriate Content",
+            "Misleading Information",
+            "Copyright Violation",
+            "Spam or Scam",
+            "Technical Issues",
+            "Other"
+        );
+        reasonCombo.setPromptText("Select a reason");
+        reasonCombo.setPrefWidth(300);
+        
+        TextArea descriptionArea = new TextArea();
+        descriptionArea.setPromptText("Please provide details about your report...");
+        descriptionArea.setPrefRowCount(5);
+        descriptionArea.setPrefWidth(300);
+        descriptionArea.setWrapText(true);
+        
+        grid.add(new Label("Reason:"), 0, 0);
+        grid.add(reasonCombo, 1, 0);
+        grid.add(new Label("Description:"), 0, 1);
+        grid.add(descriptionArea, 1, 1);
+        
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        
+        // Convert result
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                String reason = reasonCombo.getValue();
+                String description = descriptionArea.getText();
+                
+                if (reason != null && !reason.isEmpty() && description != null && !description.trim().isEmpty()) {
+                    return new edu.connections3a8.entities.CourseReport(
+                        course.getId(), 
+                        currentUserId, 
+                        reason, 
+                        description.trim()
+                    );
                 }
+            }
+            return null;
+        });
+        
+        dialog.showAndWait().ifPresent(report -> {
+            try {
+                courseService.submitCourseReport(report);
+                
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Report Submitted");
+                alert.setHeaderText("✅ Thank you for your feedback");
+                alert.setContentText("Your report has been submitted successfully.\nWe'll review it shortly.");
+                alert.showAndWait();
+                
+            } catch (SQLException e) {
+                showError("Error submitting report: " + e.getMessage());
+                e.printStackTrace();
             }
         });
     }

@@ -314,6 +314,8 @@ public class QuizTakingController {
     }
 
     private void submitQuiz() {
+        System.out.println("=== SUBMIT QUIZ CALLED ===");
+        
         if (timer != null) {
             timer.stop();
         }
@@ -334,18 +336,67 @@ public class QuizTakingController {
 
         int totalQuestions = questions.size();
         int scorePercentage = (int) ((correctAnswers * 100.0) / totalQuestions);
-        int pointsEarned = scorePercentage >= currentQuiz.getPassingScore() ? 
-                          currentQuiz.getPointsReward() : 0;
+        boolean passed = scorePercentage >= currentQuiz.getPassingScore();
+        int pointsEarned = passed ? currentQuiz.getPointsReward() : 0;
+
+        System.out.println("📊 Score: " + scorePercentage + "% (" + correctAnswers + "/" + totalQuestions + ")");
+        System.out.println("🎯 Passed: " + passed + " (passing score: " + currentQuiz.getPassingScore() + "%)");
+        System.out.println("🎯 Points to earn: " + pointsEarned);
 
         // Save quiz result to database
         try {
-            // TODO: Save UserQuiz record with score and points
-            // gamificationService.saveUserQuizResult(currentUserId, currentQuiz.getId(), scorePercentage, pointsEarned);
+            // Calculate time taken (in seconds)
+            int timeTaken = (currentQuiz.getTimeLimit() * 60) - remainingSeconds;
             
-            // Award points if passed
-            if (pointsEarned > 0) {
-                gamificationService.addPoints(currentUserId, pointsEarned, 
-                    "quiz_completion", "Completed quiz: " + currentQuiz.getTitle());
+            // Save quiz completion record
+            gamificationService.completeQuiz(currentUserId, currentQuiz.getId(), scorePercentage, timeTaken);
+            System.out.println("✅ Quiz result saved to database");
+            
+            // Check and award badges if passed
+            if (passed) {
+                List<edu.connections3a8.entities.Badge> newBadges = gamificationService.checkAndAwardBadges(currentUserId);
+                
+                System.out.println("🏆 Badges check complete. New badges earned: " + newBadges.size());
+                for (edu.connections3a8.entities.Badge badge : newBadges) {
+                    System.out.println("   - " + badge.getName() + " (" + badge.getPointsRequired() + " points)");
+                }
+                
+                // Show badge notifications if any were earned
+                if (!newBadges.isEmpty()) {
+                    javafx.application.Platform.runLater(() -> {
+                        try {
+                            // Get the root pane to show notifications
+                            javafx.scene.Parent root = optionsContainer.getScene().getRoot();
+                            System.out.println("📱 Root type: " + root.getClass().getName());
+                            
+                            javafx.scene.layout.Pane targetPane = null;
+                            
+                            // Handle different root types
+                            if (root instanceof javafx.scene.layout.Pane) {
+                                targetPane = (javafx.scene.layout.Pane) root;
+                            } else if (root instanceof javafx.scene.control.ScrollPane) {
+                                // Get the content of ScrollPane
+                                javafx.scene.control.ScrollPane scrollPane = (javafx.scene.control.ScrollPane) root;
+                                if (scrollPane.getContent() instanceof javafx.scene.layout.Pane) {
+                                    targetPane = (javafx.scene.layout.Pane) scrollPane.getContent();
+                                    System.out.println("📱 Using ScrollPane content: " + targetPane.getClass().getName());
+                                }
+                            }
+                            
+                            if (targetPane != null) {
+                                System.out.println("✅ Showing badge notifications...");
+                                edu.connections3a8.utils.BadgeNotification.showMultiple(newBadges, targetPane);
+                            } else {
+                                System.err.println("❌ Could not find suitable Pane for notification");
+                            }
+                        } catch (Exception e) {
+                            System.err.println("❌ Error showing badge notification: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                    });
+                } else {
+                    System.out.println("ℹ️ No new badges to show");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

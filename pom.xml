@@ -94,6 +94,13 @@
             <version>2.10.1</version>
         </dependency>
         
+        <!-- FreeTTS for Text-to-Speech -->
+        <dependency>
+            <groupId>net.sf.sociaal</groupId>
+            <artifactId>freetts</artifactId>
+            <version>1.2.2</version>
+        </dependency>
+        
         <!-- JUnit 5 for Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

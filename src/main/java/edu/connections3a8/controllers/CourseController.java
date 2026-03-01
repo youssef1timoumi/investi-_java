@@ -2,6 +2,7 @@ package edu.connections3a8.controllers;
 
 import edu.connections3a8.entities.Course;
 import edu.connections3a8.services.CouseService;
+import edu.connections3a8.utils.ThemeManager;
 import javafx.animation.*;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -28,6 +29,7 @@ import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -1142,5 +1144,241 @@ public class CourseController {
             rotate.setCycleCount(Timeline.INDEFINITE);
             rotate.play();
         }
+    }
+    
+    @FXML
+    private void handleViewReports() {
+        try {
+            List<edu.connections3a8.entities.CourseReport> reports = courseService.getAllReports();
+            showReportsDialog(reports);
+        } catch (SQLException e) {
+            showError("Error loading reports: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    private void showReportsDialog(List<edu.connections3a8.entities.CourseReport> reports) {
+        Stage dialog = new Stage();
+        dialog.setTitle("Course Reports");
+        dialog.setWidth(900);
+        dialog.setHeight(600);
+        
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: " + (ThemeManager.getInstance().isDarkMode() ? "#161630" : "#F7F0F5") + ";");
+        
+        // Header
+        Label titleLabel = new Label("📋 Course Reports (" + reports.size() + ")");
+        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: " + 
+                           (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
+        
+        // Filter buttons
+        HBox filterBox = new HBox(10);
+        filterBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Button allBtn = new Button("All (" + reports.size() + ")");
+        Button pendingBtn = new Button("Pending");
+        Button reviewedBtn = new Button("Reviewed");
+        Button resolvedBtn = new Button("Resolved");
+        
+        allBtn.setStyle("-fx-background-color: #456990; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 6;");
+        pendingBtn.setStyle("-fx-background-color: #FFA500; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 6;");
+        reviewedBtn.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 6;");
+        resolvedBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 6;");
+        
+        filterBox.getChildren().addAll(allBtn, pendingBtn, reviewedBtn, resolvedBtn);
+        
+        // Reports list
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        
+        VBox reportsList = new VBox(15);
+        reportsList.setPadding(new Insets(10));
+        
+        // Populate reports
+        for (edu.connections3a8.entities.CourseReport report : reports) {
+            reportsList.getChildren().add(createReportCard(report, dialog));
+        }
+        
+        scrollPane.setContent(reportsList);
+        
+        // Filter actions
+        allBtn.setOnAction(e -> {
+            try {
+                List<edu.connections3a8.entities.CourseReport> allReports = courseService.getAllReports();
+                reportsList.getChildren().clear();
+                for (edu.connections3a8.entities.CourseReport r : allReports) {
+                    reportsList.getChildren().add(createReportCard(r, dialog));
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        });
+        
+        pendingBtn.setOnAction(e -> filterReports("pending", reportsList, dialog));
+        reviewedBtn.setOnAction(e -> filterReports("reviewed", reportsList, dialog));
+        resolvedBtn.setOnAction(e -> filterReports("resolved", reportsList, dialog));
+        
+        root.getChildren().addAll(titleLabel, filterBox, scrollPane);
+        
+        Scene scene = new Scene(root);
+        dialog.setScene(scene);
+        dialog.show();
+    }
+    
+    private void filterReports(String status, VBox reportsList, Stage dialog) {
+        try {
+            List<edu.connections3a8.entities.CourseReport> filtered = courseService.getReportsByStatus(status);
+            reportsList.getChildren().clear();
+            for (edu.connections3a8.entities.CourseReport r : filtered) {
+                reportsList.getChildren().add(createReportCard(r, dialog));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    private HBox createReportCard(edu.connections3a8.entities.CourseReport report, Stage parentDialog) {
+        HBox card = new HBox(15);
+        card.setPadding(new Insets(15));
+        card.setStyle("-fx-background-color: " + (ThemeManager.getInstance().isDarkMode() ? "#12122A" : "white") + "; " +
+                     "-fx-background-radius: 10; -fx-border-color: " + 
+                     (ThemeManager.getInstance().isDarkMode() ? "rgba(70,70,100,0.6)" : "#E0E0E0") + "; " +
+                     "-fx-border-width: 1; -fx-border-radius: 10;");
+        
+        // Status indicator
+        String statusColor = report.getStatus().equals("pending") ? "#FFA500" :
+                            report.getStatus().equals("reviewed") ? "#2196F3" :
+                            report.getStatus().equals("resolved") ? "#4CAF50" : "#DC3545";
+        
+        VBox statusBox = new VBox();
+        statusBox.setPrefWidth(10);
+        statusBox.setStyle("-fx-background-color: " + statusColor + "; -fx-background-radius: 5;");
+        
+        // Report info
+        VBox infoBox = new VBox(8);
+        HBox.setHgrow(infoBox, Priority.ALWAYS);
+        
+        Label courseLabel = new Label("📚 " + report.getCourseName());
+        courseLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: " + 
+                            (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
+        
+        Label reasonLabel = new Label("⚠️ " + report.getReportReason());
+        reasonLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + statusColor + "; -fx-font-weight: 600;");
+        
+        Label dateLabel = new Label("📅 " + report.getCreatedAt().toString());
+        dateLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + 
+                          (ThemeManager.getInstance().isDarkMode() ? "#8D96A6" : "#666") + ";");
+        
+        Label statusLabel = new Label("Status: " + report.getStatus().toUpperCase());
+        statusLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + statusColor + "; -fx-font-weight: 600;");
+        
+        infoBox.getChildren().addAll(courseLabel, reasonLabel, dateLabel, statusLabel);
+        
+        // View details button
+        Button detailsBtn = new Button("View Details");
+        detailsBtn.setStyle("-fx-background-color: #456990; -fx-text-fill: white; -fx-padding: 10 20; " +
+                           "-fx-background-radius: 6; -fx-cursor: hand;");
+        detailsBtn.setOnAction(e -> showReportDetails(report, parentDialog));
+        
+        card.getChildren().addAll(statusBox, infoBox, detailsBtn);
+        
+        return card;
+    }
+    
+    private void showReportDetails(edu.connections3a8.entities.CourseReport report, Stage parentDialog) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Report Details");
+        alert.setHeaderText("Report #" + report.getId());
+        
+        String details = String.format(
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
+            "📚 Course: %s\n" +
+            "🆔 Course ID: %d\n\n" +
+            "👤 Reported by User ID: %d\n" +
+            "📅 Date: %s\n\n" +
+            "⚠️ Reason: %s\n\n" +
+            "📝 Description:\n%s\n\n" +
+            "📊 Status: %s\n\n" +
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            report.getCourseName(),
+            report.getCourseId(),
+            report.getUserId(),
+            report.getCreatedAt(),
+            report.getReportReason(),
+            report.getDescription(),
+            report.getStatus().toUpperCase()
+        );
+        
+        alert.setContentText(details);
+        
+        // Add action buttons
+        ButtonType updateBtn = new ButtonType("Update Status");
+        ButtonType deleteBtn = new ButtonType("Delete Report");
+        ButtonType closeBtn = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+        
+        alert.getButtonTypes().setAll(updateBtn, deleteBtn, closeBtn);
+        
+        alert.showAndWait().ifPresent(response -> {
+            if (response == updateBtn) {
+                updateReportStatus(report, parentDialog);
+            } else if (response == deleteBtn) {
+                deleteReport(report, parentDialog);
+            }
+        });
+    }
+    
+    private void updateReportStatus(edu.connections3a8.entities.CourseReport report, Stage parentDialog) {
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("pending", "pending", "reviewed", "resolved", "dismissed");
+        dialog.setTitle("Update Report Status");
+        dialog.setHeaderText("Report #" + report.getId());
+        dialog.setContentText("Select new status:");
+        
+        dialog.showAndWait().ifPresent(status -> {
+            try {
+                courseService.updateReportStatus(report.getId(), status);
+                Alert success = new Alert(Alert.AlertType.INFORMATION);
+                success.setTitle("Success");
+                success.setHeaderText("✅ Status Updated");
+                success.setContentText("Report status has been updated to: " + status.toUpperCase());
+                success.showAndWait();
+                
+                // Refresh the reports dialog
+                parentDialog.close();
+                handleViewReports();
+            } catch (SQLException e) {
+                showError("Error updating status: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+    
+    private void deleteReport(edu.connections3a8.entities.CourseReport report, Stage parentDialog) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Report");
+        confirm.setHeaderText("⚠️ Confirm Deletion");
+        confirm.setContentText("Are you sure you want to delete this report?\nThis action cannot be undone.");
+        
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    courseService.deleteReport(report.getId());
+                    Alert success = new Alert(Alert.AlertType.INFORMATION);
+                    success.setTitle("Success");
+                    success.setHeaderText("✅ Report Deleted");
+                    success.setContentText("The report has been deleted successfully.");
+                    success.showAndWait();
+                    
+                    // Refresh the reports dialog
+                    parentDialog.close();
+                    handleViewReports();
+                } catch (SQLException e) {
+                    showError("Error deleting report: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

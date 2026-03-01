@@ -626,5 +626,184 @@ public class GamificationService implements IGamification {
         option.setCreatedAt(rs.getTimestamp("created_at"));
         return option;
     }
-
+    
+    /* ===== AUTOMATIC BADGE AWARDING ===== */
+    
+    /**
+     * Check and award badges based on user's total points
+     * Returns list of newly earned badges
+     */
+    public List<Badge> checkAndAwardBadges(int userId) throws SQLException {
+        List<Badge> newlyEarnedBadges = new ArrayList<>();
+        
+        // Get user's total points
+        int totalPoints = getUserTotalPoints(userId);
+        System.out.println("🔍 Checking badges for user " + userId + " with " + totalPoints + " total points");
+        
+        // First, check how many badges exist in total
+        String countQuery = "SELECT COUNT(*) as total FROM badges WHERE points_required <= ?";
+        PreparedStatement countPst = cnx.prepareStatement(countQuery);
+        countPst.setInt(1, totalPoints);
+        ResultSet countRs = countPst.executeQuery();
+        if (countRs.next()) {
+            int totalEligible = countRs.getInt("total");
+            System.out.println("   📊 Total badges with points_required <= " + totalPoints + ": " + totalEligible);
+        }
+        
+        // Check how many badges user already has
+        String earnedQuery = "SELECT COUNT(*) as earned FROM user_badges WHERE user_id = ?";
+        PreparedStatement earnedPst = cnx.prepareStatement(earnedQuery);
+        earnedPst.setInt(1, userId);
+        ResultSet earnedRs = earnedPst.executeQuery();
+        if (earnedRs.next()) {
+            int alreadyEarned = earnedRs.getInt("earned");
+            System.out.println("   ✅ Badges already earned by user: " + alreadyEarned);
+        }
+        
+        // Get all badges user hasn't earned yet
+        String query = "SELECT b.* FROM badges b " +
+                      "WHERE b.points_required <= ? " +
+                      "AND b.id NOT IN (SELECT badge_id FROM user_badges WHERE user_id = ?) " +
+                      "ORDER BY b.points_required ASC";
+        
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, totalPoints);
+        pst.setInt(2, userId);
+        ResultSet rs = pst.executeQuery();
+        
+        int eligibleCount = 0;
+        while (rs.next()) {
+            eligibleCount++;
+            Badge badge = mapResultSetToBadge(rs);
+            
+            System.out.println("   ✓ Eligible badge: " + badge.getName() + " (requires " + badge.getPointsRequired() + " points)");
+            
+            // Award the badge
+            awardBadgeToUser(userId, badge.getId());
+            newlyEarnedBadges.add(badge);
+            
+            System.out.println("   🏆 Badge awarded: " + badge.getName() + " to user " + userId);
+        }
+        
+        if (eligibleCount == 0) {
+            System.out.println("   ℹ️ No new badges to award");
+        }
+        
+        return newlyEarnedBadges;
+    }
+    
+    /**
+     * Award a specific badge to a user
+     */
+    public void awardBadgeToUser(int userId, long badgeId) throws SQLException {
+        String query = "INSERT IGNORE INTO user_badges (user_id, badge_id, earned_at) VALUES (?, ?, NOW())";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        pst.setLong(2, badgeId);
+        pst.executeUpdate();
+    }
+    
+    /**
+     * Get user's total earned points
+     */
+    public int getUserTotalPoints(int userId) throws SQLException {
+        String query = "SELECT total_earned_points FROM user_points WHERE user_id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            return rs.getInt("total_earned_points");
+        }
+        return 0;
+    }
+    
+    /**
+     * Check if user has a specific badge
+     */
+    public boolean userHasBadge(int userId, long badgeId) throws SQLException {
+        String query = "SELECT COUNT(*) as count FROM user_badges WHERE user_id = ? AND badge_id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        pst.setLong(2, badgeId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            return rs.getInt("count") > 0;
+        }
+        return false;
+    }
+    
+    /* ===== QUIZ ACCESS CONTROL ===== */
+    
+    /**
+     * Check if user can take a quiz
+     * Returns null if allowed, or error message if not allowed
+     */
+    public String canUserTakeQuiz(int userId, long quizId) throws SQLException {
+        System.out.println("🔍 Checking quiz access for user " + userId + ", quiz " + quizId);
+        
+        // Check if user has passed this quiz
+        String passedQuery = "SELECT passed, completed_at FROM user_quizzes " +
+                            "WHERE user_id = ? AND quiz_id = ? " +
+                            "ORDER BY completed_at DESC LIMIT 1";
+        PreparedStatement pst = cnx.prepareStatement(passedQuery);
+        pst.setInt(1, userId);
+        pst.setLong(2, quizId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            boolean passed = rs.getBoolean("passed");
+            java.sql.Timestamp lastAttempt = rs.getTimestamp("completed_at");
+            
+            System.out.println("   📝 Found previous attempt: passed=" + passed + ", time=" + lastAttempt);
+            
+            // If user passed, they cannot retake
+            if (passed) {
+                System.out.println("   ❌ User already passed - blocking access");
+                return "You have already passed this quiz! ✅";
+            }
+            
+            // If user failed, check if 3 minutes have passed
+            long currentTime = System.currentTimeMillis();
+            long lastAttemptTime = lastAttempt.getTime();
+            long timeDiff = currentTime - lastAttemptTime;
+            long threeMinutesInMillis = 3 * 60 * 1000; // 3 minutes
+            
+            System.out.println("   ⏱️ Time since last attempt: " + (timeDiff / 1000) + " seconds");
+            
+            if (timeDiff < threeMinutesInMillis) {
+                long remainingSeconds = (threeMinutesInMillis - timeDiff) / 1000;
+                long minutes = remainingSeconds / 60;
+                long seconds = remainingSeconds % 60;
+                System.out.println("   ❌ Still in cooldown period - blocking access");
+                return String.format("Please wait %d:%02d before retrying this quiz ⏳", minutes, seconds);
+            }
+            
+            System.out.println("   ✅ Cooldown period expired - allowing retry");
+        } else {
+            System.out.println("   ✅ No previous attempts - allowing access");
+        }
+        
+        // User can take the quiz
+        return null;
+    }
+    
+    /**
+     * Get user's last quiz attempt
+     */
+    public UserQuiz getLastQuizAttempt(int userId, long quizId) throws SQLException {
+        String query = "SELECT * FROM user_quizzes WHERE user_id = ? AND quiz_id = ? " +
+                      "ORDER BY completed_at DESC LIMIT 1";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        pst.setLong(2, quizId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            return mapResultSetToUserQuiz(rs);
+        }
+        return null;
+    }
+    
 }
