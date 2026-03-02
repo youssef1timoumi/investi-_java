@@ -806,4 +806,38 @@ public class GamificationService implements IGamification {
         return null;
     }
     
+    /* ===== USER EMAIL METHODS ===== */
+    
+    /**
+     * Get user's email address from personne table
+     */
+    public String getUserEmail(int userId) throws SQLException {
+        String query = "SELECT email FROM personne WHERE id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            return rs.getString("email");
+        }
+        return null;
+    }
+    
+    /**
+     * Get user's full name from personne table
+     */
+    public String getUserName(int userId) throws SQLException {
+        String query = "SELECT nom, prenom FROM personne WHERE id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setInt(1, userId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            String nom = rs.getString("nom");
+            String prenom = rs.getString("prenom");
+            return prenom + " " + nom;
+        }
+        return "User";
+    }
+    
 }

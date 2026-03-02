@@ -531,6 +531,44 @@ public class CouseService implements ICourse {
         return 0;
     }
     
+    /* ===== COURSE ANALYTICS ===== */
+    
+    public int getCourseViewCount(long courseId) throws SQLException {
+        String query = "SELECT COUNT(*) as count FROM course_history WHERE course_id = ?";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, courseId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            return rs.getInt("count");
+        }
+        return 0;
+    }
+    
+    public int getCourseLikeCount(long courseId) throws SQLException {
+        String query = "SELECT COUNT(*) as count FROM course_interactions WHERE course_id = ? AND interaction_type = 'like'";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, courseId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            return rs.getInt("count");
+        }
+        return 0;
+    }
+    
+    public int getCourseDislikeCount(long courseId) throws SQLException {
+        String query = "SELECT COUNT(*) as count FROM course_interactions WHERE course_id = ? AND interaction_type = 'dislike'";
+        PreparedStatement pst = cnx.prepareStatement(query);
+        pst.setLong(1, courseId);
+        ResultSet rs = pst.executeQuery();
+        
+        if (rs.next()) {
+            return rs.getInt("count");
+        }
+        return 0;
+    }
+    
     private edu.connections3a8.entities.CourseReport mapResultSetToReport(ResultSet rs) throws SQLException {
         edu.connections3a8.entities.CourseReport report = new edu.connections3a8.entities.CourseReport();
         report.setId(rs.getLong("id"));

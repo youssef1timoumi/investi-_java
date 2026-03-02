@@ -34,9 +34,12 @@ public class CourseContentController {
     @FXML private VBox quizzesContainer;
     @FXML private Label quizCountLabel;
     @FXML private Button nightModeToggle;
+    @FXML private VBox similarCoursesSection;
+    @FXML private HBox similarCoursesContainer;
 
     private CouseService courseService;
     private GamificationService gamificationService;
+    private edu.connections3a8.services.RecommendationService recommendationService;
     private Course currentCourse;
     private MediaPlayer mediaPlayer; // Keep reference to stop when leaving
     private TextToSpeechService ttsService; // Text-to-Speech service
@@ -45,6 +48,7 @@ public class CourseContentController {
     public void initialize() {
         courseService = new CouseService();
         gamificationService = new GamificationService();
+        recommendationService = new edu.connections3a8.services.RecommendationService();
         ttsService = new TextToSpeechService();
     }
 
@@ -171,6 +175,9 @@ public class CourseContentController {
 
         // Load related quizzes
         loadRelatedQuizzes();
+        
+        // Load similar courses
+        loadSimilarCourses();
     }
 
     private void loadMedia() {
@@ -1249,6 +1256,146 @@ public class CourseContentController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private void loadSimilarCourses() {
+        if (similarCoursesContainer == null || currentCourse == null) return;
+        
+        similarCoursesContainer.getChildren().clear();
+        
+        try {
+            List<Course> similarCourses = recommendationService.getSimilarCourseRecommendations(
+                currentCourse.getId(), 5);
+            
+            if (similarCourses.isEmpty()) {
+                // Hide similar courses section if no recommendations
+                if (similarCoursesSection != null) {
+                    similarCoursesSection.setVisible(false);
+                    similarCoursesSection.setManaged(false);
+                }
+                return;
+            }
+            
+            // Show similar courses section
+            if (similarCoursesSection != null) {
+                similarCoursesSection.setVisible(true);
+                similarCoursesSection.setManaged(true);
+            }
+            
+            // Create compact cards for similar courses
+            for (Course course : similarCourses) {
+                VBox similarCard = createSimilarCourseCard(course);
+                similarCoursesContainer.getChildren().add(similarCard);
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error loading similar courses: " + e.getMessage());
+            e.printStackTrace();
+            // Hide similar courses section on error
+            if (similarCoursesSection != null) {
+                similarCoursesSection.setVisible(false);
+                similarCoursesSection.setManaged(false);
+            }
+        }
+    }
+    
+    private VBox createSimilarCourseCard(Course course) {
+        VBox card = new VBox(8);
+        card.setPadding(new Insets(12));
+        card.setPrefWidth(220);
+        card.setMaxWidth(220);
+        card.setMinHeight(280);
+        
+        // Apply styling
+        if (ThemeManager.getInstance().isDarkMode()) {
+            card.setStyle("-fx-background-color: #161630; -fx-background-radius: 10px; " +
+                         "-fx-border-color: rgba(69,105,144,0.6); -fx-border-width: 2px; -fx-border-radius: 10px; " +
+                         "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 12, 0, 0, 4);");
+        } else {
+            card.setStyle("-fx-background-color: white; -fx-background-radius: 10px; " +
+                         "-fx-border-color: #456990; -fx-border-width: 2px; -fx-border-radius: 10px; " +
+                         "-fx-effect: dropshadow(gaussian, rgba(69,105,144,0.2), 10, 0, 0, 3);");
+        }
+        
+        // Thumbnail
+        String thumbnailUrl = course.getThumbnailUrl();
+        if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {
+            File thumbnailFile = new File(thumbnailUrl);
+            if (thumbnailFile.exists()) {
+                try {
+                    javafx.scene.image.Image image = new javafx.scene.image.Image(thumbnailFile.toURI().toString());
+                    javafx.scene.image.ImageView imageView = new javafx.scene.image.ImageView(image);
+                    imageView.setFitWidth(196);
+                    imageView.setFitHeight(110);
+                    imageView.setPreserveRatio(false);
+                    
+                    javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(196, 110);
+                    clip.setArcWidth(12);
+                    clip.setArcHeight(12);
+                    imageView.setClip(clip);
+                    
+                    card.getChildren().add(imageView);
+                } catch (Exception e) {
+                    addSmallThumbnailPlaceholder(card);
+                }
+            } else {
+                addSmallThumbnailPlaceholder(card);
+            }
+        } else {
+            addSmallThumbnailPlaceholder(card);
+        }
+        
+        // Title
+        Label titleLabel = new Label(course.getTitle());
+        titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; " +
+                           "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
+        titleLabel.setWrapText(true);
+        titleLabel.setMaxHeight(40);
+        
+        // Metadata
+        HBox metaBox = new HBox(8);
+        Label pointsLabel = new Label("⭐ " + course.getRewardPoints());
+        Label difficultyLabel = new Label("📊 " + course.getDifficultyLevel());
+        
+        String pointsColor = ThemeManager.getInstance().isDarkMode() ? "#E4C45E" : "#9B7E46";
+        String metaColor = ThemeManager.getInstance().isDarkMode() ? "#8D96A6" : "#6B7280";
+        
+        pointsLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: " + pointsColor + ";");
+        difficultyLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: " + metaColor + ";");
+        metaBox.getChildren().addAll(pointsLabel, difficultyLabel);
+        
+        // Spacer
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+        
+        // View button
+        Button viewBtn = new Button("View Course");
+        viewBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #6189B0, #456990); " +
+                        "-fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 6px; " +
+                        "-fx-padding: 8 16; -fx-cursor: hand; -fx-font-size: 11px;");
+        viewBtn.setPrefWidth(196);
+        viewBtn.setOnAction(e -> {
+            // Navigate to the similar course
+            setCourse(course);
+        });
+        
+        card.getChildren().addAll(titleLabel, metaBox, spacer, viewBtn);
+        
+        return card;
+    }
+    
+    private void addSmallThumbnailPlaceholder(VBox card) {
+        StackPane placeholder = new StackPane();
+        placeholder.setPrefSize(196, 110);
+        placeholder.setMaxSize(196, 110);
+        placeholder.setStyle("-fx-background-color: linear-gradient(to bottom right, #456990, #9B7E46); " +
+                            "-fx-background-radius: 8px;");
+        
+        Label placeholderLabel = new Label("📚");
+        placeholderLabel.setStyle("-fx-font-size: 36px;");
+        
+        placeholder.getChildren().add(placeholderLabel);
+        card.getChildren().add(placeholder);
     }
 
     private void showError(String message) {

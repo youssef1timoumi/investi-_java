@@ -1157,6 +1157,63 @@ public class CourseController {
         }
     }
     
+    @FXML
+    private void handleExportCourses() {
+        try {
+            edu.connections3a8.services.ExcelExportService excelService = 
+                new edu.connections3a8.services.ExcelExportService();
+            
+            java.io.File file = excelService.exportCoursesToExcel();
+            
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Export Successful");
+            alert.setHeaderText("✅ Courses Exported");
+            alert.setContentText("Courses have been exported to:\n" + file.getAbsolutePath() + 
+                               "\n\nFile size: " + (file.length() / 1024) + " KB");
+            alert.showAndWait();
+            
+            // Open file location
+            if (java.awt.Desktop.isDesktopSupported()) {
+                java.awt.Desktop.getDesktop().open(file.getParentFile());
+            }
+            
+        } catch (Exception e) {
+            showError("Error exporting courses: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    @FXML
+    private void handleExportAnalytics() {
+        try {
+            edu.connections3a8.services.ExcelExportService excelService = 
+                new edu.connections3a8.services.ExcelExportService();
+            
+            java.io.File file = excelService.exportCourseAnalytics();
+            
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Export Successful");
+            alert.setHeaderText("✅ Analytics Exported");
+            alert.setContentText("Course analytics have been exported to:\n" + file.getAbsolutePath() + 
+                               "\n\nFile size: " + (file.length() / 1024) + " KB" +
+                               "\n\nSheets included:\n" +
+                               "• Course Statistics\n" +
+                               "• Category Distribution\n" +
+                               "• Difficulty Distribution\n" +
+                               "• Course Reports");
+            alert.showAndWait();
+            
+            // Open file location
+            if (java.awt.Desktop.isDesktopSupported()) {
+                java.awt.Desktop.getDesktop().open(file.getParentFile());
+            }
+            
+        } catch (Exception e) {
+            showError("Error exporting analytics: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
     private void showReportsDialog(List<edu.connections3a8.entities.CourseReport> reports) {
         Stage dialog = new Stage();
         dialog.setTitle("Course Reports");

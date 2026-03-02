@@ -29,9 +29,14 @@ public class CourseCatalogController {
     @FXML private GridPane courseGrid;
     @FXML private Label courseCountLabel;
     @FXML private Button nightModeToggle;
+    @FXML private VBox recommendationsSection;
+    @FXML private HBox recommendationsContainer;
+    @FXML private Label recommendationsTitleLabel;
+    @FXML private Label recommendationsSubtitleLabel;
 
     private CouseService courseService;
     private GamificationService gamificationService;
+    private edu.connections3a8.services.RecommendationService recommendationService;
     private int currentUserId = 1; // TODO: Get from session/login
     private javafx.scene.layout.Pane rootPane;
 
@@ -39,8 +44,10 @@ public class CourseCatalogController {
     public void initialize() {
         courseService = new CouseService();
         gamificationService = new GamificationService();
+        recommendationService = new edu.connections3a8.services.RecommendationService();
         
         loadFilters();
+        loadRecommendations();
         loadCourses();
         
         // Add listeners for real-time filtering
@@ -80,6 +87,178 @@ public class CourseCatalogController {
         difficultyFilter.setItems(FXCollections.observableArrayList(
             "All Difficulties", "beginner", "intermediate", "advanced", "expert"
         ));
+    }
+    
+    private void loadRecommendations() {
+        System.out.println("=== Loading Recommendations ===");
+        
+        if (recommendationsContainer == null) {
+            System.out.println("❌ recommendationsContainer is null!");
+            return;
+        }
+        
+        recommendationsContainer.getChildren().clear();
+        
+        // Update title colors based on theme
+        if (recommendationsTitleLabel != null) {
+            String titleColor = ThemeManager.getInstance().isDarkMode() ? "#E4C45E" : "#9B7E46";
+            recommendationsTitleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + titleColor + ";");
+        }
+        
+        if (recommendationsSubtitleLabel != null) {
+            String subtitleColor = ThemeManager.getInstance().isDarkMode() ? "#8D96A6" : "#6B7280";
+            recommendationsSubtitleLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + subtitleColor + "; -fx-font-style: italic;");
+        }
+        
+        try {
+            // Check if user has any course history
+            List<edu.connections3a8.entities.CourseHistory> history = courseService.getUserCourseHistory(currentUserId, 1);
+            System.out.println("User history size: " + history.size());
+            
+            List<Course> recommendations;
+            if (history.isEmpty()) {
+                // New user - show popular courses
+                System.out.println("Loading recommendations for new user...");
+                recommendations = recommendationService.getRecommendationsForNewUser(6);
+            } else {
+                // Existing user - personalized recommendations
+                System.out.println("Loading personalized recommendations...");
+                recommendations = recommendationService.getRecommendationsForUser(currentUserId, 6);
+            }
+            
+            System.out.println("Found " + recommendations.size() + " recommendations");
+            
+            if (recommendations.isEmpty()) {
+                // Hide recommendations section if no recommendations
+                System.out.println("No recommendations found - hiding section");
+                if (recommendationsSection != null) {
+                    recommendationsSection.setVisible(false);
+                    recommendationsSection.setManaged(false);
+                }
+                return;
+            }
+            
+            // Show recommendations section
+            System.out.println("Showing recommendations section");
+            if (recommendationsSection != null) {
+                recommendationsSection.setVisible(true);
+                recommendationsSection.setManaged(true);
+            }
+            
+            // Create compact cards for recommendations
+            for (Course course : recommendations) {
+                System.out.println("Creating card for: " + course.getTitle());
+                VBox recCard = createRecommendationCard(course);
+                recommendationsContainer.getChildren().add(recCard);
+            }
+            
+            System.out.println("✅ Recommendations loaded successfully!");
+            
+        } catch (SQLException e) {
+            System.err.println("❌ Error loading recommendations: " + e.getMessage());
+            e.printStackTrace();
+            // Hide recommendations section on error
+            if (recommendationsSection != null) {
+                recommendationsSection.setVisible(false);
+                recommendationsSection.setManaged(false);
+            }
+        }
+    }
+    
+    private VBox createRecommendationCard(Course course) {
+        VBox card = new VBox(8);
+        card.setPadding(new Insets(12));
+        card.setPrefWidth(220);
+        card.setMaxWidth(220);
+        card.setMinHeight(280);
+        
+        // Apply styling
+        if (ThemeManager.getInstance().isDarkMode()) {
+            card.setStyle("-fx-background-color: #161630; -fx-background-radius: 10px; " +
+                         "-fx-border-color: rgba(155,126,70,0.6); -fx-border-width: 2px; -fx-border-radius: 10px; " +
+                         "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 12, 0, 0, 4);");
+        } else {
+            card.setStyle("-fx-background-color: white; -fx-background-radius: 10px; " +
+                         "-fx-border-color: #9B7E46; -fx-border-width: 2px; -fx-border-radius: 10px; " +
+                         "-fx-effect: dropshadow(gaussian, rgba(155,126,70,0.2), 10, 0, 0, 3);");
+        }
+        
+        // Thumbnail
+        String thumbnailUrl = course.getThumbnailUrl();
+        if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {
+            File thumbnailFile = new File(thumbnailUrl);
+            if (thumbnailFile.exists()) {
+                try {
+                    Image image = new Image(thumbnailFile.toURI().toString());
+                    ImageView imageView = new ImageView(image);
+                    imageView.setFitWidth(196);
+                    imageView.setFitHeight(110);
+                    imageView.setPreserveRatio(false);
+                    
+                    javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(196, 110);
+                    clip.setArcWidth(12);
+                    clip.setArcHeight(12);
+                    imageView.setClip(clip);
+                    
+                    card.getChildren().add(imageView);
+                } catch (Exception e) {
+                    addSmallThumbnailPlaceholder(card);
+                }
+            } else {
+                addSmallThumbnailPlaceholder(card);
+            }
+        } else {
+            addSmallThumbnailPlaceholder(card);
+        }
+        
+        // Title
+        Label titleLabel = new Label(course.getTitle());
+        titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; " +
+                           "-fx-text-fill: " + (ThemeManager.getInstance().isDarkMode() ? "#F0F2FA" : "#000501") + ";");
+        titleLabel.setWrapText(true);
+        titleLabel.setMaxHeight(40);
+        
+        // Metadata
+        HBox metaBox = new HBox(8);
+        Label pointsLabel = new Label("⭐ " + course.getRewardPoints());
+        Label difficultyLabel = new Label("📊 " + course.getDifficultyLevel());
+        
+        String pointsColor = ThemeManager.getInstance().isDarkMode() ? "#E4C45E" : "#9B7E46";
+        String metaColor = ThemeManager.getInstance().isDarkMode() ? "#8D96A6" : "#6B7280";
+        
+        pointsLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: " + pointsColor + ";");
+        difficultyLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: " + metaColor + ";");
+        metaBox.getChildren().addAll(pointsLabel, difficultyLabel);
+        
+        // Spacer
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+        
+        // View button
+        Button viewBtn = new Button("View Course");
+        viewBtn.setStyle("-fx-background-color: linear-gradient(to bottom, #E4C45E, #9B7E46); " +
+                        "-fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 6px; " +
+                        "-fx-padding: 8 16; -fx-cursor: hand; -fx-font-size: 11px;");
+        viewBtn.setPrefWidth(196);
+        viewBtn.setOnAction(e -> openCourseContent(course));
+        
+        card.getChildren().addAll(titleLabel, metaBox, spacer, viewBtn);
+        
+        return card;
+    }
+    
+    private void addSmallThumbnailPlaceholder(VBox card) {
+        StackPane placeholder = new StackPane();
+        placeholder.setPrefSize(196, 110);
+        placeholder.setMaxSize(196, 110);
+        placeholder.setStyle("-fx-background-color: linear-gradient(to bottom right, #456990, #9B7E46); " +
+                            "-fx-background-radius: 8px;");
+        
+        Label placeholderLabel = new Label("📚");
+        placeholderLabel.setStyle("-fx-font-size: 36px;");
+        
+        placeholder.getChildren().add(placeholderLabel);
+        card.getChildren().add(placeholder);
     }
 
     private void loadCourses() {
@@ -344,19 +523,36 @@ public class CourseCatalogController {
 
     private void handleLike(Course course) {
         try {
+            System.out.println("=== Handling Like for Course: " + course.getTitle() + " (ID: " + course.getId() + ") ===");
             boolean alreadyLiked = courseService.hasUserInteracted(currentUserId, course.getId(), "like");
+            System.out.println("Already liked: " + alreadyLiked);
             
             if (alreadyLiked) {
+                // Remove like (toggle off)
+                System.out.println("Removing like...");
                 courseService.removeCourseInteraction(currentUserId, course.getId(), "like");
+                System.out.println("✅ Like removed");
             } else {
-                // Remove dislike if exists
-                courseService.removeCourseInteraction(currentUserId, course.getId(), "dislike");
+                // Remove dislike if exists (can't like and dislike at same time)
+                System.out.println("Checking for existing dislike...");
+                boolean hadDislike = courseService.hasUserInteracted(currentUserId, course.getId(), "dislike");
+                if (hadDislike) {
+                    System.out.println("Removing existing dislike...");
+                    courseService.removeCourseInteraction(currentUserId, course.getId(), "dislike");
+                }
                 
+                // Add like
+                System.out.println("Adding like...");
                 CourseInteraction interaction = new CourseInteraction(currentUserId, course.getId(), "like");
                 courseService.addCourseInteraction(interaction);
+                System.out.println("✅ Like added");
             }
             
+            // Show success feedback
+            showSuccessToast(alreadyLiked ? "Like removed" : "Course liked! 👍");
+            
         } catch (SQLException e) {
+            System.err.println("❌ Error updating like: " + e.getMessage());
             showError("Error updating like: " + e.getMessage());
             e.printStackTrace();
         }
@@ -364,19 +560,36 @@ public class CourseCatalogController {
 
     private void handleDislike(Course course) {
         try {
+            System.out.println("=== Handling Dislike for Course: " + course.getTitle() + " (ID: " + course.getId() + ") ===");
             boolean alreadyDisliked = courseService.hasUserInteracted(currentUserId, course.getId(), "dislike");
+            System.out.println("Already disliked: " + alreadyDisliked);
             
             if (alreadyDisliked) {
+                // Remove dislike (toggle off)
+                System.out.println("Removing dislike...");
                 courseService.removeCourseInteraction(currentUserId, course.getId(), "dislike");
+                System.out.println("✅ Dislike removed");
             } else {
-                // Remove like if exists
-                courseService.removeCourseInteraction(currentUserId, course.getId(), "like");
+                // Remove like if exists (can't like and dislike at same time)
+                System.out.println("Checking for existing like...");
+                boolean hadLike = courseService.hasUserInteracted(currentUserId, course.getId(), "like");
+                if (hadLike) {
+                    System.out.println("Removing existing like...");
+                    courseService.removeCourseInteraction(currentUserId, course.getId(), "like");
+                }
                 
+                // Add dislike
+                System.out.println("Adding dislike...");
                 CourseInteraction interaction = new CourseInteraction(currentUserId, course.getId(), "dislike");
                 courseService.addCourseInteraction(interaction);
+                System.out.println("✅ Dislike added");
             }
             
+            // Show success feedback
+            showSuccessToast(alreadyDisliked ? "Dislike removed" : "Feedback recorded 👎");
+            
         } catch (SQLException e) {
+            System.err.println("❌ Error updating dislike: " + e.getMessage());
             showError("Error updating dislike: " + e.getMessage());
             e.printStackTrace();
         }
@@ -594,6 +807,9 @@ public class CourseCatalogController {
         System.out.println("Night mode toggled. isDarkMode = " + ThemeManager.getInstance().isDarkMode());
         applyTheme();
         updateThemeButton();
+        
+        // Reload recommendations to update card styling
+        loadRecommendations();
         
         // Reload courses to update card styling
         loadCourses();
@@ -1041,5 +1257,62 @@ public class CourseCatalogController {
         alert.setHeaderText("An error occurred");
         alert.setContentText(message);
         alert.showAndWait();
+    }
+    
+    private void showSuccessToast(String message) {
+        // Create a simple toast notification
+        javafx.application.Platform.runLater(() -> {
+            if (searchField != null && searchField.getScene() != null) {
+                javafx.scene.Parent root = searchField.getScene().getRoot();
+                
+                if (root instanceof StackPane || root instanceof Pane) {
+                    // Create toast
+                    Label toast = new Label(message);
+                    toast.setStyle(
+                        "-fx-background-color: " + (ThemeManager.getInstance().isDarkMode() ? "#28A745" : "#28A745") + "; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-padding: 12 24; " +
+                        "-fx-background-radius: 8; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-font-weight: 600; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 3);"
+                    );
+                    
+                    StackPane toastContainer = new StackPane(toast);
+                    toastContainer.setAlignment(Pos.TOP_CENTER);
+                    toastContainer.setPadding(new Insets(80, 0, 0, 0));
+                    toastContainer.setMouseTransparent(true);
+                    toastContainer.setStyle("-fx-background-color: transparent;");
+                    
+                    // Add to scene
+                    if (root instanceof StackPane) {
+                        ((StackPane) root).getChildren().add(toastContainer);
+                    } else if (root instanceof Pane) {
+                        ((Pane) root).getChildren().add(toastContainer);
+                    }
+                    
+                    // Fade in
+                    javafx.animation.FadeTransition fadeIn = new javafx.animation.FadeTransition(javafx.util.Duration.millis(300), toastContainer);
+                    fadeIn.setFromValue(0);
+                    fadeIn.setToValue(1);
+                    
+                    // Fade out after 2 seconds
+                    javafx.animation.FadeTransition fadeOut = new javafx.animation.FadeTransition(javafx.util.Duration.millis(300), toastContainer);
+                    fadeOut.setFromValue(1);
+                    fadeOut.setToValue(0);
+                    fadeOut.setDelay(javafx.util.Duration.seconds(2));
+                    fadeOut.setOnFinished(e -> {
+                        if (root instanceof StackPane) {
+                            ((StackPane) root).getChildren().remove(toastContainer);
+                        } else if (root instanceof Pane) {
+                            ((Pane) root).getChildren().remove(toastContainer);
+                        }
+                    });
+                    
+                    fadeIn.setOnFinished(e -> fadeOut.play());
+                    fadeIn.play();
+                }
+            }
+        });
     }
 }

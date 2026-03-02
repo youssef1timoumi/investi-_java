@@ -1,0 +1,16 @@
+# Email Configuration
+# Copy this file to email.properties and fill in your details
+
+# SMTP Server Configuration
+smtp.host=smtp.gmail.com
+smtp.port=587
+
+# Sender Email Credentials
+# For Gmail: Use an App Password, not your regular password
+# Generate App Password: https://myaccount.google.com/apppasswords
+from.email=your-email@gmail.com
+from.password=your-app-password-here
+from.name=Learning Platform
+
+# Email Settings
+email.enabled=true

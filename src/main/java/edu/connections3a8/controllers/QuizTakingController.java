@@ -361,6 +361,11 @@ public class QuizTakingController {
                     System.out.println("   - " + badge.getName() + " (" + badge.getPointsRequired() + " points)");
                 }
                 
+                // Send email notifications for new badges
+                if (!newBadges.isEmpty()) {
+                    sendBadgeEmails(newBadges);
+                }
+                
                 // Show badge notifications if any were earned
                 if (!newBadges.isEmpty()) {
                     javafx.application.Platform.runLater(() -> {
@@ -404,6 +409,32 @@ public class QuizTakingController {
 
         // Show results
         showResults(correctAnswers, totalQuestions, scorePercentage, pointsEarned);
+    }
+    
+    /**
+     * Send email notifications for newly earned badges
+     */
+    private void sendBadgeEmails(List<edu.connections3a8.entities.Badge> badges) {
+        try {
+            // Get user email and name from database
+            String userEmail = gamificationService.getUserEmail(currentUserId);
+            String userName = gamificationService.getUserName(currentUserId);
+            
+            if (userEmail != null && !userEmail.isEmpty()) {
+                edu.connections3a8.services.EmailService emailService = 
+                    new edu.connections3a8.services.EmailService();
+                
+                for (edu.connections3a8.entities.Badge badge : badges) {
+                    emailService.sendBadgeAchievementEmail(userEmail, userName, badge);
+                    System.out.println("📧 Sending badge email to: " + userEmail);
+                }
+            } else {
+                System.out.println("⚠️ No email address found for user " + currentUserId);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error sending badge emails: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void showResults(int correct, int total, int percentage, int points) {

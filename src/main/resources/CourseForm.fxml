@@ -24,6 +24,10 @@
         <Label text="Course Management" styleClass="page-title" HBox.hgrow="ALWAYS" fx:id="titleLabel"/>
         
         <HBox spacing="12" alignment="CENTER_RIGHT">
+            <Button fx:id="exportCoursesBtn" text="📊 Export Courses" onAction="#handleExportCourses"
+                    styleClass="btn, btn-success"/>
+            <Button fx:id="exportAnalyticsBtn" text="📈 Export Analytics" onAction="#handleExportAnalytics"
+                    styleClass="btn, btn-success"/>
             <Button fx:id="viewReportsBtn" text="📋 View Reports" onAction="#handleViewReports"
                     styleClass="btn, btn-warning"/>
             <Button fx:id="themeToggleBtn" text="🌙 Dark" onAction="#handleThemeToggle"
