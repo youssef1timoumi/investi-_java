@@ -286,6 +286,53 @@ public class InvestiApp extends Application {
         }
     }
     
+    // ============================================
+    // Gamification Module Navigation
+    // ============================================
+    
+    public static void showGamificationMenu(User user) throws Exception {
+        currentUser = user;
+        
+        if (user == null) {
+            showLoginPage();
+            return;
+        }
+        
+        // Allow all users to access gamification (verification check disabled for development)
+        // TODO: Re-enable verification check in production
+        /*
+        if (!user.isActive() || !user.isEmailVerified()) {
+            String message = "You need to be verified to access gamification.\n\n";
+            if (!user.isActive()) {
+                message += "- Your account is not active. Please contact support.\n";
+            }
+            if (!user.isEmailVerified()) {
+                message += "- Please verify your email address.\n";
+            }
+            showAlert("Verification Required", message);
+            showHomePage(user);
+            return;
+        }
+        */
+        
+        FXMLLoader loader = new FXMLLoader(InvestiApp.class.getResource("/gamification/MainMenu.fxml"));
+        Parent root = loader.load();
+        
+        if (loader.getController() != null) {
+            edu.connexion3a8.controllers.gamification.MainMenuController controller = loader.getController();
+            controller.setUser(currentUser);
+        }
+        
+        Scene scene = new Scene(root);
+        primaryStage.setScene(scene);
+        
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
+        
+        primaryStage.show();
+    }
+    
     private static void showAlert(String title, String message) {
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
         alert.setTitle(title);

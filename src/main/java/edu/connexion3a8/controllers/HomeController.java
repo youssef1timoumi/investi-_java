@@ -125,6 +125,15 @@ public class HomeController {
     }
 
     @FXML
+    private void handleGamification() {
+        try {
+            InvestiApp.showGamificationMenu(currentUser);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
     private void handleAdminDashboard() {
         try {
             InvestiApp.showAdminDashboard();
