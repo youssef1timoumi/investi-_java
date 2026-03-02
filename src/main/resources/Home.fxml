@@ -20,6 +20,7 @@
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="📅 Events" onAction="#handleEvents" styleClass="modern-button, button-primary"/>
             <Button text="🤝 Collaboration" onAction="#handleCollaboration" styleClass="modern-button, button-primary"/>
+            <Button text="💬 Forum" onAction="#handleForum" styleClass="modern-button, button-primary"/>
             <Button fx:id="adminDashboardBtn" text="⚙ Admin Dashboard" onAction="#handleAdminDashboard" visible="false" managed="false"
                   styleClass="modern-button, button-secondary"/>
             <Button text="Logout" onAction="#handleLogout" styleClass="modern-button, button-danger"/>

@@ -370,7 +370,7 @@ public class MainController {
     // ==================== INSCRIPTIONS ====================
     private void initTableInscriptions() {
         colInscrId.setCellValueFactory(new PropertyValueFactory<>("idInscription"));
-        colInscrUser.setCellValueFactory(new PropertyValueFactory<>("idUtilisateur"));
+        colInscrUser.setCellValueFactory(new PropertyValueFactory<>("idUser"));
         colInscrEvent.setCellValueFactory(new PropertyValueFactory<>("idEvenement"));
         colInscrStatut.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getStatut()));
 

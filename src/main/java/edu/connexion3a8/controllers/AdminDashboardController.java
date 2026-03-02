@@ -772,6 +772,26 @@ public class AdminDashboardController implements Initializable {
     }
 
     @FXML
+    private void handleForum() {
+        try { 
+            // Admin can access forum with full moderation powers
+            User adminUser = InvestiApp.getCurrentUser();
+            if (adminUser == null) {
+                // Create a temporary admin user if not set
+                adminUser = new User();
+                adminUser.setId("admin-temp-id");
+                adminUser.setName("Admin");
+                adminUser.setRole("admin");
+                adminUser.setActive(true);
+                adminUser.setEmailVerified(true);
+            }
+            InvestiApp.showForumPage(adminUser);
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+        }
+    }
+
+    @FXML
     private void handleViewHome() {
         try { InvestiApp.showHomePage(); } catch (Exception e) { e.printStackTrace(); }
     }

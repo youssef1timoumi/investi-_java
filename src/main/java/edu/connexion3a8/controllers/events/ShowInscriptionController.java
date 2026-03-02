@@ -35,7 +35,7 @@ public class ShowInscriptionController {
 
     @FXML
     void initialize() {
-        colIdUser.setCellValueFactory(new PropertyValueFactory<>("idUtilisateur"));
+        colIdUser.setCellValueFactory(new PropertyValueFactory<>("idUser"));
         colIdEvenement.setCellValueFactory(new PropertyValueFactory<>("idEvenement"));
         colDateInscription.setCellValueFactory(new PropertyValueFactory<>("dateInscription"));
 

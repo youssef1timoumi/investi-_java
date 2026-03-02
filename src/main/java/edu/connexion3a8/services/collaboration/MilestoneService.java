@@ -14,8 +14,8 @@ import java.util.List;
  */
 public class MilestoneService {
 
-    private Connection getCnx() {
-        return MyConnection.getInstance().getCnx();
+    private Connection getCnx() throws SQLException {
+        return MyConnection.getInstance();
     }
 
     // ─── CRUD ────────────────────────────────────────────────────────────────────

@@ -11,7 +11,11 @@ public class InscriptionService {
     private Connection connection;
 
     public InscriptionService() {
-        this.connection = MyConnection.getInstance().getCnx();
+        try {
+            this.connection = MyConnection.getInstance();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get database connection", e);
+        }
     }
 
     public void addEntity(Inscription inscription) throws SQLException {

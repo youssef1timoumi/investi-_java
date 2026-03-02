@@ -11,7 +11,11 @@ public class UserService {
     private Connection connection;
 
     public UserService() {
-        this.connection = MyConnection.getInstance().getCnx();
+        try {
+            this.connection = MyConnection.getInstance();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get database connection", e);
+        }
     }
 
     public void addUser(User user) throws SQLException {

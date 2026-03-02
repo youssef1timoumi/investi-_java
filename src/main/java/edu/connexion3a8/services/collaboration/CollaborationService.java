@@ -14,8 +14,8 @@ import java.util.List;
  */
 public class CollaborationService {
 
-    private Connection getCnx() {
-        return MyConnection.getInstance().getCnx();
+    private Connection getCnx() throws SQLException {
+        return MyConnection.getInstance();
     }
 
     // ─── Collaboration Operations ──────────────────────────────────────────────

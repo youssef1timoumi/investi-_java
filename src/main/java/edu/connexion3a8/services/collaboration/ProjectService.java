@@ -22,7 +22,7 @@ public class ProjectService implements IService<Project> {
                 +
                 "VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE, ?)";
 
-        try (PreparedStatement pst = MyConnection.getInstance().getCnx()
+        try (PreparedStatement pst = MyConnection.getInstance()
                 .prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pst.setString(1, p.getEntrepreneurId());
             pst.setString(2, p.getTitle());
@@ -45,9 +45,10 @@ public class ProjectService implements IService<Project> {
     public void deleteEntity(Project p) {
         String sqlInvestments = "DELETE FROM investment WHERE project_id = ?";
         String sqlProject = "DELETE FROM project WHERE project_id = ?";
-        Connection cnx = MyConnection.getInstance().getCnx();
-
+        Connection cnx = null;
+        
         try {
+            cnx = MyConnection.getInstance();
             cnx.setAutoCommit(false);
             try (PreparedStatement pstInv = cnx.prepareStatement(sqlInvestments)) {
                 pstInv.setInt(1, p.getProjectId());
@@ -60,10 +61,12 @@ public class ProjectService implements IService<Project> {
             cnx.commit();
             cnx.setAutoCommit(true);
         } catch (SQLException e) {
-            try {
-                cnx.rollback();
-                cnx.setAutoCommit(true);
-            } catch (SQLException ignored) {
+            if (cnx != null) {
+                try {
+                    cnx.rollback();
+                    cnx.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                }
             }
             e.printStackTrace();
         }
@@ -72,7 +75,7 @@ public class ProjectService implements IService<Project> {
     @Override
     public boolean update(int id, Project p) {
         String sql = "UPDATE project SET title = ?, description = ?, amountRequested = ?, equityOffered = ?, status = ?, category = ? WHERE project_id = ?";
-        try (PreparedStatement pst = MyConnection.getInstance().getCnx().prepareStatement(sql)) {
+        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
             pst.setString(1, p.getTitle());
             pst.setString(2, p.getDescription());
             pst.setDouble(3, p.getAmountRequested());
@@ -91,7 +94,7 @@ public class ProjectService implements IService<Project> {
     public List<Project> getData() {
         List<Project> list = new ArrayList<>();
         String sql = "SELECT * FROM project ORDER BY project_date DESC";
-        try (Statement st = MyConnection.getInstance().getCnx().createStatement();
+        try (Statement st = MyConnection.getInstance().createStatement();
                 ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 list.add(mapRow(rs));
@@ -105,7 +108,7 @@ public class ProjectService implements IService<Project> {
     public List<Project> getProjectsByStatus(String status) {
         List<Project> list = new ArrayList<>();
         String sql = "SELECT * FROM project WHERE status = ? ORDER BY project_date DESC";
-        try (PreparedStatement pst = MyConnection.getInstance().getCnx().prepareStatement(sql)) {
+        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
             pst.setString(1, status);
             try (ResultSet rs = pst.executeQuery()) {
                 while (rs.next()) {
@@ -120,7 +123,7 @@ public class ProjectService implements IService<Project> {
 
     public Project readById(int projectId) {
         String sql = "SELECT * FROM project WHERE project_id = ?";
-        try (PreparedStatement pst = MyConnection.getInstance().getCnx().prepareStatement(sql)) {
+        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
             pst.setInt(1, projectId);
             try (ResultSet rs = pst.executeQuery()) {
                 if (rs.next())
@@ -135,7 +138,7 @@ public class ProjectService implements IService<Project> {
     public List<Project> getProjectsByEntrepreneur(String entrepreneurId) {
         List<Project> list = new ArrayList<>();
         String sql = "SELECT * FROM project WHERE entrepreneur_id = ? ORDER BY project_date DESC";
-        try (PreparedStatement pst = MyConnection.getInstance().getCnx().prepareStatement(sql)) {
+        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
             pst.setString(1, entrepreneurId);
             try (ResultSet rs = pst.executeQuery()) {
                 while (rs.next()) {
@@ -150,7 +153,7 @@ public class ProjectService implements IService<Project> {
 
     public boolean existsByTitleOrDescription(String title, String description) {
         String sql = "SELECT COUNT(*) FROM project WHERE LOWER(title) = ? OR LOWER(description) = ?";
-        try (PreparedStatement pst = MyConnection.getInstance().getCnx().prepareStatement(sql)) {
+        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
             pst.setString(1, title.toLowerCase().trim());
             pst.setString(2, description.toLowerCase().trim());
             try (ResultSet rs = pst.executeQuery()) {
@@ -168,7 +171,7 @@ public class ProjectService implements IService<Project> {
             return getData();
         List<Project> list = new ArrayList<>();
         String sql = "SELECT * FROM project WHERE title LIKE ? OR description LIKE ? ORDER BY project_date DESC";
-        try (PreparedStatement pst = MyConnection.getInstance().getCnx().prepareStatement(sql)) {
+        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
             String pattern = "%" + keyword.trim() + "%";
             pst.setString(1, pattern);
             pst.setString(2, pattern);
@@ -188,7 +191,7 @@ public class ProjectService implements IService<Project> {
             return getData();
         List<Project> list = new ArrayList<>();
         String sql = "SELECT * FROM project WHERE category = ? ORDER BY project_date DESC";
-        try (PreparedStatement pst = MyConnection.getInstance().getCnx().prepareStatement(sql)) {
+        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
             pst.setString(1, category);
             try (ResultSet rs = pst.executeQuery()) {
                 while (rs.next()) {
@@ -202,7 +205,7 @@ public class ProjectService implements IService<Project> {
     }
 
     public int getTotalProjectCount() {
-        try (Statement st = MyConnection.getInstance().getCnx().createStatement();
+        try (Statement st = MyConnection.getInstance().createStatement();
                 ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM project")) {
             if (rs.next())
                 return rs.getInt(1);
@@ -222,7 +225,7 @@ public class ProjectService implements IService<Project> {
 
     private int getCountByStatus(String status) {
         String sql = "SELECT COUNT(*) FROM project WHERE status = ?";
-        try (PreparedStatement pst = MyConnection.getInstance().getCnx().prepareStatement(sql)) {
+        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
             pst.setString(1, status);
             try (ResultSet rs = pst.executeQuery()) {
                 if (rs.next())

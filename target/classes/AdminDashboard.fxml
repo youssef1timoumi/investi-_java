@@ -19,6 +19,7 @@
             <Label text="INVESTI - Admin Dashboard" styleClass="header-logo"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="📅 Event Management" onAction="#handleEventManagement" styleClass="modern-button, button-secondary"/>
+            <Button text="💬 Forum" onAction="#handleForum" styleClass="modern-button, button-primary"/>
             <Button text="🏠 Home" onAction="#handleViewHome" styleClass="modern-button, button-primary"/>
             <Button text="Logout" onAction="#handleLogout" styleClass="modern-button, button-danger"/>
         </HBox>

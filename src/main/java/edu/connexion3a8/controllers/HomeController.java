@@ -116,6 +116,15 @@ public class HomeController {
     }
 
     @FXML
+    private void handleForum() {
+        try {
+            InvestiApp.showForumPage(currentUser);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
     private void handleAdminDashboard() {
         try {
             InvestiApp.showAdminDashboard();

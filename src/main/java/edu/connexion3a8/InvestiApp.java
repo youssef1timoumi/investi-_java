@@ -41,6 +41,9 @@ public class InvestiApp extends Application {
         Parent root = loader.load();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
     }
     
     public static void showHomePage() throws Exception {
@@ -55,6 +58,9 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
     }
 
     public static void showHomePage(User user) throws Exception {
@@ -74,6 +80,9 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
     }
 
     public static void showEventManagement() throws Exception {
@@ -81,6 +90,9 @@ public class InvestiApp extends Application {
         Parent root = loader.load();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
     }
     
     public static void showAdminDashboard() throws Exception {
@@ -88,6 +100,9 @@ public class InvestiApp extends Application {
         Parent root = loader.load();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
     }
     
     public static void setCurrentUser(User user) {
@@ -140,6 +155,9 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
     }
     
     public static void showEntrepreneurDashboard(User user) throws Exception {
@@ -162,6 +180,9 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
     }
     
     public static void showInvestorDashboard(User user) throws Exception {
@@ -184,6 +205,9 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
     }
     
     public static void showCollaborationAdmin(User user) throws Exception {
@@ -206,6 +230,60 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
+    }
+    
+    // ============================================
+    // Forum Module Navigation with Role-Based Access
+    // ============================================
+    
+    public static void showForumPage(User user) throws Exception {
+        currentUser = user;
+        
+        if (user == null) {
+            showLoginPage();
+            return;
+        }
+        
+        // Check if user has access to forum (investor, innovator, or admin)
+        String role = user.getRole().toLowerCase();
+        if (!role.equals("investor") && !role.equals("innovator") && !role.equals("admin")) {
+            showAlert("Access Denied", "Only investors, innovators, and administrators can access the forum.");
+            showHomePage(user);
+            return;
+        }
+        
+        // Check if user is verified (active and email verified)
+        if (!user.isActive() || !user.isEmailVerified()) {
+            String message = "You need to be verified to access the forum.\n\n";
+            if (!user.isActive()) {
+                message += "• Your account is not active. Please contact support.\n";
+            }
+            if (!user.isEmailVerified()) {
+                message += "• Please verify your email address.\n";
+            }
+            showAlert("Verification Required", message);
+            showHomePage(user);
+            return;
+        }
+        
+        FXMLLoader loader = new FXMLLoader(InvestiApp.class.getResource("/Forum.fxml"));
+        Parent root = loader.load();
+        
+        if (loader.getController() != null) {
+            edu.connexion3a8.controllers.ForumController controller = loader.getController();
+            controller.setCurrentUser(currentUser);
+        }
+        
+        Scene scene = new Scene(root);
+        primaryStage.setScene(scene);
+        
+        // Ensure window stays maximized
+        if (!primaryStage.isMaximized()) {
+            primaryStage.setMaximized(true);
+        }
     }
     
     private static void showAlert(String title, String message) {
