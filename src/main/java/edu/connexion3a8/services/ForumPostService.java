@@ -17,7 +17,7 @@ public class ForumPostService {
     }
     
     private Connection getConnection() throws SQLException {
-        return MyConnection.getInstance();
+        return MyConnection.getInstance().getCnx();
     }
 
     private void ensureNotificationsTable() {
@@ -212,6 +212,8 @@ public class ForumPostService {
                 posts.add(extractPostFromResultSet(rs));
             }
         }
+        
+        loadImagesForPosts(posts);
         return posts;
     }
 
@@ -228,6 +230,13 @@ public class ForumPostService {
             ResultSet rs = pst.executeQuery();
             
             while (rs.next()) {
+                posts.add(extractPostFromResultSet(rs));
+            }
+        }
+        
+        loadImagesForPosts(posts);
+        return posts;
+    }
                 posts.add(extractPostFromResultSet(rs));
             }
         }
@@ -250,6 +259,7 @@ public class ForumPostService {
                 posts.add(extractPostFromResultSet(rs));
             }
         }
+        loadImagesForPosts(posts);
         return posts;
     }
 
@@ -268,6 +278,7 @@ public class ForumPostService {
                 posts.add(extractPostFromResultSet(rs));
             }
         }
+        loadImagesForPosts(posts);
         return posts;
     }
 
@@ -686,6 +697,7 @@ public class ForumPostService {
                 posts.add(extractPostFromResultSet(rs));
             }
         }
+        loadImagesForPosts(posts);
         return posts;
     }
 
@@ -706,6 +718,7 @@ public class ForumPostService {
                 posts.add(extractPostFromResultSet(rs));
             }
         }
+        loadImagesForPosts(posts);
         return posts;
     }
 
@@ -734,6 +747,17 @@ public class ForumPostService {
 
     // ========== HELPER METHODS ==========
     
+    private void loadImagesForPosts(List<ForumPost> posts) {
+        for (ForumPost post : posts) {
+            try {
+                List<String> images = getPostImages(post.getId());
+                post.setImagePaths(images);
+            } catch (SQLException e) {
+                // Ignore if images table doesn't exist yet
+            }
+        }
+    }
+    
     private ForumPost extractPostFromResultSet(ResultSet rs) throws SQLException {
         ForumPost post = new ForumPost();
         post.setId(rs.getString("id"));
@@ -756,13 +780,8 @@ public class ForumPostService {
             // Columns might not exist in all queries
         }
         
-        // Load images for the post
-        try {
-            List<String> images = getPostImages(post.getId());
-            post.setImagePaths(images);
-        } catch (SQLException e) {
-            // Ignore if images table doesn't exist yet
-        }
+        // Don't load images here - will be loaded separately to avoid ResultSet conflicts
+        // Images will be loaded after the main ResultSet is closed
         
         return post;
     }

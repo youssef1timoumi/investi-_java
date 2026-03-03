@@ -11,6 +11,7 @@ import edu.connexion3a8.services.collaboration.EmailService;
 import edu.connexion3a8.services.collaboration.InvestmentService;
 import edu.connexion3a8.services.collaboration.MilestoneService;
 import edu.connexion3a8.services.collaboration.ProjectService;
+import edu.connexion3a8.services.UserService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -132,7 +133,8 @@ public class EntrepreneurController implements Initializable {
     private final InvestmentService investmentService = new InvestmentService();
     private final MilestoneService milestoneService = new MilestoneService();
     private final CollaborationService collaborationService = new CollaborationService();
-    
+    private final UserService userService = new UserService();
+
     private edu.connexion3a8.entities.User currentUser;
     private String currentEntrepreneurId = "1"; // Default, will be replaced by setCurrentUser
 
@@ -140,7 +142,7 @@ public class EntrepreneurController implements Initializable {
     private List<Project> myProjects = new ArrayList<>();
     private Project focusedProjectForOffers = null;
     private Project focusedProjectForCollab = null;
-    
+
     public void setCurrentUser(edu.connexion3a8.entities.User user) {
         this.currentUser = user;
         if (user != null) {
@@ -179,8 +181,8 @@ public class EntrepreneurController implements Initializable {
                 aiMentorBox.setVisible(false);
             }
         });
-
-        refreshData();
+        // NOTE: Do NOT call refreshData() here — currentEntrepreneurId is null until
+        // setCurrentUser() is called by InvestiApp after the FXML loads.
     }
 
     // ─── Navigation Logic ───────────────────────────────────────────────────────
@@ -247,6 +249,8 @@ public class EntrepreneurController implements Initializable {
 
     @FXML
     void refreshData() {
+        if (currentEntrepreneurId == null)
+            return; // not yet initialized by setCurrentUser()
         myProjects = projectService.getProjectsByEntrepreneur(currentEntrepreneurId);
 
         allRelevantOffers.clear();
@@ -563,7 +567,8 @@ public class EntrepreneurController implements Initializable {
                     // Get entrepreneur ID from project
                     Project project = projectService.readById(i.getProjectId());
                     edu.connexion3a8.entities.collaboration.Collaboration newCollab = new edu.connexion3a8.entities.collaboration.Collaboration(
-                            0, i.getInvestmentId(), project.getEntrepreneurId(), i.getInvestorId(), null, "ACTIVE", 100.0, 0.0);
+                            0, i.getInvestmentId(), project.getEntrepreneurId(), i.getInvestorId(), null, "ACTIVE",
+                            100.0, 0.0);
                     collab = collaborationService.createCollaboration(newCollab);
                 }
             } catch (SQLException ex) {
@@ -979,7 +984,18 @@ public class EntrepreneurController implements Initializable {
                             .filter(proj -> proj.getProjectId() == inv.getProjectId())
                             .findFirst().orElse(null);
                     String pTitle = p != null ? p.getTitle() : "Project #" + inv.getProjectId();
-                    EmailService.sendMilestoneAdded("investor@example.com", pTitle, m.getTitle());
+
+                    // Fetch real investor email
+                    String investorEmail = "investor@example.com";
+                    try {
+                        edu.connexion3a8.entities.User investor = userService.getUserById(inv.getInvestorId());
+                        if (investor != null)
+                            investorEmail = investor.getEmail();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+                    EmailService.sendMilestoneAdded(investorEmail, pTitle, m.getTitle());
                 }
 
                 refreshData();
@@ -1022,7 +1038,18 @@ public class EntrepreneurController implements Initializable {
                                 .filter(proj -> proj.getProjectId() == inv.getProjectId())
                                 .findFirst().orElse(null);
                         String pTitle = p != null ? p.getTitle() : "Project #" + inv.getProjectId();
-                        EmailService.sendMilestoneCompleted("investor@example.com", pTitle, m.getTitle());
+
+                        // Fetch real investor email
+                        String investorEmail = "investor@example.com";
+                        try {
+                            edu.connexion3a8.entities.User investor = userService.getUserById(inv.getInvestorId());
+                            if (investor != null)
+                                investorEmail = investor.getEmail();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                        EmailService.sendMilestoneCompleted(investorEmail, pTitle, m.getTitle());
                     }
                 }
 
@@ -1059,7 +1086,8 @@ public class EntrepreneurController implements Initializable {
                 // Fetch investor's history to calculate reputation
                 String investorId = cellData.getValue().getInvestorId();
                 java.util.List<Investment> history = investmentService.getInvestmentsByInvestor(investorId);
-                double score = edu.connexion3a8.services.collaboration.GovernanceEngineAPI.calculateInvestorReputation(history);
+                double score = edu.connexion3a8.services.collaboration.GovernanceEngineAPI
+                        .calculateInvestorReputation(history);
                 return new javafx.beans.property.SimpleDoubleProperty(score).asObject();
             } catch (Exception e) {
                 return new javafx.beans.property.SimpleDoubleProperty(0.0).asObject();
@@ -1135,7 +1163,7 @@ public class EntrepreneurController implements Initializable {
     @FXML
     void createNewProject() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/AddProject.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/collaboration/AddProject.fxml"));
             Parent root = loader.load();
             Object controller = loader.getController();
             if (controller instanceof AddProjectController) {
@@ -1166,8 +1194,19 @@ public class EntrepreneurController implements Initializable {
             if (investmentService.acceptInvestment(selected.getInvestmentId(), selected.getProjectId())) {
                 String pTitle = myProjects.stream().filter(p -> p.getProjectId() == selected.getProjectId())
                         .map(Project::getTitle).findFirst().orElse("");
-                EmailService.sendInvestmentAccepted("entrepreneur@example.com", "investor@example.com", pTitle,
-                        selected.getTotalAmount());
+                try {
+                    // Entrepreneur email = the currently logged-in user
+                    String entrepreneurEmail = currentUser != null ? currentUser.getEmail() : null;
+                    // Investor email = look up by investorId (UUID)
+                    edu.connexion3a8.entities.User investor = userService.getUserById(selected.getInvestorId());
+                    String investorEmail = investor != null ? investor.getEmail() : null;
+                    if (entrepreneurEmail != null && investorEmail != null) {
+                        EmailService.sendInvestmentAccepted(entrepreneurEmail, investorEmail, pTitle,
+                                selected.getTotalAmount());
+                    }
+                } catch (Exception e) {
+                    System.err.println("[EntrepreneurController] Email lookup failed: " + e.getMessage());
+                }
                 showAlert(Alert.AlertType.INFORMATION, "Congratulations!",
                         "Investment accepted. Project is now FUNDED! 🎉");
                 refreshData();
@@ -1185,7 +1224,15 @@ public class EntrepreneurController implements Initializable {
             if (investmentService.update(selected.getInvestmentId(), selected)) {
                 String pTitle = myProjects.stream().filter(p -> p.getProjectId() == selected.getProjectId())
                         .map(Project::getTitle).findFirst().orElse("");
-                EmailService.sendInvestmentRefused("investor@example.com", pTitle, selected.getTotalAmount());
+                try {
+                    // Investor email = look up by investorId (UUID)
+                    edu.connexion3a8.entities.User investor = userService.getUserById(selected.getInvestorId());
+                    if (investor != null) {
+                        EmailService.sendInvestmentRefused(investor.getEmail(), pTitle, selected.getTotalAmount());
+                    }
+                } catch (Exception e) {
+                    System.err.println("[EntrepreneurController] Email lookup failed: " + e.getMessage());
+                }
                 refreshData();
             }
         }
@@ -1199,7 +1246,7 @@ public class EntrepreneurController implements Initializable {
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/UpdateProject.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/collaboration/UpdateProject.fxml"));
             Parent root = loader.load();
             UpdateProjectController controller = loader.getController();
             controller.initData(p);
@@ -1297,7 +1344,8 @@ public class EntrepreneurController implements Initializable {
 
     private void openDealRoom(Investment inv) {
         try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/DealRoom.fxml"));
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/collaboration/DealRoom.fxml"));
             javafx.scene.Parent root = loader.load();
             edu.connexion3a8.controllers.collaboration.DealRoomController controller = loader.getController();
 

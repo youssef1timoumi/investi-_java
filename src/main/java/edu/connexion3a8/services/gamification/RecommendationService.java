@@ -17,11 +17,7 @@ public class RecommendationService {
     private CouseService courseService;
     
     public RecommendationService() {
-        try {
-            cnx = MyConnection.getInstance();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to initialize database connection", e);
-        }
+        cnx = MyConnection.getInstance().getCnx();
         courseService = new CouseService();
     }
     

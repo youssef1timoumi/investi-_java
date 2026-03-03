@@ -14,6 +14,10 @@ import java.util.List;
  */
 public class InvestmentService implements IService<Investment> {
 
+    private Connection getConnection() throws SQLException {
+        return MyConnection.getInstance().getCnx();
+    }
+
     @Override
     public void addEntity(Investment i) throws SQLException {
         String sql = "INSERT INTO investment " +
@@ -21,8 +25,8 @@ public class InvestmentService implements IService<Investment> {
                 +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)";
 
-        try (PreparedStatement pst = MyConnection.getInstance()
-                .prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pst = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pst.setInt(1, i.getProjectId());
             pst.setString(2, i.getInvestorId());
             pst.setDouble(3, i.getTotalAmount());
@@ -44,10 +48,8 @@ public class InvestmentService implements IService<Investment> {
     public void deleteEntity(Investment i) {
         String sqlDelete = "DELETE FROM investment WHERE investment_id = ?";
         String sqlUpdateProject = "UPDATE project SET status = 'OPEN' WHERE project_id = ?";
-        Connection cnx = null;
 
-        try {
-            cnx = MyConnection.getInstance();
+        try (Connection cnx = getConnection()) {
             if ("ACCEPTED".equalsIgnoreCase(i.getStatus())) {
                 cnx.setAutoCommit(false);
                 try (PreparedStatement pstProj = cnx.prepareStatement(sqlUpdateProject)) {
@@ -67,14 +69,6 @@ public class InvestmentService implements IService<Investment> {
                 }
             }
         } catch (SQLException e) {
-            try {
-                if (!cnx.getAutoCommit()) {
-                    cnx.rollback();
-                    cnx.setAutoCommit(true);
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
             e.printStackTrace();
         }
     }
@@ -82,7 +76,8 @@ public class InvestmentService implements IService<Investment> {
     @Override
     public boolean update(int id, Investment i) {
         String sql = "UPDATE investment SET totalAmount = ?, durationMonths = ?, amountPerPeriod = ?, equityRequested = ?, status = ? WHERE investment_id = ?";
-        try (PreparedStatement ps = MyConnection.getInstance().prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDouble(1, i.getTotalAmount());
             ps.setInt(2, i.getDurationMonths());
             ps.setDouble(3, i.getAmountPerPeriod());
@@ -100,8 +95,9 @@ public class InvestmentService implements IService<Investment> {
     public List<Investment> getData() {
         List<Investment> list = new ArrayList<>();
         String sql = "SELECT * FROM investment";
-        try (Statement st = MyConnection.getInstance().createStatement();
-                ResultSet rs = st.executeQuery(sql)) {
+        try (Connection conn = getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 list.add(extractInvestment(rs));
             }
@@ -114,7 +110,8 @@ public class InvestmentService implements IService<Investment> {
     public List<Investment> getInvestmentsByStatus(String status) {
         List<Investment> list = new ArrayList<>();
         String sql = "SELECT * FROM investment WHERE status = ?";
-        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, status);
             try (ResultSet rs = pst.executeQuery()) {
                 while (rs.next()) {
@@ -130,7 +127,8 @@ public class InvestmentService implements IService<Investment> {
     public List<Investment> getInvestmentsByProject(int projectId) {
         List<Investment> list = new ArrayList<>();
         String sql = "SELECT * FROM investment WHERE project_id = ?";
-        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setInt(1, projectId);
             try (ResultSet rs = pst.executeQuery()) {
                 while (rs.next()) {
@@ -146,7 +144,8 @@ public class InvestmentService implements IService<Investment> {
     public List<Investment> getInvestmentsByInvestor(String investorId) {
         List<Investment> list = new ArrayList<>();
         String sql = "SELECT * FROM investment WHERE investor_id = ?";
-        try (PreparedStatement pst = MyConnection.getInstance().prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, investorId);
             try (ResultSet rs = pst.executeQuery()) {
                 while (rs.next()) {
@@ -160,9 +159,7 @@ public class InvestmentService implements IService<Investment> {
     }
 
     public boolean acceptInvestment(int investmentId, int projectId) {
-        Connection cnx = null;
-        try {
-            cnx = MyConnection.getInstance();
+        try (Connection cnx = getConnection()) {
             cnx.setAutoCommit(false);
             try (PreparedStatement pstAccept = cnx
                     .prepareStatement("UPDATE investment SET status = 'ACCEPTED' WHERE investment_id = ?")) {
@@ -183,23 +180,15 @@ public class InvestmentService implements IService<Investment> {
             cnx.commit();
             return true;
         } catch (SQLException e) {
-            try {
-                cnx.rollback();
-            } catch (SQLException ignored) {
-            }
             e.printStackTrace();
             return false;
-        } finally {
-            try {
-                cnx.setAutoCommit(true);
-            } catch (SQLException ignored) {
-            }
         }
     }
 
     public boolean updateProgress(int investmentId, int percentage, String log, int payments) {
         String sql = "UPDATE investment SET progressPercentage = ?, latestProgressLog = ?, paymentMonthsCompleted = ? WHERE investment_id = ?";
-        try (PreparedStatement ps = MyConnection.getInstance().prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, percentage);
             ps.setString(2, log);
             ps.setInt(3, payments);
@@ -213,7 +202,8 @@ public class InvestmentService implements IService<Investment> {
 
     public boolean markPaymentDone(int investmentId, int payments) {
         String sql = "UPDATE investment SET paymentMonthsCompleted = ?, lastPaymentDate = CURRENT_TIMESTAMP() WHERE investment_id = ?";
-        try (PreparedStatement ps = MyConnection.getInstance().prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, payments);
             ps.setInt(2, investmentId);
             return ps.executeUpdate() > 0;
@@ -224,8 +214,9 @@ public class InvestmentService implements IService<Investment> {
     }
 
     public double getTotalInvestedVolume() {
-        try (Statement st = MyConnection.getInstance().createStatement();
-                ResultSet rs = st.executeQuery("SELECT SUM(totalAmount) FROM investment WHERE status = 'ACCEPTED'")) {
+        try (Connection conn = getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("SELECT SUM(totalAmount) FROM investment WHERE status = 'ACCEPTED'")) {
             if (rs.next())
                 return rs.getDouble(1);
         } catch (SQLException e) {
@@ -235,8 +226,9 @@ public class InvestmentService implements IService<Investment> {
     }
 
     public int getTotalInvestmentCount() {
-        try (Statement st = MyConnection.getInstance().createStatement();
-                ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM investment")) {
+        try (Connection conn = getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM investment")) {
             if (rs.next())
                 return rs.getInt(1);
         } catch (SQLException e) {
@@ -247,7 +239,8 @@ public class InvestmentService implements IService<Investment> {
 
     public boolean syncProgressFromMilestones(int investmentId, double milestoneProgress) {
         String sql = "UPDATE investment SET progressPercentage = ? WHERE investment_id = ?";
-        try (PreparedStatement ps = MyConnection.getInstance().prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, (int) Math.round(milestoneProgress));
             ps.setInt(2, investmentId);
             return ps.executeUpdate() > 0;
@@ -277,7 +270,8 @@ public class InvestmentService implements IService<Investment> {
 
     public Investment getInvestmentById(int investmentId) {
         String sql = "SELECT * FROM investment WHERE investment_id = ?";
-        try (PreparedStatement ps = MyConnection.getInstance().prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, investmentId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next())

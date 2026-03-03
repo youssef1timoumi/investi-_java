@@ -10,6 +10,7 @@ import edu.connexion3a8.services.collaboration.InvestmentService;
 import edu.connexion3a8.services.collaboration.MilestoneService;
 import edu.connexion3a8.services.collaboration.PdfExportService;
 import edu.connexion3a8.services.collaboration.ProjectService;
+import edu.connexion3a8.services.UserService;
 
 import edu.connexion3a8.controllers.collaboration.investment.AddInvestmentController;
 import javafx.application.Platform;
@@ -103,6 +104,7 @@ public class InvestorController implements Initializable {
     private final InvestmentService investmentService = new InvestmentService();
     private final MilestoneService milestoneService = new MilestoneService();
     private final CollaborationService collaborationService = new CollaborationService();
+    private final UserService userService = new UserService();
     private final List<Integer> notifiedInvestments = new ArrayList<>();
 
     private edu.connexion3a8.entities.User currentUser;
@@ -113,7 +115,7 @@ public class InvestorController implements Initializable {
 
     private Project selectedOverlayProject = null;
     private Project focusedProjectForCollab = null;
-    
+
     public void setCurrentUser(edu.connexion3a8.entities.User user) {
         this.currentUser = user;
         if (user != null) {
@@ -145,10 +147,8 @@ public class InvestorController implements Initializable {
         categoryFilterBox.setOnAction(e -> applyFilters());
         sortBox.setOnAction(e -> applyFilters());
         currencyBox.setOnAction(e -> applyFilters());
-
-        refreshProjects();
-        refreshPortfolio();
-        buildCollaborationPage();
+        // NOTE: Do NOT call data loaders here — currentInvestorId is null until
+        // setCurrentUser() is called by InvestiApp after the FXML loads.
     }
 
     // ─── Navigation Methods ──────────────────────────────────────────────
@@ -471,10 +471,6 @@ public class InvestorController implements Initializable {
                     Label hotBadge = new Label("🔥 HOT");
                     hotBadge.getStyleClass().add("badge-hot");
                     header.getChildren().add(hotBadge);
-                } else if (offerCount == 0 && allProjects.indexOf(p) >= allProjects.size() - 2) {
-                    Label newBadge = new Label("🆕 NEW");
-                    newBadge.getStyleClass().add("badge-new");
-                    header.getChildren().add(newBadge);
                 }
             }
 
@@ -658,7 +654,8 @@ public class InvestorController implements Initializable {
                     // Logic from EntrepreneurController: Ensure it exists if investment is accepted
                     Project project = projectService.readById(i.getProjectId());
                     edu.connexion3a8.entities.collaboration.Collaboration newCollab = new edu.connexion3a8.entities.collaboration.Collaboration(
-                            0, i.getInvestmentId(), project.getEntrepreneurId(), i.getInvestorId(), null, "ACTIVE", 100.0, 0.0);
+                            0, i.getInvestmentId(), project.getEntrepreneurId(), i.getInvestorId(), null, "ACTIVE",
+                            100.0, 0.0);
                     collab = collaborationService.createCollaboration(newCollab);
                 }
             } catch (Exception ex) {
@@ -795,7 +792,9 @@ public class InvestorController implements Initializable {
 
                 if (isLate && !notifiedInvestments.contains(i.getInvestmentId())) {
                     if (proj != null) {
-                        edu.connexion3a8.services.collaboration.EmailService.sendLatePaymentWarning("investor@example.com",
+                        String recipientEmail = currentUser.getEmail(); // Notify the current investor
+                        edu.connexion3a8.services.collaboration.EmailService.sendLatePaymentWarning(
+                                recipientEmail,
                                 proj.getTitle(), i.getAmountPerPeriod());
                         notifiedInvestments.add(i.getInvestmentId());
                     }
@@ -827,10 +826,21 @@ public class InvestorController implements Initializable {
                 btnPay.setOnAction(e -> {
                     if (confirm("Log Payment", "Mark the next month as paid for this investment?")) {
                         if (investmentService.markPaymentDone(i.getInvestmentId(), monthsPaid + 1)) {
-                            if (proj != null)
+                            if (proj != null) {
+                                String entrepreneurEmail = "entrepreneur@example.com";
+                                try {
+                                    edu.connexion3a8.entities.User entrepreneur = userService
+                                            .getUserById(proj.getEntrepreneurId());
+                                    if (entrepreneur != null)
+                                        entrepreneurEmail = entrepreneur.getEmail();
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                }
+
                                 edu.connexion3a8.services.collaboration.EmailService.sendPaymentConfirmation(
-                                        "entrepreneur@example.com", "investor@example.com",
+                                        entrepreneurEmail, currentUser.getEmail(),
                                         proj.getTitle(), i.getAmountPerPeriod());
+                            }
                         }
                         refreshPortfolio();
                         buildCollaborationPage();
@@ -990,7 +1000,7 @@ public class InvestorController implements Initializable {
 
     private void openInvestDialog(Project p) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/AddInvestment.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/collaboration/AddInvestment.fxml"));
             Parent root = loader.load();
             Object controller = loader.getController();
             if (controller instanceof AddInvestmentController) {
@@ -1017,14 +1027,15 @@ public class InvestorController implements Initializable {
         alert.setHeaderText(title);
         alert.setContentText(content);
         alert.getDialogPane().getStylesheets().add(
-                getClass().getResource("/styles_premium.css").toExternalForm());
+                getClass().getResource("/collaboration/styles_premium.css").toExternalForm());
         alert.getDialogPane().getStyleClass().add("styled-dialog");
         return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
     }
 
     private void openDealRoom(Investment inv) {
         try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/DealRoom.fxml"));
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/collaboration/DealRoom.fxml"));
             javafx.scene.Parent root = loader.load();
             edu.connexion3a8.controllers.collaboration.DealRoomController controller = loader.getController();
 

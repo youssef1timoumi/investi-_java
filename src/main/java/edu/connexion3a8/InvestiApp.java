@@ -41,9 +41,6 @@ public class InvestiApp extends Application {
         Parent root = loader.load();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
     
     public static void showHomePage() throws Exception {
@@ -58,9 +55,6 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
 
     public static void showHomePage(User user) throws Exception {
@@ -80,9 +74,6 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
 
     public static void showEventManagement() throws Exception {
@@ -90,9 +81,6 @@ public class InvestiApp extends Application {
         Parent root = loader.load();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
     
     public static void showAdminDashboard() throws Exception {
@@ -100,9 +88,6 @@ public class InvestiApp extends Application {
         Parent root = loader.load();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
     
     public static void setCurrentUser(User user) {
@@ -155,9 +140,6 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
     
     public static void showEntrepreneurDashboard(User user) throws Exception {
@@ -180,9 +162,6 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
     
     public static void showInvestorDashboard(User user) throws Exception {
@@ -205,9 +184,6 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
     
     public static void showCollaborationAdmin(User user) throws Exception {
@@ -230,107 +206,54 @@ public class InvestiApp extends Application {
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
     
-    // ============================================
-    // Forum Module Navigation with Role-Based Access
-    // ============================================
-    
-    public static void showForumPage(User user) throws Exception {
-        currentUser = user;
-        
-        if (user == null) {
-            showLoginPage();
-            return;
-        }
-        
-        // Check if user has access to forum (investor, innovator, or admin)
-        String role = user.getRole().toLowerCase();
-        if (!role.equals("investor") && !role.equals("innovator") && !role.equals("admin")) {
-            showAlert("Access Denied", "Only investors, innovators, and administrators can access the forum.");
-            showHomePage(user);
-            return;
-        }
-        
-        // Check if user is verified (active and email verified)
-        if (!user.isActive() || !user.isEmailVerified()) {
-            String message = "You need to be verified to access the forum.\n\n";
-            if (!user.isActive()) {
-                message += "• Your account is not active. Please contact support.\n";
-            }
-            if (!user.isEmailVerified()) {
-                message += "• Please verify your email address.\n";
-            }
-            showAlert("Verification Required", message);
-            showHomePage(user);
-            return;
-        }
-        
-        FXMLLoader loader = new FXMLLoader(InvestiApp.class.getResource("/Forum.fxml"));
+    public static void showProductManagement() throws Exception {
+        FXMLLoader loader = new FXMLLoader(InvestiApp.class.getResource("/collaboration/ProductManagement.fxml"));
         Parent root = loader.load();
-        
-        if (loader.getController() != null) {
-            edu.connexion3a8.controllers.ForumController controller = loader.getController();
-            controller.setCurrentUser(currentUser);
-        }
-        
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        
-        // Ensure window stays maximized
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
-        }
     }
     
-    // ============================================
-    // Gamification Module Navigation
-    // ============================================
-    
-    public static void showGamificationMenu(User user) throws Exception {
-        currentUser = user;
-        
-        if (user == null) {
-            showLoginPage();
-            return;
-        }
-        
-        // Allow all users to access gamification (verification check disabled for development)
-        // TODO: Re-enable verification check in production
-        /*
-        if (!user.isActive() || !user.isEmailVerified()) {
-            String message = "You need to be verified to access gamification.\n\n";
-            if (!user.isActive()) {
-                message += "- Your account is not active. Please contact support.\n";
-            }
-            if (!user.isEmailVerified()) {
-                message += "- Please verify your email address.\n";
-            }
-            showAlert("Verification Required", message);
-            showHomePage(user);
-            return;
-        }
-        */
-        
+    public static void showGamificationMenu() throws Exception {
         FXMLLoader loader = new FXMLLoader(InvestiApp.class.getResource("/gamification/MainMenu.fxml"));
         Parent root = loader.load();
         
-        if (loader.getController() != null) {
+        if (loader.getController() != null && currentUser != null) {
             edu.connexion3a8.controllers.gamification.MainMenuController controller = loader.getController();
             controller.setUser(currentUser);
         }
         
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
+    }
+    
+    public static void showGamificationMenu(User user) throws Exception {
+        currentUser = user;
+        showGamificationMenu();
+    }
+    
+    public static void showForum() throws Exception {
+        FXMLLoader loader = new FXMLLoader(InvestiApp.class.getResource("/Forum.fxml"));
+        Parent root = loader.load();
         
-        if (!primaryStage.isMaximized()) {
-            primaryStage.setMaximized(true);
+        if (loader.getController() != null && currentUser != null) {
+            // Assuming ForumController has setCurrentUser method
+            try {
+                edu.connexion3a8.controllers.ForumController controller = loader.getController();
+                controller.setCurrentUser(currentUser);
+            } catch (Exception e) {
+                System.out.println("Forum controller doesn't have setCurrentUser method or doesn't exist");
+            }
         }
         
-        primaryStage.show();
+        Scene scene = new Scene(root);
+        primaryStage.setScene(scene);
+    }
+    
+    public static void showForum(User user) throws Exception {
+        currentUser = user;
+        showForum();
     }
     
     private static void showAlert(String title, String message) {

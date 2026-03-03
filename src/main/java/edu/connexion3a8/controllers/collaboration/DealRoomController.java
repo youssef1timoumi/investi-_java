@@ -130,7 +130,8 @@ public class DealRoomController {
                 // ACTIVE COLLABORATION MODE
                 if (currentCollaboration == null) {
                     // Create it if it was accepted but not initialized in DB yet
-                    Collaboration newCollab = new Collaboration(0, inv.getInvestmentId(), proj.getEntrepreneurId(), inv.getInvestorId(), null,
+                    Collaboration newCollab = new Collaboration(0, inv.getInvestmentId(), proj.getEntrepreneurId(),
+                            inv.getInvestorId(), null,
                             "ACTIVE", 100.0, 0.0);
                     currentCollaboration = cs.createCollaboration(newCollab);
                 }
@@ -239,18 +240,25 @@ public class DealRoomController {
         // Execute Financial Intelligence 2.0
         double burnRate = GovernanceEngineAPI.calculateBurnRate(currentInvestment.getTotalAmount(),
                 currentInvestment.getDurationMonths());
-        double runway = GovernanceEngineAPI.calculateRunwayMonths(currentInvestment.getTotalAmount(), burnRate);
+        // Use remaining capital (not total) for a realistic runway estimate
+        double remainingCapital = GovernanceEngineAPI.calculateRemainingCapital(currentInvestment);
+        double runway = GovernanceEngineAPI.calculateRunwayMonths(remainingCapital, burnRate);
         double capitalVelocity = GovernanceEngineAPI.calculateCapitalVelocity(currentInvestment, currentProject);
 
         lbBurnRate.setText(String.format("%.0f DT/mo", burnRate));
-        lbRunway.setText(String.format("%.1f Months", runway));
-        if (runway < 3.0) {
-            lbRunway.setStyle("-fx-font-weight: bold; -fx-text-fill: #dc2626;");
-            lbRunway.setText(lbRunway.getText() + " (HIGH RISK)");
-        } else if (runway < 6.0) {
-            lbRunway.setStyle("-fx-font-weight: bold; -fx-text-fill: #ca8a04;");
-        } else {
+        if (runway >= 999.0) {
+            lbRunway.setText("∞ (Fully Funded)");
             lbRunway.setStyle("-fx-font-weight: bold; -fx-text-fill: #16a34a;");
+        } else {
+            lbRunway.setText(String.format("%.1f Months", runway));
+            if (runway < 3.0) {
+                lbRunway.setStyle("-fx-font-weight: bold; -fx-text-fill: #dc2626;");
+                lbRunway.setText(lbRunway.getText() + " (HIGH RISK)");
+            } else if (runway < 6.0) {
+                lbRunway.setStyle("-fx-font-weight: bold; -fx-text-fill: #ca8a04;");
+            } else {
+                lbRunway.setStyle("-fx-font-weight: bold; -fx-text-fill: #16a34a;");
+            }
         }
 
         pbVelocity.setProgress(capitalVelocity / 100.0);

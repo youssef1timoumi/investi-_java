@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class AiService {
 
-    private static final String API_KEY = "AIzaSyCtLzsPAmDvmcdRg6sjl7SCyL6wO7qLSa4"; // Provided by User
+    private static final String API_KEY = "AIzaSyDgXsgJ7sIq_hmXvOqiA9eQ6PJx97Yp66g";
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="
             + API_KEY;
     private static final OkHttpClient client = new OkHttpClient.Builder()
@@ -33,6 +33,7 @@ public class AiService {
         contentObj.put("parts", parts);
         contents.put(contentObj);
         payload.put("contents", contents);
+        payload.put("generationConfig", new JSONObject().put("temperature", 0.7));
 
         RequestBody body = RequestBody.create(payload.toString(), MediaType.parse("application/json"));
         Request request = new Request.Builder()
@@ -62,12 +63,17 @@ public class AiService {
 
     /**
      * Strips common markdown characters (*, #, `) from the text to ensure raw text
-     * output.
+     * output for JavaFX labels/alerts.
      */
     private static String stripMarkdown(String text) {
         if (text == null)
-            return null;
-        return text.replace("*", "").replace("#", "").replace("`", "");
+            return "";
+        return text.replaceAll("(?m)^#.*$", "") // remove headers
+                .replaceAll("\\*\\*", "") // remove bold
+                .replaceAll("```[a-z]*", "") // remove code block start
+                .replaceAll("```", "") // remove code block end
+                .replaceAll("`", "") // remove inline code
+                .trim();
     }
 
     /**
@@ -75,7 +81,7 @@ public class AiService {
      * Idea 1
      */
     public static String generateProjectExplanation(Project project) {
-        String prompt = "You are an expert investment analyst. An investor is looking at the following project:\n"
+        String prompt = "Act as an AI investment analyst analyzing a project:\n"
                 + "Title: " + project.getTitle() + "\n"
                 + "Category: " + project.getCategory() + "\n"
                 + "Requested Amount: $" + project.getAmountRequested() + "\n"

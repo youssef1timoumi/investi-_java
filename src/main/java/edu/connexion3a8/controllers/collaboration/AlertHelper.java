@@ -11,7 +11,7 @@ import java.util.Optional;
  */
 public class AlertHelper {
 
-    private static final String CSS = AlertHelper.class.getResource("/styles_premium.css").toExternalForm();
+    private static final String CSS = AlertHelper.class.getResource("/collaboration/styles_premium.css").toExternalForm();
 
     // ─── Core show methods ────────────────────────────────────────────────────
 

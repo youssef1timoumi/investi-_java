@@ -6,6 +6,7 @@ import edu.connexion3a8.entities.collaboration.Project;
 import edu.connexion3a8.services.collaboration.EmailService;
 import edu.connexion3a8.services.collaboration.InvestmentService;
 import edu.connexion3a8.services.collaboration.ProjectService;
+import edu.connexion3a8.services.UserService;
 
 import java.net.URL;
 import java.util.List;
@@ -129,6 +130,7 @@ public class AdminController implements Initializable {
 
     private final ProjectService projectService = new ProjectService();
     private final InvestmentService investmentService = new InvestmentService();
+    private final UserService userService = new UserService();
 
     private List<Project> allProjectsList;
     private List<Investment> allInvestmentsList;
@@ -648,7 +650,17 @@ public class AdminController implements Initializable {
         if (confirm("Validate Project", "Approve '" + selected.getTitle() + "'?")) {
             selected.setStatus("OPEN");
             if (projectService.update(selected.getProjectId(), selected)) {
-                EmailService.sendProjectValidated("entrepreneur@example.com", selected.getTitle());
+                try {
+                    edu.connexion3a8.entities.User entrepreneur = userService.getUserById(selected.getEntrepreneurId());
+                    if (entrepreneur != null) {
+                        EmailService.sendProjectValidated(entrepreneur.getEmail(), selected.getTitle());
+                    } else {
+                        System.err.println("[AdminController] Could not find entrepreneur for project: "
+                                + selected.getProjectId());
+                    }
+                } catch (Exception e) {
+                    System.err.println("[AdminController] Email lookup failed: " + e.getMessage());
+                }
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Project validated and is now OPEN! ✅");
                 refreshData();
             }
@@ -678,7 +690,14 @@ public class AdminController implements Initializable {
             // open)
             if ("UNDER_REVIEW".equalsIgnoreCase(selected.getStatus())
                     || "PENDING".equalsIgnoreCase(selected.getStatus())) {
-                EmailService.sendProjectRejected("entrepreneur@example.com", selected.getTitle());
+                try {
+                    edu.connexion3a8.entities.User entrepreneur = userService.getUserById(selected.getEntrepreneurId());
+                    if (entrepreneur != null) {
+                        EmailService.sendProjectRejected(entrepreneur.getEmail(), selected.getTitle());
+                    }
+                } catch (Exception e) {
+                    System.err.println("[AdminController] Email lookup failed: " + e.getMessage());
+                }
             }
             projectService.deleteEntity(selected);
             refreshData();
@@ -694,17 +713,30 @@ public class AdminController implements Initializable {
             selected.setStatus("PENDING");
             if (investmentService.update(selected.getInvestmentId(), selected)) {
 
-                // Get project title for email
+                // Get project and emails for notifications
                 Project p = projectService.getData().stream()
                         .filter(proj -> proj.getProjectId() == selected.getProjectId())
                         .findFirst().orElse(null);
                 String pTitle = p != null ? p.getTitle() : "Investment";
 
-                // Notify Entrepreneur of new validated offer
-                EmailService.sendNewInvestmentOffer("entrepreneur@example.com", pTitle, selected.getTotalAmount());
-
-                // Notify Investor that their offer passed admin review
-                EmailService.sendInvestmentApprovedByAdmin("investor@example.com", pTitle);
+                try {
+                    // Notify Entrepreneur of new validated offer (look up by project owner)
+                    if (p != null) {
+                        edu.connexion3a8.entities.User entrepreneur = userService.getUserById(p.getEntrepreneurId());
+                        if (entrepreneur != null) {
+                            EmailService.sendNewInvestmentOffer(entrepreneur.getEmail(), pTitle,
+                                    selected.getTotalAmount());
+                        }
+                    }
+                    // Notify Investor that their offer passed admin review (look up by investor
+                    // UUID)
+                    edu.connexion3a8.entities.User investor = userService.getUserById(selected.getInvestorId());
+                    if (investor != null) {
+                        EmailService.sendInvestmentApprovedByAdmin(investor.getEmail(), pTitle);
+                    }
+                } catch (Exception e) {
+                    System.err.println("[AdminController] Email lookup failed: " + e.getMessage());
+                }
 
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Investment validated and sent to Entrepreneur. ✅");
                 refreshData();
@@ -738,7 +770,14 @@ public class AdminController implements Initializable {
                         .filter(proj -> proj.getProjectId() == selected.getProjectId())
                         .findFirst().orElse(null);
                 String pTitle = p != null ? p.getTitle() : "Investment";
-                EmailService.sendInvestmentRefused("investor@example.com", pTitle, selected.getTotalAmount());
+                try {
+                    edu.connexion3a8.entities.User investor = userService.getUserById(selected.getInvestorId());
+                    if (investor != null) {
+                        EmailService.sendInvestmentRefused(investor.getEmail(), pTitle, selected.getTotalAmount());
+                    }
+                } catch (Exception e) {
+                    System.err.println("[AdminController] Email lookup failed: " + e.getMessage());
+                }
             }
 
             investmentService.deleteEntity(selected);

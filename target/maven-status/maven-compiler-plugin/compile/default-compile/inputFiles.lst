@@ -24,9 +24,11 @@ C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entiti
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\InvestorController.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\QuestionOption.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\FileOpener.java
+C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\Product.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\MainMenuController.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\Badge.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\UserQuiz.java
+C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\ProductService.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\events\MainController.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\UserAuthService.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\utils\gamification\ThemeManager.java
@@ -37,6 +39,7 @@ C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\servic
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\ForumCommentVote.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\interfaces\IService.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\TextToSpeechService.java
+C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\ProductManagementController.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\CourseContentController.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\Project\ShowProjectController.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\EventsPageController.java
@@ -61,6 +64,7 @@ C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\servic
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\CourseReport.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\events\ShowEvenementController.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\ExcelExportService.java
+C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\events\MentorDashboardController.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\ForumPostService.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\GovernanceEngineAPI.java
 C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\Milestone.java

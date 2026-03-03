@@ -6,9 +6,7 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import edu.connexion3a8.InvestiApp;
 import edu.connexion3a8.entities.User;
-import edu.connexion3a8.entities.Evenement;
 import edu.connexion3a8.services.UserService;
-import edu.connexion3a8.services.EvenementService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -16,7 +14,6 @@ import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -32,9 +29,6 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -42,66 +36,86 @@ import java.util.regex.Pattern;
 public class AdminDashboardController implements Initializable {
 
     private UserService userService = new UserService();
-    private EvenementService evenementService = new EvenementService();
     private ObservableList<User> userList = FXCollections.observableArrayList();
-    private ObservableList<Evenement> eventList = FXCollections.observableArrayList();
     private FilteredList<User> filteredData;
     private User selectedUser = null;
 
     // User table
-    @FXML private TableView<User> userTable;
-    @FXML private TableColumn<User, String> colName;
-    @FXML private TableColumn<User, String> colEmail;
-    @FXML private TableColumn<User, String> colRole;
-    @FXML private TableColumn<User, String> colStatus;
-    @FXML private TableColumn<User, Integer> colPoints;
-    @FXML private TableColumn<User, Integer> colLevel;
+    @FXML
+    private TableView<User> userTable;
+    @FXML
+    private TableColumn<User, String> colName;
+    @FXML
+    private TableColumn<User, String> colEmail;
+    @FXML
+    private TableColumn<User, String> colRole;
+    @FXML
+    private TableColumn<User, String> colStatus;
+    @FXML
+    private TableColumn<User, Integer> colPoints;
+    @FXML
+    private TableColumn<User, Integer> colLevel;
 
-    // Event table
-    @FXML private TableView<Evenement> eventTable;
-    @FXML private TableColumn<Evenement, String> colEventTitle;
-    @FXML private TableColumn<Evenement, String> colEventMentor;
-    @FXML private TableColumn<Evenement, String> colEventLocation;
-    @FXML private TableColumn<Evenement, LocalDateTime> colEventStart;
-    @FXML private TableColumn<Evenement, LocalDateTime> colEventEnd;
-    @FXML private TableColumn<Evenement, Void> colEventActions;
-    @FXML private Label eventCountLabel;
-
-    @FXML private TableColumn<User, Timestamp> colCreatedAt;
-    @FXML private TableColumn<User, String> colActions;
+    @FXML
+    private TableColumn<User, Timestamp> colCreatedAt;
+    @FXML
+    private TableColumn<User, String> colActions;
 
     // Form fields
-    @FXML private TextField emailField;
-    @FXML private TextField nameField;
-    @FXML private PasswordField passwordField;
-    @FXML private TextField roleField;
-    @FXML private TextArea bioField;
+    @FXML
+    private TextField emailField;
+    @FXML
+    private TextField nameField;
+    @FXML
+    private PasswordField passwordField;
+    @FXML
+    private TextField roleField;
+    @FXML
+    private TextArea bioField;
 
     // Search + Filter
-    @FXML private TextField searchField;
-    @FXML private ComboBox<String> filterCombo;
-    @FXML private Label emptyStateLabel;
-    @FXML private Label userCountLabel;
-    @FXML private ProgressIndicator loadingIndicator;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private ComboBox<String> filterCombo;
+    @FXML
+    private Label emptyStateLabel;
+    @FXML
+    private Label userCountLabel;
+    @FXML
+    private ProgressIndicator loadingIndicator;
 
     // Buttons
-    @FXML private Button btnAdd;
-    @FXML private Button btnRefresh;
-    @FXML private Button btnClear;
+    @FXML
+    private Button btnAdd;
+    @FXML
+    private Button btnRefresh;
+    @FXML
+    private Button btnClear;
 
     // Stats
-    @FXML private Label statTotal;
-    @FXML private Label statVerified;
-    @FXML private Label statPending;
-    @FXML private Label statUnverified;
+    @FXML
+    private Label statTotal;
+    @FXML
+    private Label statVerified;
+    @FXML
+    private Label statPending;
+    @FXML
+    private Label statUnverified;
 
     // KYC
-    @FXML private TableView<User> kycTable;
-    @FXML private TableColumn<User, String> kycColName;
-    @FXML private TableColumn<User, String> kycColEmail;
-    @FXML private TableColumn<User, String> kycColRole;
-    @FXML private TableColumn<User, String> kycColActions;
-    @FXML private Label kycEmptyLabel;
+    @FXML
+    private TableView<User> kycTable;
+    @FXML
+    private TableColumn<User, String> kycColName;
+    @FXML
+    private TableColumn<User, String> kycColEmail;
+    @FXML
+    private TableColumn<User, String> kycColRole;
+    @FXML
+    private TableColumn<User, String> kycColActions;
+    @FXML
+    private Label kycEmptyLabel;
 
     private ObservableList<User> kycList = FXCollections.observableArrayList();
 
@@ -116,103 +130,13 @@ public class AdminDashboardController implements Initializable {
         loadData();
         setupSearchAndFilter();
         loadKycData();
-        setupEventTable();
-        loadEvents();
-    }
-
-    private void setupEventTable() {
-        colEventTitle.setCellValueFactory(new PropertyValueFactory<>("titre"));
-        colEventMentor.setCellValueFactory(new PropertyValueFactory<>("mentorName"));
-        colEventLocation.setCellValueFactory(new PropertyValueFactory<>("lieu"));
-        
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        colEventStart.setCellValueFactory(new PropertyValueFactory<>("dateDebut"));
-        colEventStart.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(LocalDateTime date, boolean empty) {
-                super.updateItem(date, empty);
-                setText(empty || date == null ? null : date.format(formatter));
-            }
-        });
-        
-        colEventEnd.setCellValueFactory(new PropertyValueFactory<>("dateFin"));
-        colEventEnd.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(LocalDateTime date, boolean empty) {
-                super.updateItem(date, empty);
-                setText(empty || date == null ? null : date.format(formatter));
-            }
-        });
-        
-        colEventActions.setCellFactory(col -> new TableCell<>() {
-            private final Button btnDelete = new Button("🗑️ Delete");
-            {
-                btnDelete.setStyle("-fx-background-color: #A62639; -fx-text-fill: white; -fx-font-size: 12px; " +
-                        "-fx-padding: 6 12; -fx-background-radius: 6; -fx-cursor: hand;");
-                btnDelete.setOnAction(e -> {
-                    Evenement event = getTableView().getItems().get(getIndex());
-                    deleteEvent(event);
-                });
-            }
-            
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    HBox box = new HBox(10, btnDelete);
-                    box.setAlignment(Pos.CENTER);
-                    setGraphic(box);
-                }
-            }
-        });
-    }
-
-    private void loadEvents() {
-        try {
-            eventList.setAll(evenementService.getData());
-            eventTable.setItems(eventList);
-            eventCountLabel.setText(eventList.size() + " event(s)");
-        } catch (SQLException e) {
-            showError("Error", "Failed to load events", e.getMessage());
-        }
-    }
-
-    @FXML
-    private void refreshEvents() {
-        loadEvents();
-    }
-
-    @FXML
-    private void handleAddEvent() {
-        showInfo("Add Event", "Event creation interface coming soon!\nFor now, use the Events page to manage events.");
-    }
-
-    private void deleteEvent(Evenement event) {
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Delete Event");
-        confirm.setHeaderText("Delete: " + event.getTitre() + "?");
-        confirm.setContentText("This action cannot be undone.");
-        
-        Optional<ButtonType> result = confirm.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                evenementService.deleteEntity(event.getIdEvenement());
-                loadEvents();
-                showSuccess("Success", "Event deleted successfully!");
-            } catch (SQLException e) {
-                showError("Error", "Failed to delete event", e.getMessage());
-            }
-        }
     }
 
     // ==================== FILTER COMBO ====================
 
     private void setupFilterCombo() {
         filterCombo.setItems(FXCollections.observableArrayList(
-                "All Users", "Verified (Active)", "Pending KYC", "Unverified (No ID)"
-        ));
+                "All Users", "Verified (Active)", "Pending KYC", "Unverified (No ID)"));
         filterCombo.setValue("All Users");
         filterCombo.setOnAction(e -> applyFilters());
     }
@@ -221,16 +145,22 @@ public class AdminDashboardController implements Initializable {
 
     private void setupValidation() {
         emailField.textProperty().addListener((obs, o, n) -> {
-            if (!n.isEmpty() && !EMAIL_PATTERN.matcher(n).matches()) emailField.getStyleClass().add("input-error");
-            else emailField.getStyleClass().remove("input-error");
+            if (!n.isEmpty() && !EMAIL_PATTERN.matcher(n).matches())
+                emailField.getStyleClass().add("input-error");
+            else
+                emailField.getStyleClass().remove("input-error");
         });
         nameField.textProperty().addListener((obs, o, n) -> {
-            if (!n.isEmpty() && !NAME_PATTERN.matcher(n).matches()) nameField.getStyleClass().add("input-error");
-            else nameField.getStyleClass().remove("input-error");
+            if (!n.isEmpty() && !NAME_PATTERN.matcher(n).matches())
+                nameField.getStyleClass().add("input-error");
+            else
+                nameField.getStyleClass().remove("input-error");
         });
         passwordField.textProperty().addListener((obs, o, n) -> {
-            if (n.length() > 0 && n.length() < 6) passwordField.getStyleClass().add("input-error");
-            else passwordField.getStyleClass().remove("input-error");
+            if (n.length() > 0 && n.length() < 6)
+                passwordField.getStyleClass().add("input-error");
+            else
+                passwordField.getStyleClass().remove("input-error");
         });
     }
 
@@ -247,7 +177,8 @@ public class AdminDashboardController implements Initializable {
         String filterValue = filterCombo.getValue() == null ? "All Users" : filterCombo.getValue();
 
         Predicate<User> searchPredicate = user -> {
-            if (searchText.isEmpty()) return true;
+            if (searchText.isEmpty())
+                return true;
             return user.getName().toLowerCase().contains(searchText)
                     || user.getEmail().toLowerCase().contains(searchText)
                     || user.getRole().toLowerCase().contains(searchText);
@@ -255,10 +186,14 @@ public class AdminDashboardController implements Initializable {
 
         Predicate<User> filterPredicate = user -> {
             switch (filterValue) {
-                case "Verified (Active)": return user.isActive();
-                case "Pending KYC": return !user.isActive() && user.getIdImageUrl() != null && !user.getIdImageUrl().isEmpty();
-                case "Unverified (No ID)": return !user.isActive() && (user.getIdImageUrl() == null || user.getIdImageUrl().isEmpty());
-                default: return true;
+                case "Verified (Active)":
+                    return user.isActive();
+                case "Pending KYC":
+                    return !user.isActive() && user.getIdImageUrl() != null && !user.getIdImageUrl().isEmpty();
+                case "Unverified (No ID)":
+                    return !user.isActive() && (user.getIdImageUrl() == null || user.getIdImageUrl().isEmpty());
+                default:
+                    return true;
             }
         };
 
@@ -294,7 +229,8 @@ public class AdminDashboardController implements Initializable {
                 } else {
                     User user = getTableRow().getItem();
                     Label badge = new Label();
-                    badge.setStyle("-fx-padding: 4 12; -fx-background-radius: 20; -fx-font-size: 11px; -fx-font-weight: bold;");
+                    badge.setStyle(
+                            "-fx-padding: 4 12; -fx-background-radius: 20; -fx-font-size: 11px; -fx-font-weight: bold;");
                     if (user.isActive()) {
                         badge.setText("✓ Active");
                         badge.setStyle(badge.getStyle() + "-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32;");
@@ -330,13 +266,16 @@ public class AdminDashboardController implements Initializable {
                     User user = getTableView().getItems().get(getIndex());
 
                     Button editBtn = new Button("✏ Edit");
-                    editBtn.setStyle("-fx-padding: 6 12; -fx-font-size: 11px; -fx-background-color: #456990; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+                    editBtn.setStyle(
+                            "-fx-padding: 6 12; -fx-font-size: 11px; -fx-background-color: #456990; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
 
                     Button deleteBtn = new Button("🗑 Delete");
-                    deleteBtn.setStyle("-fx-padding: 6 12; -fx-font-size: 11px; -fx-background-color: #A62639; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+                    deleteBtn.setStyle(
+                            "-fx-padding: 6 12; -fx-font-size: 11px; -fx-background-color: #A62639; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
 
                     Button pdfBtn = new Button("📄 PDF");
-                    pdfBtn.setStyle("-fx-padding: 6 12; -fx-font-size: 11px; -fx-background-color: #9B7E46; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+                    pdfBtn.setStyle(
+                            "-fx-padding: 6 12; -fx-font-size: 11px; -fx-background-color: #9B7E46; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
 
                     editBtn.setOnMouseClicked((MouseEvent e) -> {
                         selectedUser = user;
@@ -384,8 +323,10 @@ public class AdminDashboardController implements Initializable {
     private void updateStats() {
         long total = userList.size();
         long verified = userList.stream().filter(User::isActive).count();
-        long pending = userList.stream().filter(u -> !u.isActive() && u.getIdImageUrl() != null && !u.getIdImageUrl().isEmpty()).count();
-        long unverified = userList.stream().filter(u -> !u.isActive() && (u.getIdImageUrl() == null || u.getIdImageUrl().isEmpty())).count();
+        long pending = userList.stream()
+                .filter(u -> !u.isActive() && u.getIdImageUrl() != null && !u.getIdImageUrl().isEmpty()).count();
+        long unverified = userList.stream()
+                .filter(u -> !u.isActive() && (u.getIdImageUrl() == null || u.getIdImageUrl().isEmpty())).count();
 
         statTotal.setText(String.valueOf(total));
         statVerified.setText(String.valueOf(verified));
@@ -403,9 +344,18 @@ public class AdminDashboardController implements Initializable {
         String role = roleField.getText().trim();
         String bio = bioField != null ? bioField.getText().trim() : "";
 
-        if (email.isEmpty() || name.isEmpty() || role.isEmpty()) { showErrorAlert("Please fill in all required fields"); return; }
-        if (!EMAIL_PATTERN.matcher(email).matches()) { showErrorAlert("Please enter a valid email address"); return; }
-        if (!NAME_PATTERN.matcher(name).matches()) { showErrorAlert("Name must contain only letters (2-50 characters)"); return; }
+        if (email.isEmpty() || name.isEmpty() || role.isEmpty()) {
+            showErrorAlert("Please fill in all required fields");
+            return;
+        }
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            showErrorAlert("Please enter a valid email address");
+            return;
+        }
+        if (!NAME_PATTERN.matcher(name).matches()) {
+            showErrorAlert("Name must contain only letters (2-50 characters)");
+            return;
+        }
 
         btnAdd.setDisable(true);
         String originalText = btnAdd.getText();
@@ -431,14 +381,16 @@ public class AdminDashboardController implements Initializable {
                 } else {
                     if (password.isEmpty() || password.length() < 6) {
                         Platform.runLater(() -> {
-                            showErrorAlert(password.isEmpty() ? "Password is required" : "Password must be at least 6 characters");
+                            showErrorAlert(password.isEmpty() ? "Password is required"
+                                    : "Password must be at least 6 characters");
                             btnAdd.setText(originalText);
                             btnAdd.setDisable(false);
                         });
                         return;
                     }
                     User user = new User(email, password, name, role);
-                    if (!bio.isEmpty()) user.setBio(bio);
+                    if (!bio.isEmpty())
+                        user.setBio(bio);
                     userService.addUser(user);
                     Platform.runLater(() -> {
                         showSuccessAlert("User added successfully!");
@@ -490,7 +442,8 @@ public class AdminDashboardController implements Initializable {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
         File file = fileChooser.showSaveDialog(userTable.getScene().getWindow());
 
-        if (file == null) return;
+        if (file == null)
+            return;
 
         try {
             Document doc = new Document(PageSize.A4, 40, 40, 40, 40);
@@ -513,7 +466,7 @@ public class AdminDashboardController implements Initializable {
 
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);
-            table.setWidths(new float[]{1, 2.5f});
+            table.setWidths(new float[] { 1, 2.5f });
             table.setSpacingBefore(10);
 
             BaseColor headerBg = new BaseColor(69, 105, 144);
@@ -521,13 +474,16 @@ public class AdminDashboardController implements Initializable {
             addPdfRow(table, "Name", user.getName(), headerFont, cellFont, headerBg);
             addPdfRow(table, "Email", user.getEmail(), headerFont, cellFont, headerBg);
             addPdfRow(table, "Role", user.getRole(), headerFont, cellFont, headerBg);
-            addPdfRow(table, "Status", user.isActive() ? "Active (Verified)" : "Inactive (Pending)", headerFont, cellFont, headerBg);
+            addPdfRow(table, "Status", user.isActive() ? "Active (Verified)" : "Inactive (Pending)", headerFont,
+                    cellFont, headerBg);
             addPdfRow(table, "Email Verified", user.isEmailVerified() ? "Yes" : "No", headerFont, cellFont, headerBg);
             addPdfRow(table, "Bio", user.getBio() != null ? user.getBio() : "N/A", headerFont, cellFont, headerBg);
             addPdfRow(table, "Points", String.valueOf(user.getPoints()), headerFont, cellFont, headerBg);
             addPdfRow(table, "Level", String.valueOf(user.getLevel()), headerFont, cellFont, headerBg);
-            addPdfRow(table, "Joined", user.getCreatedAt() != null ? DATE_FMT.format(user.getCreatedAt()) : "N/A", headerFont, cellFont, headerBg);
-            addPdfRow(table, "Last Login", user.getLastLogin() != null ? DATE_FMT.format(user.getLastLogin()) : "Never", headerFont, cellFont, headerBg);
+            addPdfRow(table, "Joined", user.getCreatedAt() != null ? DATE_FMT.format(user.getCreatedAt()) : "N/A",
+                    headerFont, cellFont, headerBg);
+            addPdfRow(table, "Last Login", user.getLastLogin() != null ? DATE_FMT.format(user.getLastLogin()) : "Never",
+                    headerFont, cellFont, headerBg);
 
             doc.add(table);
 
@@ -552,7 +508,8 @@ public class AdminDashboardController implements Initializable {
             // Footer
             doc.add(new Paragraph(" "));
             Font footerFont = new Font(Font.FontFamily.HELVETICA, 9, Font.ITALIC, BaseColor.GRAY);
-            Paragraph footer = new Paragraph("Generated by INVESTI Admin Dashboard — " + DATE_FMT.format(new java.util.Date()), footerFont);
+            Paragraph footer = new Paragraph(
+                    "Generated by INVESTI Admin Dashboard — " + DATE_FMT.format(new java.util.Date()), footerFont);
             footer.setAlignment(Element.ALIGN_CENTER);
             footer.setSpacingBefore(30);
             doc.add(footer);
@@ -566,7 +523,8 @@ public class AdminDashboardController implements Initializable {
         }
     }
 
-    private void addPdfRow(PdfPTable table, String label, String value, Font headerFont, Font cellFont, BaseColor headerBg) {
+    private void addPdfRow(PdfPTable table, String label, String value, Font headerFont, Font cellFont,
+            BaseColor headerBg) {
         PdfPCell labelCell = new PdfPCell(new Phrase(label, headerFont));
         labelCell.setBackgroundColor(headerBg);
         labelCell.setPadding(8);
@@ -595,13 +553,16 @@ public class AdminDashboardController implements Initializable {
                     User user = getTableView().getItems().get(getIndex());
 
                     Button viewBtn = new Button("🖼 View ID");
-                    viewBtn.setStyle("-fx-padding: 6 14; -fx-font-size: 12px; -fx-background-color: #456990; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+                    viewBtn.setStyle(
+                            "-fx-padding: 6 14; -fx-font-size: 12px; -fx-background-color: #456990; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
 
                     Button approveBtn = new Button("✓ Approve");
-                    approveBtn.setStyle("-fx-padding: 6 14; -fx-font-size: 12px; -fx-background-color: #2E7D32; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+                    approveBtn.setStyle(
+                            "-fx-padding: 6 14; -fx-font-size: 12px; -fx-background-color: #2E7D32; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
 
                     Button rejectBtn = new Button("✗ Reject");
-                    rejectBtn.setStyle("-fx-padding: 6 14; -fx-font-size: 12px; -fx-background-color: #A62639; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+                    rejectBtn.setStyle(
+                            "-fx-padding: 6 14; -fx-font-size: 12px; -fx-background-color: #A62639; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
 
                     viewBtn.setOnAction(e -> showIdImage(user));
                     approveBtn.setOnAction(e -> approveKyc(user));
@@ -639,7 +600,10 @@ public class AdminDashboardController implements Initializable {
     private void showIdImage(User user) {
         try {
             File file = new File(user.getIdImageUrl());
-            if (!file.exists()) { showErrorAlert("ID image not found: " + user.getIdImageUrl()); return; }
+            if (!file.exists()) {
+                showErrorAlert("ID image not found: " + user.getIdImageUrl());
+                return;
+            }
             Image img = new Image(file.toURI().toString(), 600, 400, true, true);
             ImageView iv = new ImageView(img);
             iv.setPreserveRatio(true);
@@ -698,7 +662,8 @@ public class AdminDashboardController implements Initializable {
         emailField.setText(user.getEmail());
         nameField.setText(user.getName());
         roleField.setText(user.getRole());
-        if (bioField != null) bioField.setText(user.getBio() != null ? user.getBio() : "");
+        if (bioField != null)
+            bioField.setText(user.getBio() != null ? user.getBio() : "");
         passwordField.clear();
     }
 
@@ -707,7 +672,8 @@ public class AdminDashboardController implements Initializable {
         nameField.clear();
         passwordField.clear();
         roleField.clear();
-        if (bioField != null) bioField.clear();
+        if (bioField != null)
+            bioField.clear();
         selectedUser = null;
         btnAdd.setText("💾 Save User");
     }
@@ -768,36 +734,88 @@ public class AdminDashboardController implements Initializable {
 
     @FXML
     private void handleEventManagement() {
-        try { InvestiApp.showEventManagement(); } catch (Exception e) { e.printStackTrace(); }
+        try {
+            InvestiApp.showEventManagement();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleGamification() {
+        try {
+            InvestiApp.showGamificationMenu();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Error", "Failed to open Gamification", "Could not load gamification interface: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleProducts() {
+        try {
+            edu.connexion3a8.entities.User user = edu.connexion3a8.InvestiApp.getCurrentUser();
+            if (user != null && "admin".equalsIgnoreCase(user.getRole())) {
+                InvestiApp.showProductManagement();
+            } else {
+                showError("Access Denied", "Admin Only", "Only administrators can manage products.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Error", "Failed to open Products", "Could not load products interface: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleUserManagement() {
+        // Already on the admin dashboard which shows user management
+        // Just scroll to top or refresh the view
+        try {
+            refreshTable();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
     private void handleForum() {
-        try { 
-            // Admin can access forum with full moderation powers
-            User adminUser = InvestiApp.getCurrentUser();
-            if (adminUser == null) {
-                // Create a temporary admin user if not set
-                adminUser = new User();
-                adminUser.setId("admin-temp-id");
-                adminUser.setName("Admin");
-                adminUser.setRole("admin");
-                adminUser.setActive(true);
-                adminUser.setEmailVerified(true);
+        try {
+            InvestiApp.showForum();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Error", "Failed to open Forum", "Could not load forum interface: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleViewCollaboration() {
+        try {
+            edu.connexion3a8.entities.User user = edu.connexion3a8.InvestiApp.getCurrentUser();
+            if (user != null) {
+                InvestiApp.showCollaborationAdmin(user);
+            } else {
+                InvestiApp.showHomePage();
             }
-            InvestiApp.showForumPage(adminUser);
-        } catch (Exception e) { 
-            e.printStackTrace(); 
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     @FXML
     private void handleViewHome() {
-        try { InvestiApp.showHomePage(); } catch (Exception e) { e.printStackTrace(); }
+        try {
+            InvestiApp.showHomePage();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
     private void handleLogout() {
-        try { InvestiApp.showLoginPage(); } catch (Exception e) { e.printStackTrace(); }
+        try {
+            InvestiApp.showLoginPage();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

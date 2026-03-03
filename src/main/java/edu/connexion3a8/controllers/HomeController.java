@@ -116,16 +116,15 @@ public class HomeController {
     }
 
     @FXML
-    private void handleForum() {
+    private void handleAdminDashboard() {
         try {
-            InvestiApp.showForumPage(currentUser);
+            InvestiApp.showAdminDashboard();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     @FXML
-    private void handleGamification() {
+    private void handleCourses() {
         try {
             InvestiApp.showGamificationMenu(currentUser);
         } catch (Exception e) {
@@ -134,9 +133,9 @@ public class HomeController {
     }
 
     @FXML
-    private void handleAdminDashboard() {
+    private void handleForum() {
         try {
-            InvestiApp.showAdminDashboard();
+            InvestiApp.showForum(currentUser);
         } catch (Exception e) {
             e.printStackTrace();
         }

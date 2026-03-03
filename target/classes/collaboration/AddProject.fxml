@@ -14,7 +14,7 @@
             stylesheets="@Project.css"
             xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="edu.connexion3a8.controllers.collaboration.project.AddProjectController">
+            fx:controller="edu.connexion3a8.controllers.collaboration.Project.AddProjectController">
     <children>
         <VBox alignment="CENTER"
               AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"

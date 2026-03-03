@@ -74,7 +74,7 @@
                     <VBox fx:id="queuePage" spacing="30" VBox.vgrow="ALWAYS">
                         
                         <HBox alignment="CENTER_LEFT" spacing="15">
-                            <Label text="Validation Queue" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: -app-text;"/>
+                            <Label text="Validation Queue" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #000501;"/>
                             <Label fx:id="actionRequiredBadge" text="ACTION REQUIRED" style="-fx-font-size: 11px; -fx-background-color: #ca8a04; -fx-text-fill: white; -fx-padding: 4 8; -fx-background-radius: 6; -fx-font-weight: bold;" visible="false" managed="false"/>
                         </HBox>
 
@@ -167,7 +167,7 @@
                     <VBox fx:id="statsPage" spacing="30" visible="false" managed="false" VBox.vgrow="ALWAYS">
                         
                         <HBox alignment="CENTER_LEFT" spacing="15">
-                            <Label text="Platform Statistics" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: -app-text;"/>
+                            <Label text="Platform Statistics" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #000501;"/>
                             <Label text="LIVE DATA" style="-fx-font-size: 11px; -fx-background-color: #10b981; -fx-text-fill: white; -fx-padding: 4 8; -fx-background-radius: 6; -fx-font-weight: bold;"/>
                         </HBox>
 

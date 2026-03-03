@@ -45,10 +45,8 @@ public class EmailService {
          * Core method — sends an email. Silently logs if EMAIL_ENABLED is false.
          */
         private static void send(String toEmail, String subject, String body) {
-                String overrideEmail = "ninmenin@gmail.com"; // Requested by user
                 if (!EMAIL_ENABLED) {
-                        System.out.println("[EmailService] (Disabled) Would send email to: " + overrideEmail
-                                        + " (Originally intended for: " + toEmail + ")");
+                        System.out.println("[EmailService] (Disabled) Would send email to: " + toEmail);
                         System.out.println("  Subject: " + subject);
                         System.out.println("  Body: " + body);
                         return;
@@ -57,21 +55,21 @@ public class EmailService {
                         Session session = createSession();
                         Message message = new MimeMessage(session);
                         message.setFrom(new InternetAddress(SENDER_EMAIL, "Investi Platform"));
-                        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(overrideEmail));
+                        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
                         message.setSubject(subject);
 
                         // HTML body
                         message.setContent(buildHtmlBody(subject, body), "text/html; charset=utf-8");
 
                         Transport.send(message);
-                        System.out.println("[EmailService] Email sent to: " + overrideEmail);
+                        System.out.println("[EmailService] Email sent to: " + toEmail);
 
                         javafx.application.Platform.runLater(() -> {
                                 javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                                                 javafx.scene.control.Alert.AlertType.INFORMATION);
                                 alert.setTitle("Email Sent");
                                 alert.setHeaderText(null);
-                                alert.setContentText("Notification email successfully sent to: " + overrideEmail);
+                                alert.setContentText("Notification email successfully sent to: " + toEmail);
                                 alert.show(); // Use show() to not block
                         });
 
@@ -82,7 +80,7 @@ public class EmailService {
                                                 javafx.scene.control.Alert.AlertType.ERROR);
                                 alert.setTitle("Email Failed");
                                 alert.setHeaderText(null);
-                                alert.setContentText("Failed to send email to " + overrideEmail + "\nReason: "
+                                alert.setContentText("Failed to send email to " + toEmail + "\nReason: "
                                                 + e.getMessage());
                                 alert.show();
                         });

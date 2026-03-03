@@ -18,8 +18,11 @@
             </ImageView>
             <Label text="INVESTI - Admin Dashboard" styleClass="header-logo"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="📅 Event Management" onAction="#handleEventManagement" styleClass="modern-button, button-secondary"/>
-            <Button text="💬 Forum" onAction="#handleForum" styleClass="modern-button, button-primary"/>
+            <Button text="🎮 Gamification" onAction="#handleGamification" styleClass="modern-button, button-secondary"/>
+            <Button text="📅 Events" onAction="#handleEventManagement" styleClass="modern-button, button-secondary"/>
+            <Button text="🤝 Collaboration" onAction="#handleViewCollaboration" styleClass="modern-button, button-secondary"/>
+            <Button text="👥 Users" onAction="#handleUserManagement" styleClass="modern-button, button-secondary"/>
+            <Button text="🛍️ Products" onAction="#handleProducts" styleClass="modern-button, button-secondary"/>
             <Button text="🏠 Home" onAction="#handleViewHome" styleClass="modern-button, button-primary"/>
             <Button text="Logout" onAction="#handleLogout" styleClass="modern-button, button-danger"/>
         </HBox>
@@ -145,29 +148,6 @@
                             <TableColumn fx:id="colLevel" text="Level" prefWidth="70" minWidth="50"/>
                             <TableColumn fx:id="colCreatedAt" text="Joined" prefWidth="140" minWidth="120"/>
                             <TableColumn fx:id="colActions" text="Actions" prefWidth="300" minWidth="260"/>
-                        </columns>
-                    </TableView>
-                </VBox>
-
-                <!-- Events Management Section -->
-                <VBox spacing="15" styleClass="modern-card">
-                    <HBox alignment="CENTER_LEFT" spacing="15">
-                        <Label text="📅 Events Management" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #000501;"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="➕ Add Event" onAction="#handleAddEvent" styleClass="modern-button, button-primary"/>
-                        <Button text="🔄 Refresh Events" onAction="#refreshEvents" styleClass="modern-button, button-secondary"/>
-                    </HBox>
-
-                    <Label fx:id="eventCountLabel" text="" style="-fx-font-size: 12px; -fx-text-fill: #888;"/>
-
-                    <TableView fx:id="eventTable" styleClass="table-view" prefHeight="400" minHeight="300">
-                        <columns>
-                            <TableColumn fx:id="colEventTitle" text="Title" prefWidth="200" minWidth="150"/>
-                            <TableColumn fx:id="colEventMentor" text="Mentor" prefWidth="150" minWidth="120"/>
-                            <TableColumn fx:id="colEventLocation" text="Location" prefWidth="150" minWidth="120"/>
-                            <TableColumn fx:id="colEventStart" text="Start Date" prefWidth="140" minWidth="120"/>
-                            <TableColumn fx:id="colEventEnd" text="End Date" prefWidth="140" minWidth="120"/>
-                            <TableColumn fx:id="colEventActions" text="Actions" prefWidth="200" minWidth="180"/>
                         </columns>
                     </TableView>
                 </VBox>

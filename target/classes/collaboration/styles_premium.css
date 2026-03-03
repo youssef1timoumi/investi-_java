@@ -288,7 +288,7 @@
     -fx-background-radius: 10;
     -fx-padding: 10 20;
     -fx-font-weight: bold;
-    -fx-min-width: -Infinity;
+    -fx-min-width: 100;
     -fx-cursor: hand;
 }
 

@@ -140,6 +140,15 @@ public class MainMenuController {
         }
     }
     
+    @FXML
+    private void goBackToHome() {
+        try {
+            edu.connexion3a8.InvestiApp.showHomePage();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
     private void showAccessDenied() {
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
             javafx.scene.control.Alert.AlertType.WARNING

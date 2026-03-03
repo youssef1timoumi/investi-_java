@@ -21,7 +21,7 @@ public class UserAuthService {
     public static boolean isUserVerified(String userId) throws SQLException {
         String query = "SELECT is_active, email_verified FROM users WHERE id = ?";
         
-        try (Connection conn = MyConnection.getInstance();
+        try (Connection conn = MyConnection.getInstance().getCnx();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             
             stmt.setString(1, userId);
@@ -45,7 +45,7 @@ public class UserAuthService {
     public static boolean canAccessForum(String userId) throws SQLException {
         String query = "SELECT role FROM users WHERE id = ?";
         
-        try (Connection conn = MyConnection.getInstance();
+        try (Connection conn = MyConnection.getInstance().getCnx();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             
             stmt.setString(1, userId);
@@ -71,7 +71,7 @@ public class UserAuthService {
     public static boolean canPerformWriteOperations(String userId) throws SQLException {
         String query = "SELECT role, is_active, email_verified FROM users WHERE id = ?";
         
-        try (Connection conn = MyConnection.getInstance();
+        try (Connection conn = MyConnection.getInstance().getCnx();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             
             stmt.setString(1, userId);
@@ -101,7 +101,7 @@ public class UserAuthService {
     public static UserVerificationStatus getUserVerificationStatus(String userId) throws SQLException {
         String query = "SELECT role, is_active, email_verified, name FROM users WHERE id = ?";
         
-        try (Connection conn = MyConnection.getInstance();
+        try (Connection conn = MyConnection.getInstance().getCnx();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             
             stmt.setString(1, userId);

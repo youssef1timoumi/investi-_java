@@ -11,11 +11,7 @@ public class EvenementService {
     private Connection connection;
 
     public EvenementService() {
-        try {
-            this.connection = MyConnection.getInstance();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to get database connection", e);
-        }
+        this.connection = MyConnection.getInstance().getCnx();
     }
 
     public void addEntity(Evenement evenement) throws SQLException {

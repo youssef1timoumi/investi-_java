@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
             fx:controller="edu.connexion3a8.controllers.gamification.MainMenuController"
             fx:id="mainContainer"
             style="-fx-background-color: #F7F0F5;">
@@ -15,6 +15,9 @@
               style="-fx-background-color: rgba(0, 5, 1, 0.95); -fx-padding: 15px 20px; -fx-border-color: rgba(247, 240, 245, 0.1); -fx-border-width: 0 0 1 0;">
             
             <Button text="🏠 Home" onAction="#showMainMenu" 
+                    style="-fx-background-color: transparent; -fx-text-fill: #F7F0F5; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 8px 15px; -fx-background-radius: 6px;"/>
+            
+            <Button text="🔙 Back to Main" onAction="#goBackToHome" 
                     style="-fx-background-color: transparent; -fx-text-fill: #F7F0F5; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 8px 15px; -fx-background-radius: 6px;"/>
             
             <Region HBox.hgrow="ALWAYS"/>

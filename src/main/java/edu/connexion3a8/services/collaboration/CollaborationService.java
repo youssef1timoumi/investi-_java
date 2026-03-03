@@ -14,8 +14,8 @@ import java.util.List;
  */
 public class CollaborationService {
 
-    private Connection getCnx() throws SQLException {
-        return MyConnection.getInstance();
+    private Connection getCnx() {
+        return MyConnection.getInstance().getCnx();
     }
 
     // ─── Collaboration Operations ──────────────────────────────────────────────
@@ -34,8 +34,8 @@ public class CollaborationService {
             pst.setDouble(7, c.getDefaultProbability());
             pst.setDouble(8, c.getFairnessScore() > 0 ? c.getFairnessScore() : 100.0);
             pst.setString(9, c.getFairnessStatus() != null ? c.getFairnessStatus() : "BALANCED");
-            pst.setDouble(9, c.getIdealEquity());
-            pst.setDouble(10, c.getEquityDeviation());
+            pst.setDouble(10, c.getIdealEquity());
+            pst.setDouble(11, c.getEquityDeviation());
             pst.executeUpdate();
 
             try (ResultSet rs = pst.getGeneratedKeys()) {

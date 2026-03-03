@@ -15,7 +15,7 @@ public class GovernanceEngineAPI {
         // Guard against invalid data
         if (offer.getEquityRequested() <= 0 || project.getEquityOffered() <= 0
                 || offer.getTotalAmount() <= 0 || project.getAmountRequested() <= 0) {
-            return 50.0; // Neutral when no real data
+            return 50.0;
         }
 
         // Rule 1: Valuation comparison
@@ -24,32 +24,41 @@ public class GovernanceEngineAPI {
 
         double valuationRatio = impliedValuation / targetValuation;
         if (valuationRatio >= 1.0) {
-            score += 25; // Investor is generous
+            score += 25;
         } else if (valuationRatio >= 0.75) {
-            score += 10; // Close to fair
+            score += 10;
         } else if (valuationRatio < 0.5) {
-            score -= 25; // Very low-balling
+            score -= 25;
         } else {
-            score -= 10; // Below fair
+            score -= 10;
         }
 
-        // Rule 2: Amount coverage (how well the offer covers what was requested)
+        // Rule 2: Amount coverage
         double coverageRatio = offer.getTotalAmount() / project.getAmountRequested();
         if (coverageRatio >= 1.0) {
-            score += 20; // Full funding
+            score += 20;
         } else if (coverageRatio >= 0.75) {
             score += 10;
         } else if (coverageRatio < 0.4) {
-            score -= 15; // Under-funded by a lot
+            score -= 15;
         }
 
         // Rule 3: Equity reasonableness
         if (offer.getEquityRequested() > 50) {
-            score -= 25; // Unreasonably high grab
+            score -= 25;
         } else if (offer.getEquityRequested() > 30) {
             score -= 10;
         } else if (offer.getEquityRequested() <= 15) {
-            score += 10; // Lean, fair equity ask
+            score += 10;
+        }
+
+        // Rule 4: Equity gap check — large difference between investor ask and project
+        // offer
+        double equityGap = Math.abs(offer.getEquityRequested() - project.getEquityOffered());
+        if (equityGap > 30) {
+            score -= 15;
+        } else if (equityGap > 15) {
+            score -= 5;
         }
 
         return Math.max(0, Math.min(100, score));
@@ -61,27 +70,25 @@ public class GovernanceEngineAPI {
      */
     public static double calculateHealthScore(Investment activeInvestment) {
         if (activeInvestment.getDurationMonths() == 0)
-            return 100.0; // Prevent div by zero
+            return 100.0;
 
-        // Payment Discipline Score (Expectation vs Reality based on duration)
         double expectedMonthsPaid = calculateExpectedMonthsPaid(activeInvestment);
         double actualMonthsPaid = activeInvestment.getPaymentMonthsCompleted();
 
         double paymentScore = 100.0;
         if (expectedMonthsPaid > 0) {
             double ratio = actualMonthsPaid / expectedMonthsPaid;
-            paymentScore = Math.min(100.0, ratio * 100.0); // Never > 100
+            paymentScore = Math.min(100.0, ratio * 100.0);
         }
 
-        // Progress Consistency Score
-        double progressScore = activeInvestment.getProgressPercentage(); // Simple 1:1 mapping
+        double progressScore = activeInvestment.getProgressPercentage();
 
         double healthScore = (0.6 * paymentScore) + (0.4 * progressScore);
         return Math.max(0, Math.min(100, healthScore));
     }
 
     /**
-     * Generates a "Temperature" visual state based on Health Score
+     * Generates a "Temperature" visual state based on Health Score.
      */
     public static String getTemperature(double healthScore) {
         if (healthScore >= 75)
@@ -102,18 +109,17 @@ public class GovernanceEngineAPI {
 
         // Base Risk: 5% floor + 0.1% per month (capped at 15%) + 0.1% per equity point
         // (capped at 10%)
-        // This prevents absurdly high default risk on long-duration/high-equity deals
         double durationRisk = Math.min(15.0, activeInvestment.getDurationMonths() * 0.1);
         double equityRisk = Math.min(10.0, activeInvestment.getEquityRequested() * 0.1);
         double prob = 5.0 + durationRisk + equityRisk;
 
         // Payment discipline penalty
         if (missedPayments >= 1)
-            prob += 20.0; // 1 month late -> +20%
+            prob += 20.0;
         if (missedPayments >= 2)
-            prob += 25.0; // 2 months late -> +45%
+            prob += 25.0;
         if (missedPayments >= 3)
-            prob += 30.0; // 3 months late -> +75%
+            prob += 30.0;
 
         // Progress stagnation penalty – only if substantial time has elapsed
         if (activeInvestment.getProgressPercentage() == 0 && expectedMonthsPaid >= 2) {
@@ -124,24 +130,17 @@ public class GovernanceEngineAPI {
     }
 
     /**
-     * Helper to estimate how many months *should* have been paid by now.
-     * We calculate elapsed time strictly from the investmentDate.
+     * Helper to estimate how many months should have been paid by now.
+     * Calculated strictly from the investmentDate.
      */
     private static double calculateExpectedMonthsPaid(Investment inv) {
-        // ALWAYS use the investmentDate as the absolute truth for collaboration start.
-        // If we reset the clock using lastPaymentDate, expected won't match true total
-        // progress.
         java.util.Date referenceDate = inv.getInvestmentDate();
         if (referenceDate == null) {
-            return 0.0; // Prevent crash if missing
+            return 0.0;
         }
 
         long daysSinceRef = (System.currentTimeMillis() - referenceDate.getTime()) / (1000 * 60 * 60 * 24);
-
-        // Expected is simply the total days since investment / 30
         double expected = daysSinceRef / 30.0;
-
-        // Cap the expected months at the total duration of the investment
         return Math.min(expected, inv.getDurationMonths());
     }
 
@@ -156,6 +155,7 @@ public class GovernanceEngineAPI {
 
     /**
      * Evaluates if the current equity still reflects the true economic reality.
+     * Also flags an equity gap if deviation from the ideal is too large.
      */
     public static FairnessReport evaluateFairnessDrift(Investment activeInvestment) {
         FairnessReport report = new FairnessReport();
@@ -164,27 +164,18 @@ public class GovernanceEngineAPI {
         double riskScore = calculateDefaultProbability(activeInvestment) / 100.0;
         double progressPercentage = activeInvestment.getProgressPercentage() / 100.0;
 
-        // Expected months paid accounts for time elapsed since investmentDate (or
-        // lastPaymentDate)
         double expectedMonthsPaid = calculateExpectedMonthsPaid(activeInvestment);
         double actualMonthsPaid = activeInvestment.getPaymentMonthsCompleted();
         double paymentDiscipline = expectedMonthsPaid > 0 ? Math.min(1.0, actualMonthsPaid / expectedMonthsPaid) : 1.0;
 
         // 2. Identify Performance Lags
         double duration = activeInvestment.getDurationMonths();
-
-        // Time progress proxy: use EXPECTED months (time elapsed) divided by total
-        // duration
-        // This correctly captures that time has passed regardless of whether payments
-        // were made
         double timeProgress = duration > 0 ? Math.min(1.0, expectedMonthsPaid / duration) : 1.0;
 
         // entrepreneurLag: if time progresses faster than actual project completion %
-        // => positive lag (entrepreneur behind schedule)
         double entrepreneurLag = timeProgress > 0 ? Math.max(0, timeProgress - progressPercentage) : 0.0;
 
-        // investorLag: if payment discipline is less than 1.0 => positive lag (investor
-        // behind)
+        // investorLag: if payment discipline is less than 1.0
         double investorLag = 1.0 - paymentDiscipline;
 
         // Drift Factor: positive favors Investor (needs more equity), negative favors
@@ -194,18 +185,13 @@ public class GovernanceEngineAPI {
         // Multiplier: Anchor is 1.0. Max theoretical drift impact is roughly +/- 50%
         double multiplier = 1.0 + (driftFactor * 0.5) + (riskScore * 0.2);
 
-        // Base equity asked (their baseline)
         double baseEquity = activeInvestment.getEquityRequested();
-
         report.idealEquity = Math.max(0, Math.min(100.0, baseEquity * multiplier));
 
         // 3. Equity Deviation
         report.deviation = Math.abs(baseEquity - report.idealEquity);
 
         // 4. Fairness Score: 100 - (deviationRatio * 150)
-        // A 50% relative deviation => score drops by 75 pts. Softened vs old 200
-        // multiplier
-        // so minor drift doesn't immediately produce score=0.
         double deviationRatio = baseEquity > 0 ? (report.deviation / baseEquity) : 0;
         double score = 100.0 - (deviationRatio * 150.0);
         report.fairnessScore = Math.max(0, Math.min(100.0, score));
@@ -225,29 +211,40 @@ public class GovernanceEngineAPI {
     // ─── Advanced Financial Intelligence ─────────────────────────────────────
 
     /**
-     * Calculates estimated Monthly Burn Rate based on requested capital and
-     * proposed duration.
-     * Uses a blended average, assuming higher burn in early months.
+     * Calculates estimated Monthly Burn Rate = total capital / duration.
      */
     public static double calculateBurnRate(double requestedCapital, int proposedDuration) {
         if (proposedDuration <= 0 || requestedCapital <= 0)
             return 0.0;
-        // Advanced model: assumes 1.2x burn in first 30% of project
         return requestedCapital / proposedDuration;
     }
 
     /**
-     * Calculates the Runway (in months) based on current injected capital vs
-     * estimated Burn Rate.
+     * Calculates the Runway (in months) based on remaining capital vs burn rate.
+     * Returns 999.0 if burn rate is zero (effectively infinite runway).
      */
     public static double calculateRunwayMonths(double totalInjectedCapital, double estimatedBurnRate) {
         if (estimatedBurnRate <= 0)
-            return 0.0;
+            return 999.0;
         return totalInjectedCapital / estimatedBurnRate;
     }
 
     /**
-     * Calculates Capital Velocity Score (0-100) combining Funding momentum and
+     * Calculates remaining capital (total investment minus what's already paid
+     * out).
+     */
+    public static double calculateRemainingCapital(Investment inv) {
+        int monthsPaid = inv.getPaymentMonthsCompleted();
+        double amountPerPeriod = inv.getAmountPerPeriod();
+        if (amountPerPeriod <= 0 && inv.getDurationMonths() > 0) {
+            amountPerPeriod = inv.getTotalAmount() / inv.getDurationMonths();
+        }
+        double alreadyPaid = monthsPaid * amountPerPeriod;
+        return Math.max(0.0, inv.getTotalAmount() - alreadyPaid);
+    }
+
+    /**
+     * Calculates Capital Velocity Score (0-100) combining funding momentum and
      * progress execution speed.
      */
     public static double calculateCapitalVelocity(Investment offer, Project project) {
@@ -255,20 +252,18 @@ public class GovernanceEngineAPI {
             return 50.0;
 
         double duration = offer.getDurationMonths() > 0 ? offer.getDurationMonths() : 1.0;
-        double actualProgress = offer.getProgressPercentage(); // 0-100
+        double actualProgress = offer.getProgressPercentage();
         double expectedProgress = Math.min(1.0, calculateExpectedMonthsPaid(offer) / duration) * 100.0;
 
-        // Execution ratio: How ahead/behind schedule (capped at 1.5 to avoid extreme
-        // outliers)
+        // Execution ratio: How ahead/behind schedule (capped at 1.5 to avoid extremes)
         double executionRatio = expectedProgress > 0 ? Math.min(1.5, actualProgress / expectedProgress) : 1.0;
 
-        // Payment discipline component: how many months actually paid vs expected
+        // Payment discipline component
         double expectedMonthsPaid = calculateExpectedMonthsPaid(offer);
         double actualMonthsPaid = offer.getPaymentMonthsCompleted();
         double paymentRatio = expectedMonthsPaid > 0 ? Math.min(1.0, actualMonthsPaid / expectedMonthsPaid) : 1.0;
 
-        // Weighted: 60% execution, 40% payment discipline (replaces circular runway
-        // calc)
+        // Weighted: 60% execution, 40% payment discipline
         double velocityScore = (executionRatio * 60.0) + (paymentRatio * 40.0);
         return Math.max(0, Math.min(100, velocityScore));
     }
@@ -276,12 +271,10 @@ public class GovernanceEngineAPI {
     /**
      * Calculates the Investor's Reputation Score based on their history of
      * investments.
-     * Evaluates their payment discipline and success rate across all their
-     * investments.
      */
     public static double calculateInvestorReputation(java.util.List<Investment> investorHistory) {
         if (investorHistory == null || investorHistory.isEmpty()) {
-            return 50.0; // New investors start at a neutral midpoint — they must earn a good score
+            return 50.0;
         }
 
         double totalDisciplineScore = 0;
@@ -298,39 +291,29 @@ public class GovernanceEngineAPI {
                     double discipline = Math.min(1.0, actual / expected);
                     totalDisciplineScore += discipline * 100.0;
                     activeCount++;
-
                     if (actual < expected - 2) {
-                        breachedCount++; // Severe payment breach > 2 months late
+                        breachedCount++;
                     }
                 } else {
-                    // Investment just started — payment discipline is neutral (assume good)
                     totalDisciplineScore += 100.0;
                     activeCount++;
                 }
             } else if ("COMPLETED".equalsIgnoreCase(inv.getStatus()) || "CLOSED".equalsIgnoreCase(inv.getStatus())) {
                 completedCount++;
             } else if ("PENDING".equalsIgnoreCase(inv.getStatus())) {
-                pendingCount++; // Pending offers indicate interest but no track record
+                pendingCount++;
             }
         }
 
-        // Base score: 50 neutral. Each active/complete deal rewards them.
         double baseScore = 50.0;
-
-        // Completed investments = track record. +8 per completed deal, up to +30.
         baseScore += Math.min(30.0, completedCount * 8.0);
-
-        // Pending investments show market engagement. +2 each, up to +10.
         baseScore += Math.min(10.0, pendingCount * 2.0);
 
-        // Payment discipline for active investments
         if (activeCount > 0) {
             double avgDiscipline = totalDisciplineScore / activeCount;
-            // Good discipline adds up to +20, bad discipline subtracts up to -30
             baseScore += ((avgDiscipline - 50.0) / 50.0) * 25.0;
         }
 
-        // Severe payment breach penalty
         baseScore -= (breachedCount * 15.0);
 
         return Math.max(0, Math.min(100, baseScore));

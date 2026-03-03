@@ -24,22 +24,22 @@ public class MainController implements javafx.fxml.Initializable {
 
     @FXML
     void showHome(ActionEvent event) {
-        loadView("/Welcome.fxml");
+        loadView("/collaboration/Welcome.fxml");
     }
 
     @FXML
     void showAdminDashboard(ActionEvent event) {
-        loadView("/AdminDashboard.fxml");
+        loadView("/collaboration/AdminDashboard.fxml");
     }
 
     @FXML
     void showEntrepreneurDashboard(ActionEvent event) {
-        loadView("/EntrepreneurDashboard.fxml");
+        loadView("/collaboration/EntrepreneurDashboard.fxml");
     }
 
     @FXML
     void showInvestorDashboard(ActionEvent event) {
-        loadView("/InvestorDashboard.fxml");
+        loadView("/collaboration/InvestorDashboard.fxml");
     }
 
     private void loadView(String fxmlPath) {
