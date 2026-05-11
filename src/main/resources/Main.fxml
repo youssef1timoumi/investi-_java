@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
@@ -12,27 +14,22 @@
 
     <top>
         <VBox>
-            <HBox alignment="CENTER_LEFT" spacing="15" styleClass="header-box">
-                <Label text="⚡ INVESTI" styleClass="header-title"/>
-                <Label text="— Plateforme de Gestion"
-                       style="-fx-text-fill: #64748B; -fx-font-size: 14px;"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Button text="🏠 Admin Dashboard" onAction="#backToAdminDashboard"
-                        styleClass="modern-button, button-secondary" style="-fx-padding: 8 16;"/>
-                <Button fx:id="btnToggleTheme" text="🌙 Mode Sombre" onAction="#toggleTheme" 
-                        styleClass="modern-button, button-secondary" style="-fx-padding: 8 16;"/>
-                <Label fx:id="lblDateTime" style="-fx-text-fill: #64748B; -fx-font-size: 13px;"/>
-            </HBox>
-
+            <!-- Internal tabs bar only — site header lives in the AppShell -->
             <HBox styleClass="nav-bar" spacing="0">
-                <Button fx:id="btnNavEvenement" text="📅  ÉVÉNEMENTS"
+                <Button fx:id="btnNavEvenement" text="ÉVÉNEMENTS"
                         onAction="#afficherEvenements" styleClass="nav-btn-active"/>
-                <Button fx:id="btnNavInscription" text="📋  INSCRIPTIONS"
+                <Button fx:id="btnNavInscription" text="INSCRIPTIONS"
                         onAction="#afficherInscriptions" styleClass="nav-btn"/>
-                <Button fx:id="btnNavStats" text="📊  STATISTIQUES"
+                <Button fx:id="btnNavStats" text="STATISTIQUES"
                         onAction="#afficherStats" styleClass="nav-btn"/>
-                <Button fx:id="btnNavCalendrier" text="📆  CALENDRIER"
+                <Button fx:id="btnNavCalendrier" text="CALENDRIER"
                         onAction="#afficherCalendrier" styleClass="nav-btn"/>
+            </HBox>
+            <!-- Hidden handlers kept for the controller so FXML bindings still resolve -->
+            <HBox visible="false" managed="false">
+                <Button fx:id="btnToggleTheme" onAction="#toggleTheme" text=""/>
+                <Button onAction="#backToAdminDashboard" text=""/>
+                <Label fx:id="lblDateTime" text=""/>
             </HBox>
         </VBox>
     </top>

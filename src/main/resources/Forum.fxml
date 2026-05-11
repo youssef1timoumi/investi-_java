@@ -2,90 +2,74 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
 <BorderPane fx:id="rootPane" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
             fx:controller="edu.connexion3a8.controllers.ForumController"
-            style="-fx-background-color: #0f1114;" stylesheets="@forum-styles.css">
-    
-    <!-- Left Sidebar - Navigation -->
-    <left>
-        <VBox fx:id="sidebarPane" spacing="8" style="-fx-background-color: #0f1114; -fx-padding: 20 15; -fx-min-width: 260; -fx-max-width: 260;">
-            <!-- Logo -->
-            <HBox alignment="CENTER_LEFT" style="-fx-padding: 0 0 5 0;">
-                <ImageView fitWidth="200" fitHeight="60" preserveRatio="true">
-                    <Image url="@INVESTI.png"/>
-                </ImageView>
-            </HBox>
-            
-            <!-- Navigation Items -->
-            <ToggleButton fx:id="allPostsTab" text="🏠  Home" onAction="#handleAllPosts" styleClass="nav-item" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-            <ToggleButton fx:id="myPostsTab" text="👤  My Posts" onAction="#handleMyPosts" styleClass="nav-item" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-            <ToggleButton fx:id="myActivityTab" text="⚡  Activity" onAction="#handleMyActivity" styleClass="nav-item" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-            <ToggleButton fx:id="savedPostsTab" text="🔖  Saved" onAction="#handleSavedPosts" styleClass="nav-item" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-            
-            <Separator/>
-            
-            <!-- Theme Toggle -->
-            <Button fx:id="themeToggleBtn" text="☀  Light Mode" onAction="#handleToggleTheme" styleClass="nav-item" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-            
-            <Separator/>
-            
-            <!-- Categories -->
-            <Label text="Categories" style="-fx-text-fill: #71767b; -fx-font-size: 13px; -fx-padding: 10 12 5 12;"/>
-            <ComboBox fx:id="categoryFilter" maxWidth="Infinity" styleClass="category-combo" style="-fx-background-radius: 20;"/>
-            
-            <Region VBox.vgrow="ALWAYS"/>
-            
-            <!-- Create Post Button -->
-            <Button text="Post" onAction="#handleCreatePost" maxWidth="Infinity" styleClass="post-button"/>
-            
-            <!-- User Selector -->
-            <VBox spacing="8" style="-fx-padding: 15 0 0 0;">
-                <Separator/>
-                <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10; -fx-background-color: #1a1d23; -fx-background-radius: 50; -fx-cursor: hand;">
-                    <Label fx:id="userAvatarLabel" text="TU" styleClass="user-avatar-small"/>
-                    <VBox spacing="2" HBox.hgrow="ALWAYS">
-                        <Label fx:id="currentUserLabel" text="Test User" style="-fx-text-fill: #e7e9ea; -fx-font-weight: bold; -fx-font-size: 14px;"/>
-                        <ComboBox fx:id="userSelector" styleClass="user-selector-minimal" maxWidth="Infinity"/>
-                    </VBox>
-                </HBox>
-            </VBox>
-        </VBox>
-    </left>
-    
-    <!-- Main Content - Feed (full width, no right sidebar) -->
-    <center>
-        <VBox fx:id="centerPane" style="-fx-background-color: #0f1114; -fx-border-color: #2a2d32; -fx-border-width: 0 0 0 1;">
-            <!-- Header -->
-            <HBox fx:id="headerPane" alignment="CENTER_LEFT" style="-fx-padding: 15 25; -fx-background-color: rgba(15,17,20,0.85); -fx-border-color: #2a2d32; -fx-border-width: 0 0 1 0;">
-                <Label fx:id="homeTitleLabel" text="Home" style="-fx-text-fill: #e7e9ea; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+            styleClass="inv-page-body, forum-page">
+
+    <!-- Forum top toolbar: title + search + Post (headerPane MUST be an HBox to
+         match the ForumController field type). -->
+    <top>
+        <VBox spacing="0">
+            <HBox fx:id="headerPane" alignment="CENTER_LEFT" spacing="16"
+                  style="-fx-padding: 18 32; -fx-background-color: rgba(255,255,255,0.9); -fx-border-color: rgba(201,185,255,0.3); -fx-border-width: 0 0 1 0;">
+                <Label fx:id="homeTitleLabel" text="Community Feed" styleClass="inv-section-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="homeButton" text="🏠 Back to Home" onAction="#handleHome" style="-fx-background-color: #456990; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 8 20; -fx-font-size: 13px; -fx-cursor: hand; -fx-font-weight: bold;" onMouseEntered="#onHomeButtonHover" onMouseExited="#onHomeButtonExit"/>
-                <TextField fx:id="searchField" promptText="🔍 Search posts..." onAction="#handleSearch" styleClass="search-field-modern" prefWidth="300"/>
+                <TextField fx:id="searchField" promptText="Search posts..." styleClass="modern-input" onAction="#handleSearch" prefWidth="320"/>
+                <Button text="Post" onAction="#handleCreatePost" styleClass="btn-primary"/>
             </HBox>
-            
+
+            <HBox alignment="CENTER_LEFT" spacing="10"
+                  style="-fx-padding: 10 32; -fx-background-color: rgba(255,255,255,0.7); -fx-border-color: rgba(201,185,255,0.3); -fx-border-width: 0 0 1 0;">
+                <ToggleButton fx:id="allPostsTab"    text="All Posts"  onAction="#handleAllPosts"    styleClass="role-toggle"/>
+                <ToggleButton fx:id="myPostsTab"     text="My Posts"   onAction="#handleMyPosts"     styleClass="role-toggle"/>
+                <ToggleButton fx:id="myActivityTab"  text="Activity"   onAction="#handleMyActivity"  styleClass="role-toggle"/>
+                <ToggleButton fx:id="savedPostsTab"  text="Saved"      onAction="#handleSavedPosts"  styleClass="role-toggle"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Category:" styleClass="label-field"/>
+                <ComboBox fx:id="categoryFilter" styleClass="filter-combo" prefWidth="220"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- Main feed -->
+    <center>
+        <VBox fx:id="centerPane" styleClass="inv-page-body">
             <!-- Compose Box -->
-            <VBox styleClass="compose-box">
+            <VBox styleClass="compose-box" style="-fx-padding: 18 32;">
                 <HBox spacing="12" alignment="TOP_LEFT">
                     <Label fx:id="composeAvatarLabel" text="TU" styleClass="user-avatar"/>
                     <VBox spacing="10" HBox.hgrow="ALWAYS">
-                        <TextArea fx:id="composeTextArea" promptText="What's happening?" styleClass="compose-textarea" prefRowCount="3"/>
+                        <TextArea fx:id="composeTextArea" promptText="What's happening?" styleClass="compose-textarea, modern-input" prefRowCount="3"/>
                         <HBox alignment="CENTER_LEFT" spacing="15">
-                            <Button fx:id="addImageBtn" text="🖼" styleClass="compose-action-btn" onAction="#handleAddImage"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Button text="Post" styleClass="compose-post-btn" onAction="#handleQuickPost"/>
+                            <Button text="Post" styleClass="btn-primary" onAction="#handleQuickPost"/>
                         </HBox>
                     </VBox>
                 </HBox>
             </VBox>
-            
+
             <!-- Posts Feed -->
-            <ScrollPane fx:id="feedScroll" fitToWidth="true" styleClass="feed-scroll" VBox.vgrow="ALWAYS">
-                <VBox fx:id="postsContainer" spacing="0"/>
+            <ScrollPane fx:id="feedScroll" fitToWidth="true" styleClass="feed-scroll, inv-scroll" VBox.vgrow="ALWAYS">
+                <VBox fx:id="postsContainer" spacing="14">
+                    <padding>
+                        <Insets top="16" right="32" bottom="24" left="32"/>
+                    </padding>
+                </VBox>
             </ScrollPane>
         </VBox>
     </center>
+
+    <!-- Hidden legacy controls the controller still binds -->
+    <bottom>
+        <VBox visible="false" managed="false">
+            <VBox fx:id="sidebarPane" visible="false" managed="false"/>
+            <Label fx:id="currentUserLabel" text="Test User" visible="false" managed="false"/>
+            <Label fx:id="userAvatarLabel" text="TU" visible="false" managed="false"/>
+            <ComboBox fx:id="userSelector" visible="false" managed="false"/>
+            <Button fx:id="themeToggleBtn" text="" onAction="#handleToggleTheme" visible="false" managed="false"/>
+            <Button fx:id="homeButton" text="" onAction="#handleHome" visible="false" managed="false"/>
+        </VBox>
+    </bottom>
 </BorderPane>

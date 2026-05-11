@@ -32,7 +32,7 @@ public class CourseCatalogController {
     @FXML private ComboBox<String> difficultyFilter;
     @FXML private GridPane courseGrid;
     @FXML private Label courseCountLabel;
-    @FXML private Button nightModeToggle;
+    @FXML private Button nightModeToggle; // kept nullable — removed from FXML, shell handles theme
     @FXML private VBox recommendationsSection;
     @FXML private HBox recommendationsContainer;
     @FXML private Label recommendationsTitleLabel;
@@ -1115,7 +1115,17 @@ public class CourseCatalogController {
         
         return card;
     }
-    
+
+    @FXML
+    private void handleViewBadges() {
+        try {
+            // Navigate back to the gamification menu which has the badges view
+            edu.connexion3a8.InvestiApp.showGamificationMenu();
+        } catch (Exception e) {
+            showError("Could not open badges: " + e.getMessage());
+        }
+    }
+
     private void styleCustomDialog(Dialog<?> dialog) {
         javafx.scene.control.DialogPane dialogPane = dialog.getDialogPane();
         

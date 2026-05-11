@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mysql:
+    build: .
+    container_name: investi-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: 3a8
+      MYSQL_USER: investi
+      MYSQL_PASSWORD: investi123
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./3a8.sql:/docker-entrypoint-initdb.d/3a8.sql
+    networks:
+      - investi-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  investi-network:
+    driver: bridge

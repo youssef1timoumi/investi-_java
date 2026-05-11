@@ -16,8 +16,31 @@ public class ForumPostService {
         ensureNotificationsTable();
     }
     
+    /**
+     * Return the shared JDBC connection wrapped so {@code close()} is a no-op.
+     *
+     * <p>This lets the many {@code try-with-resources} blocks in this service
+     * close the returned {@link Connection} safely without actually tearing
+     * down the singleton the rest of the app shares. Without this wrapper,
+     * the first query's try-with-resources closed the singleton and every
+     * subsequent query (including the images lookup in Activity / Saved)
+     * failed with "Operation not allowed after ResultSet closed".
+     */
     private Connection getConnection() throws SQLException {
-        return MyConnection.getInstance().getCnx();
+        Connection shared = MyConnection.getInstance().getCnx();
+        return (Connection) java.lang.reflect.Proxy.newProxyInstance(
+                Connection.class.getClassLoader(),
+                new Class<?>[] { Connection.class },
+                (proxy, method, args) -> {
+                    if ("close".equals(method.getName())) {
+                        return null; // no-op: we never close the singleton
+                    }
+                    try {
+                        return method.invoke(shared, args);
+                    } catch (java.lang.reflect.InvocationTargetException ite) {
+                        throw ite.getCause();
+                    }
+                });
     }
 
     private void ensureNotificationsTable() {
@@ -107,12 +130,19 @@ public class ForumPostService {
     }
 
     public void addPostImages(String postId, List<String> imagePaths) throws SQLException {
-        String query = "INSERT INTO forum_post_images (post_id, image_path, image_order) VALUES (?, ?, ?)";
+        // forum_post_images requires id, post_id, file_path, original_name, file_size, mime_type, sort_order
+        // All declared NOT NULL in the schema — fill defaults for the bookkeeping columns.
+        String query = "INSERT INTO forum_post_images (id, post_id, file_path, original_name, file_size, mime_type, sort_order) " +
+                       "VALUES (?, ?, ?, ?, 0, 'application/octet-stream', ?)";
         try (Connection conn = getConnection(); PreparedStatement pst = conn.prepareStatement(query)) {
             for (int i = 0; i < imagePaths.size(); i++) {
-                pst.setString(1, postId);
-                pst.setString(2, imagePaths.get(i));
-                pst.setInt(3, i);
+                String path = imagePaths.get(i);
+                String name = path == null ? "image" : path.substring(Math.max(0, path.lastIndexOf('/') + 1));
+                pst.setString(1, java.util.UUID.randomUUID().toString());
+                pst.setString(2, postId);
+                pst.setString(3, path);
+                pst.setString(4, name);
+                pst.setInt(5, i);
                 pst.addBatch();
             }
             pst.executeBatch();
@@ -121,12 +151,12 @@ public class ForumPostService {
 
     public List<String> getPostImages(String postId) throws SQLException {
         List<String> images = new ArrayList<>();
-        String query = "SELECT image_path FROM forum_post_images WHERE post_id=? ORDER BY image_order";
+        String query = "SELECT file_path FROM forum_post_images WHERE post_id=? ORDER BY sort_order";
         try (Connection conn = getConnection(); PreparedStatement pst = conn.prepareStatement(query)) {
             pst.setString(1, postId);
             ResultSet rs = pst.executeQuery();
             while (rs.next()) {
-                images.add(rs.getString("image_path"));
+                images.add(rs.getString("file_path"));
             }
         }
         return images;
@@ -235,11 +265,6 @@ public class ForumPostService {
         }
         
         loadImagesForPosts(posts);
-        return posts;
-    }
-                posts.add(extractPostFromResultSet(rs));
-            }
-        }
         return posts;
     }
 

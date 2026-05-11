@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="edu.connexion3a8.controllers.ProductsCatalogController"
+      styleClass="inv-page-body" spacing="24">
+    <padding>
+        <Insets top="32" right="48" bottom="48" left="48"/>
+    </padding>
+
+    <!-- Hero -->
+    <HBox alignment="CENTER_LEFT" spacing="18" styleClass="product-hero">
+        <VBox spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="Marketplace" styleClass="inv-section-title"/>
+            <Label text="Explore products and services from innovators on the INVESTI platform."
+                   styleClass="inv-section-subtitle" wrapText="true"/>
+        </VBox>
+        <Button text="Refresh" onAction="#handleRefresh" styleClass="btn-secondary"/>
+    </HBox>
+
+    <!-- Filter bar -->
+    <HBox spacing="12" alignment="CENTER_LEFT" styleClass="glass-card">
+        <TextField fx:id="searchField" promptText="Search products..." styleClass="modern-input" HBox.hgrow="ALWAYS"/>
+        <ComboBox fx:id="categoryCombo" styleClass="filter-combo" prefWidth="200" promptText="All categories"/>
+        <ComboBox fx:id="sortCombo"     styleClass="filter-combo" prefWidth="200" promptText="Sort by"/>
+    </HBox>
+
+    <!-- Cards grid -->
+    <ScrollPane fitToWidth="true" styleClass="inv-scroll" VBox.vgrow="ALWAYS">
+        <FlowPane fx:id="cardsGrid" hgap="22" vgap="22" prefWrapLength="1100"
+                  styleClass="catalog-grid" alignment="TOP_LEFT">
+            <padding>
+                <Insets top="4" right="4" bottom="4" left="4"/>
+            </padding>
+        </FlowPane>
+    </ScrollPane>
+</VBox>

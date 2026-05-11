@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="edu.connexion3a8.controllers.ProfileController"
+      styleClass="inv-page-body" spacing="28">
+    <padding>
+        <Insets top="40" right="56" bottom="56" left="56"/>
+    </padding>
+
+    <!-- Page title -->
+    <VBox spacing="6">
+        <Label text="My Profile" styleClass="inv-section-title"/>
+        <Label text="Manage your account details and personal information." styleClass="inv-section-subtitle"/>
+    </VBox>
+
+    <!-- Identity card -->
+    <HBox spacing="28" styleClass="glass-card" alignment="CENTER_LEFT">
+        <StackPane fx:id="avatarPane" styleClass="shell-avatar" prefWidth="96" prefHeight="96" minWidth="96" minHeight="96" maxWidth="96" maxHeight="96"
+                   style="-fx-background-radius: 100;">
+            <Label fx:id="avatarInitial" text="?" style="-fx-text-fill: white; -fx-font-size: 36px; -fx-font-weight: 800;"/>
+        </StackPane>
+        <VBox spacing="8" HBox.hgrow="ALWAYS">
+            <Label fx:id="nameLabel" text="User Name" style="-fx-font-size: 26px; -fx-font-weight: 800;"/>
+            <Label fx:id="emailLabel" text="user@example.com" styleClass="muted"/>
+            <HBox spacing="10">
+                <Label fx:id="roleBadge" text="Innovator"
+                       style="-fx-background-color: #f1ecff; -fx-text-fill: #6848ef; -fx-padding: 4 12; -fx-background-radius: 9999; -fx-font-size: 11px; -fx-font-weight: 700;"/>
+                <Label fx:id="statusBadge" text="Active"
+                       style="-fx-background-color: #ecfdf5; -fx-text-fill: #047857; -fx-padding: 4 12; -fx-background-radius: 9999; -fx-font-size: 11px; -fx-font-weight: 700;"/>
+            </HBox>
+        </VBox>
+    </HBox>
+
+    <!-- Stats row -->
+    <HBox spacing="20">
+        <VBox spacing="6" styleClass="stat-card-blue" alignment="CENTER" HBox.hgrow="ALWAYS">
+            <Label fx:id="statPoints" text="0" styleClass="stat-number"/>
+            <Label text="Points" styleClass="stat-label"/>
+        </VBox>
+        <VBox spacing="6" styleClass="stat-card-green" alignment="CENTER" HBox.hgrow="ALWAYS">
+            <Label fx:id="statLevel" text="1" styleClass="stat-number"/>
+            <Label text="Level" styleClass="stat-label"/>
+        </VBox>
+        <VBox spacing="6" styleClass="stat-card-yellow" alignment="CENTER" HBox.hgrow="ALWAYS">
+            <Label fx:id="statRole" text="—" styleClass="stat-number" style="-fx-font-size: 18px;"/>
+            <Label text="Role" styleClass="stat-label"/>
+        </VBox>
+    </HBox>
+
+    <!-- Editable form -->
+    <VBox spacing="20" styleClass="glass-card">
+        <Label text="Personal Information" styleClass="section-title"/>
+        <GridPane hgap="20" vgap="15">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="50"/>
+                <ColumnConstraints percentWidth="50"/>
+            </columnConstraints>
+
+            <VBox spacing="6" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                <Label text="Full Name" styleClass="label-field"/>
+                <TextField fx:id="nameField" styleClass="modern-input" promptText="Your full name"/>
+            </VBox>
+            <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <Label text="Email" styleClass="label-field"/>
+                <TextField fx:id="emailField" styleClass="modern-input" disable="true"/>
+            </VBox>
+            <VBox spacing="6" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                <Label text="Phone" styleClass="label-field"/>
+                <TextField fx:id="phoneField" styleClass="modern-input" promptText="(optional)"/>
+            </VBox>
+            <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <Label text="Location" styleClass="label-field"/>
+                <TextField fx:id="locationField" styleClass="modern-input" promptText="City, Country"/>
+            </VBox>
+            <VBox spacing="6" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
+                <Label text="Bio" styleClass="label-field"/>
+                <TextArea fx:id="bioField" styleClass="modern-input" prefRowCount="4" wrapText="true"
+                          promptText="Tell the community about yourself..."/>
+            </VBox>
+        </GridPane>
+
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <Button text="Save changes" onAction="#handleSave" styleClass="btn-primary"/>
+            <Button text="Cancel" onAction="#handleReset" styleClass="btn-secondary"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="savedLabel" text="" style="-fx-text-fill: #047857; -fx-font-weight: 600;"/>
+        </HBox>
+    </VBox>
+
+    <!-- Security -->
+    <VBox spacing="20" styleClass="glass-card">
+        <Label text="Security" styleClass="section-title"/>
+        <GridPane hgap="20" vgap="15">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="50"/>
+                <ColumnConstraints percentWidth="50"/>
+            </columnConstraints>
+            <VBox spacing="6" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                <Label text="New password" styleClass="label-field"/>
+                <PasswordField fx:id="newPasswordField" styleClass="modern-input" promptText="At least 6 characters"/>
+            </VBox>
+            <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <Label text="Confirm password" styleClass="label-field"/>
+                <PasswordField fx:id="confirmPasswordField" styleClass="modern-input" promptText="Repeat password"/>
+            </VBox>
+        </GridPane>
+        <HBox spacing="15">
+            <Button text="Update password" onAction="#handlePasswordChange" styleClass="btn-primary"/>
+            <Label fx:id="passwordMessage" style="-fx-font-weight: 600;"/>
+        </HBox>
+    </VBox>
+</VBox>

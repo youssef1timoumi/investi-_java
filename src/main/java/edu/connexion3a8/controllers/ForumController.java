@@ -86,11 +86,16 @@ public class ForumController implements Initializable {
         setupTabGroup();
         setupDynamicSearch();
 
-        // Register the main scene for theme management after it's available
+        // Register the main scene for theme management after it's available,
+        // and re-render posts whenever the global theme flips (so inline
+        // styles on cards pick up the new palette).
         javafx.application.Platform.runLater(() -> {
-            if (rootPane.getScene() != null) {
-                ThemeManager.registerScene(rootPane.getScene());
-                applyThemeToMainUI();
+            Scene scene = rootPane.getScene();
+            if (scene != null && scene.getRoot() != null) {
+                ThemeManager.registerScene(scene);
+                scene.getRoot().getStyleClass().addListener(
+                    (javafx.collections.ListChangeListener<String>) c -> loadPosts()
+                );
             }
         });
     }
@@ -125,151 +130,13 @@ public class ForumController implements Initializable {
 
     @FXML
     private void handleToggleTheme() {
-        ThemeManager.toggle();
-        applyThemeToMainUI();
-        loadPosts(); // Rebuild post cards with correct inline colors
+        // Theme is driven by the AppShell (scene root "theme-dark" class).
+        // Keep this no-op so any legacy hidden button still binds.
     }
 
-    /** Applies current theme colors to all inline-styled elements in the main view. */
+    /** Legacy — theme is now governed by the global AppShell + investi-theme.css. */
     private void applyThemeToMainUI() {
-        String bg = ThemeManager.bg();
-        String border = ThemeManager.border();
-        String text = ThemeManager.text();
-        String headerBg = ThemeManager.headerBg();
-        String card = ThemeManager.card();
-        String textSec = ThemeManager.textSec();
-        String inputBg = ThemeManager.inputBg();
-        String textMuted = ThemeManager.textMuted();
-
-        // Main layout panes
-        rootPane.setStyle("-fx-background-color: " + bg + ";");
-        sidebarPane.setStyle("-fx-background-color: " + bg + "; -fx-padding: 20 15; -fx-min-width: 260; -fx-max-width: 260;");
-        centerPane.setStyle("-fx-background-color: " + bg + "; -fx-border-color: " + border + "; -fx-border-width: 0 0 0 1;");
-        headerPane.setStyle("-fx-padding: 15 25; -fx-background-color: " + headerBg + "; -fx-border-color: " + border + "; -fx-border-width: 0 0 1 0;");
-        homeTitleLabel.setStyle("-fx-text-fill: " + text + "; -fx-font-size: 20px; -fx-font-weight: bold;");
-        currentUserLabel.setStyle("-fx-text-fill: " + text + "; -fx-font-weight: bold; -fx-font-size: 14px;");
-
-        // Feed scroll and posts container
-        feedScroll.setStyle("-fx-background: " + bg + "; -fx-background-color: " + bg + ";");
-        postsContainer.setStyle("-fx-background-color: " + bg + ";");
-
-        // Search field — -fx-control-inner-background forces internal bg color
-        searchField.setStyle(
-            "-fx-background-color: " + inputBg + "; -fx-text-fill: " + text + "; " +
-            "-fx-prompt-text-fill: " + textMuted + "; -fx-background-radius: 22; " +
-            "-fx-padding: 10 20; -fx-border-color: " + border + "; -fx-border-radius: 22; " +
-            "-fx-border-width: 1; -fx-control-inner-background: " + inputBg + ";"
-        );
-
-        // Compose textarea — -fx-control-inner-background forces internal bg color
-        composeTextArea.setStyle(
-            "-fx-background-color: " + inputBg + "; -fx-text-fill: " + text + "; " +
-            "-fx-prompt-text-fill: " + textMuted + "; -fx-font-size: 17px; " +
-            "-fx-border-width: 1; -fx-border-color: " + border + "; " +
-            "-fx-background-radius: 14; -fx-border-radius: 14; -fx-padding: 14; " +
-            "-fx-control-inner-background: " + inputBg + ";"
-        );
-
-        // Category filter — ButtonCell ensures the displayed cell respects theme
-        categoryFilter.setStyle(
-            "-fx-background-color: " + inputBg + "; -fx-background-radius: 20; " +
-            "-fx-padding: 8 15; -fx-border-color: " + border + "; -fx-border-radius: 20;"
-        );
-        categoryFilter.setButtonCell(new ListCell<String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? null : item);
-                setStyle("-fx-background-color: transparent; -fx-text-fill: " + text + "; -fx-padding: 0;");
-            }
-        });
-
-        // User selector — ButtonCell ensures the displayed cell respects theme
-        userSelector.setStyle("-fx-background-color: transparent; -fx-font-size: 13px;");
-        userSelector.setButtonCell(new ListCell<String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? null : item);
-                setStyle("-fx-background-color: transparent; -fx-text-fill: " + textSec + "; -fx-padding: 0;");
-            }
-        });
-
-        // Force-style internal child nodes after two layout passes for reliability
-        javafx.application.Platform.runLater(() -> javafx.application.Platform.runLater(() -> {
-            // TextArea internal nodes
-            composeTextArea.lookupAll(".content").forEach(n ->
-                n.setStyle("-fx-background-color: " + inputBg + ";")
-            );
-            composeTextArea.lookupAll(".scroll-pane").forEach(n ->
-                n.setStyle("-fx-background-color: " + inputBg + ";")
-            );
-            composeTextArea.lookupAll(".viewport").forEach(n ->
-                n.setStyle("-fx-background-color: " + inputBg + ";")
-            );
-
-            // Category combo internal nodes
-            categoryFilter.lookupAll(".list-cell").forEach(n ->
-                n.setStyle("-fx-background-color: transparent; -fx-text-fill: " + text + ";")
-            );
-            categoryFilter.lookupAll(".arrow-button").forEach(n ->
-                n.setStyle("-fx-background-color: transparent;")
-            );
-            categoryFilter.lookupAll(".arrow").forEach(n ->
-                n.setStyle("-fx-background-color: " + textSec + ";")
-            );
-
-            // User selector internal nodes
-            userSelector.lookupAll(".list-cell").forEach(n ->
-                n.setStyle("-fx-background-color: transparent; -fx-text-fill: " + textSec + ";")
-            );
-            userSelector.lookupAll(".arrow-button").forEach(n ->
-                n.setStyle("-fx-background-color: transparent;")
-            );
-            userSelector.lookupAll(".arrow").forEach(n ->
-                n.setStyle("-fx-background-color: " + textSec + ";")
-            );
-
-            // Search field internal
-            searchField.lookupAll(".content").forEach(n ->
-                n.setStyle("-fx-background-color: " + inputBg + ";")
-            );
-        }));
-
-        // Update sidebar children: separators, labels, user row
-        for (javafx.scene.Node node : sidebarPane.getChildren()) {
-            if (node instanceof Separator) {
-                node.setStyle("-fx-background-color: " + border + ";");
-            } else if (node instanceof Label) {
-                Label lbl = (Label) node;
-                if (lbl != currentUserLabel && lbl != userAvatarLabel && lbl != composeAvatarLabel) {
-                    lbl.setStyle("-fx-text-fill: " + textSec + "; -fx-font-size: 13px; -fx-padding: 10 12 5 12;");
-                }
-            } else if (node instanceof VBox) {
-                VBox vbox = (VBox) node;
-                for (javafx.scene.Node child : vbox.getChildren()) {
-                    if (child instanceof Separator) {
-                        child.setStyle("-fx-background-color: " + border + ";");
-                    } else if (child instanceof HBox) {
-                        child.setStyle("-fx-padding: 10; -fx-background-color: " + ThemeManager.userRowBg() + "; -fx-background-radius: 50; -fx-cursor: hand;");
-                    }
-                }
-            }
-        }
-
-        // Update compose box area
-        for (javafx.scene.Node node : centerPane.getChildren()) {
-            if (node instanceof VBox && node.getStyleClass().contains("compose-box")) {
-                node.setStyle("-fx-background-color: " + (ThemeManager.isDark() ? bg : card) + "; -fx-padding: 18 25; -fx-border-color: " + border + "; -fx-border-width: 0 0 1 0;");
-            }
-        }
-
-        // Update theme toggle button text
-        if (ThemeManager.isDark()) {
-            themeToggleBtn.setText("☀  Light Mode");
-        } else {
-            themeToggleBtn.setText("🌙  Dark Mode");
-        }
+        // intentionally no-op: global stylesheet handles light/dark.
     }
 
     private void setupNotificationBell() {
@@ -692,11 +559,14 @@ public class ForumController implements Initializable {
     private VBox createPostCard(ForumPost post) {
         VBox card = new VBox(10);
         card.getStyleClass().add("post-card");
-        
-        String normalBg = ThemeManager.bg();
-        String hoverBg = ThemeManager.isDark() ? "#141720" : "#f0f2f5";
-        String borderColor = ThemeManager.border();
-        String baseStyle = "-fx-padding: 18 25; -fx-border-color: " + borderColor + "; -fx-border-width: 0 0 1 0; -fx-cursor: hand;";
+
+        boolean dark = ThemeManager.isDark();
+        String normalBg = dark ? "rgba(27, 29, 54, 0.9)" : "rgba(255, 255, 255, 0.95)";
+        String hoverBg  = dark ? "rgba(32, 34, 74, 0.95)" : "rgba(247, 244, 255, 0.98)";
+        String borderColor = dark ? "rgba(124, 92, 255, 0.2)" : "rgba(201, 185, 255, 0.3)";
+        String baseStyle = "-fx-padding: 20 24; -fx-background-radius: 18; -fx-border-radius: 18; " +
+                           "-fx-border-color: " + borderColor + "; -fx-border-width: 1; -fx-cursor: hand; " +
+                           "-fx-effect: dropshadow(gaussian, rgba(30,27,75,0.08), 12, 0, 0, 3);";
         card.setStyle("-fx-background-color: " + normalBg + "; " + baseStyle);
         card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: " + hoverBg + "; " + baseStyle));
         card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + normalBg + "; " + baseStyle));
@@ -1038,80 +908,79 @@ public class ForumController implements Initializable {
     }
 
     private HBox createActionsRow(ForumPost post) {
-        HBox actions = new HBox(4);
+        HBox actions = new HBox(8);
         actions.setAlignment(Pos.CENTER_LEFT);
-        actions.setStyle("-fx-padding: 10 0 0 0;");
-        
+        actions.setStyle("-fx-padding: 14 0 0 0;");
+        actions.getStyleClass().add("post-actions");
+
         // Comments
         int commentCount = 0;
         try {
             commentCount = forumService.getCommentCountByPost(post.getId());
         } catch (SQLException e) {}
-        
-        Button commentBtn = new Button("\uD83D\uDCAC  " + commentCount);
-        commentBtn.getStyleClass().addAll("icon-btn", "icon-btn-comment");
+
+        Button commentBtn = new Button("\u2709  " + commentCount);
+        commentBtn.getStyleClass().addAll("forum-action", "forum-action-comment");
         commentBtn.setTooltip(new Tooltip("Comments"));
         commentBtn.setOnAction(e -> showPostDetails(post));
-        
+
         // Upvote
         Button upvoteBtn = new Button("\u25B2  " + post.getUpvotes());
-        upvoteBtn.getStyleClass().addAll("icon-btn", "icon-btn-upvote");
+        upvoteBtn.getStyleClass().addAll("forum-action", "forum-action-upvote");
         upvoteBtn.setTooltip(new Tooltip("Upvote"));
         try {
             String vote = forumService.getUserVoteOnPost(post.getId(), currentUserId);
             if ("upvote".equals(vote)) {
-                upvoteBtn.getStyleClass().add("icon-btn-upvote-active");
+                upvoteBtn.getStyleClass().add("is-active");
             }
         } catch (SQLException e) {}
         upvoteBtn.setOnAction(e -> {
             e.consume();
             handleVote(post, "upvote");
         });
-        
+
         // Downvote
         Button downvoteBtn = new Button("\u25BC  " + post.getDownvotes());
-        downvoteBtn.getStyleClass().addAll("icon-btn", "icon-btn-downvote");
+        downvoteBtn.getStyleClass().addAll("forum-action", "forum-action-downvote");
         downvoteBtn.setTooltip(new Tooltip("Downvote"));
         try {
             String vote = forumService.getUserVoteOnPost(post.getId(), currentUserId);
             if ("downvote".equals(vote)) {
-                downvoteBtn.getStyleClass().add("icon-btn-downvote-active");
+                downvoteBtn.getStyleClass().add("is-active");
             }
         } catch (SQLException e) {}
         downvoteBtn.setOnAction(e -> {
             e.consume();
             handleVote(post, "downvote");
         });
-        
-        // Views
-        Label viewsLabel = new Label("\uD83D\uDC41  " + post.getViews());
-        viewsLabel.setStyle("-fx-text-fill: " + ThemeManager.textMuted() + "; -fx-font-size: 14px; -fx-padding: 6 14;");
-        
-        // Translate button with dropdown
-        MenuButton translateBtn = new MenuButton("\uD83C\uDF10  Translate");
-        translateBtn.getStyleClass().addAll("icon-btn", "icon-btn-translate");
+
+        // Views chip
+        Label viewsLabel = new Label("\u25CF  " + post.getViews() + " views");
+        viewsLabel.getStyleClass().add("forum-chip-views");
+
+        // Translate
+        MenuButton translateBtn = new MenuButton("\u21BB  Translate");
+        translateBtn.getStyleClass().addAll("forum-action", "forum-action-translate");
         translateBtn.setTooltip(new Tooltip("Translate post"));
-        
-        MenuItem toEnglish = new MenuItem("\uD83C\uDDEC\uD83C\uDDE7  English");
-        MenuItem toFrench = new MenuItem("\uD83C\uDDEB\uD83C\uDDF7  Français");
-        MenuItem toArabic = new MenuItem("\uD83C\uDDF8\uD83C\uDDE6  العربية");
-        
+
+        MenuItem toEnglish = new MenuItem("English");
+        MenuItem toFrench  = new MenuItem("Français");
+        MenuItem toArabic  = new MenuItem("العربية");
+
         toEnglish.setOnAction(e -> showTranslatedPost(post, Language.ENGLISH));
         toFrench.setOnAction(e -> showTranslatedPost(post, Language.FRENCH));
         toArabic.setOnAction(e -> showTranslatedPost(post, Language.ARABIC));
-        
+
         translateBtn.getItems().addAll(toEnglish, toFrench, toArabic);
-        
-        // Bookmark button
-        Button bookmarkBtn = new Button("\uD83D\uDD16");
-        bookmarkBtn.getStyleClass().addAll("icon-btn", "icon-btn-comment");
+
+        // Bookmark
+        Button bookmarkBtn = new Button("\u2605  Save");
+        bookmarkBtn.getStyleClass().addAll("forum-action", "forum-action-save");
         bookmarkBtn.setTooltip(new Tooltip("Save post"));
         try {
             if (forumService.isBookmarked(post.getId(), currentUserId)) {
-                bookmarkBtn.setText("\uD83D\uDD16  Saved");
-                bookmarkBtn.setStyle("-fx-text-fill: #9B7E46; -fx-font-weight: bold;");
-            } else {
-                bookmarkBtn.setText("\uD83D\uDD16  Save");
+                bookmarkBtn.setText("\u2605  Saved");
+                bookmarkBtn.getStyleClass().add("is-active");
             }
         } catch (SQLException e) {}
         bookmarkBtn.setOnAction(e -> {
@@ -1123,20 +992,19 @@ public class ForumController implements Initializable {
                 showError("Bookmark failed: " + ex.getMessage());
             }
         });
-        
-        // Share button with dropdown
-        MenuButton shareBtn = new MenuButton("\uD83D\uDD17  Share");
-        shareBtn.getStyleClass().addAll("icon-btn", "icon-btn-comment");
+
+        // Share
+        MenuButton shareBtn = new MenuButton("\u2197  Share");
+        shareBtn.getStyleClass().addAll("forum-action", "forum-action-share");
         shareBtn.setTooltip(new Tooltip("Share post"));
-        
+
         String shareTitle = post.getTitle() != null ? post.getTitle() : "";
         String shareContent = post.getContent() != null ? post.getContent() : "";
         String shareText = (shareTitle.isEmpty() ? "" : shareTitle + "\n\n") + shareContent + "\n\n— Shared from INVESTI Forum";
-        
-        MenuItem shareFacebook = new MenuItem("\uD83D\uDCD8  Facebook");
+
+        MenuItem shareFacebook = new MenuItem("Facebook");
         shareFacebook.setOnAction(e -> {
             try {
-                // Facebook doesn't support pre-filled text via URL, so we copy to clipboard and open Facebook
                 javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
                 javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
                 cc.putString(shareText);
@@ -1147,8 +1015,8 @@ public class ForumController implements Initializable {
                 showError("Could not open browser: " + ex.getMessage());
             }
         });
-        
-        MenuItem shareX = new MenuItem("\uD835\uDD4F  X (Twitter)");
+
+        MenuItem shareX = new MenuItem("X / Twitter");
         shareX.setOnAction(e -> {
             try {
                 String tweetText = shareText.length() > 280 ? shareText.substring(0, 277) + "..." : shareText;
@@ -1158,11 +1026,10 @@ public class ForumController implements Initializable {
                 showError("Could not open browser: " + ex.getMessage());
             }
         });
-        
-        MenuItem shareLinkedIn = new MenuItem("\uD83D\uDCBC  LinkedIn");
+
+        MenuItem shareLinkedIn = new MenuItem("LinkedIn");
         shareLinkedIn.setOnAction(e -> {
             try {
-                // LinkedIn doesn't support pre-filled text via URL, so we copy to clipboard and open LinkedIn share
                 javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
                 javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
                 cc.putString(shareText);
@@ -1173,8 +1040,8 @@ public class ForumController implements Initializable {
                 showError("Could not open browser: " + ex.getMessage());
             }
         });
-        
-        MenuItem copyText = new MenuItem("\uD83D\uDCCB  Copy Text");
+
+        MenuItem copyText = new MenuItem("Copy Text");
         copyText.setOnAction(e -> {
             javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
             javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
@@ -1182,21 +1049,21 @@ public class ForumController implements Initializable {
             clipboard.setContent(cc);
             showSuccess("Post content copied to clipboard!");
         });
-        
+
         shareBtn.getItems().addAll(shareFacebook, shareX, shareLinkedIn, copyText);
-        
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        
-        actions.getChildren().addAll(commentBtn, upvoteBtn, downvoteBtn, viewsLabel, translateBtn, bookmarkBtn, shareBtn, spacer);
-        
+
+        actions.getChildren().addAll(commentBtn, upvoteBtn, downvoteBtn, viewsLabel, spacer, translateBtn, bookmarkBtn, shareBtn);
+
         // Edit/Delete for own posts OR if user is admin
         boolean isOwner = post.getUserId() != null && post.getUserId().equals(currentUserId);
         boolean canModerate = isAdmin();
-        
+
         if (isOwner) {
             Button editBtn = new Button("\u270E  Edit");
-            editBtn.getStyleClass().addAll("icon-btn", "icon-btn-edit");
+            editBtn.getStyleClass().addAll("forum-action", "forum-action-edit");
             editBtn.setTooltip(new Tooltip("Edit post"));
             editBtn.setOnAction(e -> {
                 e.consume();
@@ -1206,8 +1073,8 @@ public class ForumController implements Initializable {
         }
         
         if (isOwner || canModerate) {
-            Button deleteBtn = new Button("\uD83D\uDDD1  Delete");
-            deleteBtn.getStyleClass().addAll("icon-btn", "icon-btn-delete");
+            Button deleteBtn = new Button("\u2716  Delete");
+            deleteBtn.getStyleClass().addAll("forum-action", "forum-action-delete");
             if (canModerate && !isOwner) {
                 deleteBtn.setTooltip(new Tooltip("Delete (Admin)"));
             } else {

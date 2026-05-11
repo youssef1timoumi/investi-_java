@@ -1,103 +1,106 @@
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\CourseCatalogController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\interfaces\gamification\IGamification.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\CourseHistory.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\investment\ShowInvestmentController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\BadgeController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\User.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\ForumPost.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\InvestiApp.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\CollaborationMessage.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\EmailService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\UserGUIApp.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\GamificationService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\MainController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\events\AddInscriptionController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\AiService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\YouTubeApiService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\SummarizationService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\MyConnection.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\Evenement.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\EntrepreneurController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\PointTransaction.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\BadWordsFilter.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\Quiz.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\InvestorController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\QuestionOption.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\FileOpener.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\Product.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\MainMenuController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\Badge.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\UserQuiz.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\ProductService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\events\MainController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\UserAuthService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\utils\gamification\ThemeManager.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\CurrencyService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\CouseService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\ActionButtonsController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\RecommendationService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\ForumCommentVote.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\interfaces\IService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\TextToSpeechService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\ProductManagementController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\CourseContentController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\Project\ShowProjectController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\EventsPageController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\GeocodingService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\AdminDashboardController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\DealRoomController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\ThemeManager.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\QuizController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\ProjectRiskAPI.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\events\AddEvenementController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\ForumPostVote.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\investment\UpdateInvestmentController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\Question.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\EventImageGenerator.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\UserPoints.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\InvestmentService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\UserBadge.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\Inscription.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\PdfExportService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\TranslationService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\MilestoneService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\CourseReport.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\events\ShowEvenementController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\ExcelExportService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\events\MentorDashboardController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\ForumPostService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\GovernanceEngineAPI.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\Milestone.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\Project\AddProjectController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\EmailService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\UserProfile.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\utils\ConfettiEngine.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\MentionParser.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\events\ShowInscriptionController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\QuizTakingController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\EvenementService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\UserController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\UserService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\Collaboration.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\CourseController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\EmailService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\AlertHelper.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\HomeController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\CollaborationService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\AdminController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\CourseInteraction.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\utils\gamification\BadgeNotification.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\ForumController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\Investment.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\DBPatcher.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\interfaces\gamification\ICourse.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\LoginController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\Project\UpdateProjectController.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\Project.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\InscriptionService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\ForumComment.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\ProjectService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\Course.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\tools\EnvConfig.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\services\gamification\LibreTranslateService.java
-C:\Users\Reiner\Desktop\saif\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\investment\AddInvestmentController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\utils\gamification\BadgeNotification.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\Product.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\events\AddEvenementController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\QuestionOption.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\CourseCatalogController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\interfaces\gamification\IGamification.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\ProductsCatalogController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\CurrencyService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\InvestmentService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\PointTransaction.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\Quiz.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\ForumCommentVote.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\ForumPost.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\UserProfile.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\gamification\TextToSpeechService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\DealRoomController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\HomeController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\GeocodingService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\InvestiApp.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\DBPatcher.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\UserGUIApp.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\investment\AddInvestmentController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\CollaborationMessage.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\utils\gamification\ThemeManager.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\AdminController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\LoginController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\ForumPostVote.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\UserAuthService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\ProductService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\investment\UpdateInvestmentController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\events\MainController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\CourseController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\EmailService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\BadWordsFilter.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\CourseHistory.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\EventImageGenerator.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\Milestone.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\ProductManagementController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\PdfExportService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\gamification\CouseService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\interfaces\IService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\gamification\RecommendationService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\Collaboration.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\UserBadge.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\EmailService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\investment\ShowInvestmentController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\ForumComment.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\MainMenuController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\CollaborationService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\UserService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\UserQuiz.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\EvenementService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\FileOpener.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\ThemeManager.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\MilestoneService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\InvestorController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\MentionParser.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\MainController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\events\MentorDashboardController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\QuizTakingController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\Project\UpdateProjectController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\Badge.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\GovernanceEngineAPI.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\CourseReport.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\ProjectRiskAPI.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\gamification\GamificationService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\ActionButtonsController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\QuizController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\UserController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\Course.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\BadgeController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\interfaces\gamification\ICourse.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\Evenement.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\gamification\CourseContentController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\events\AddInscriptionController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\CourseInteraction.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\ForumPostService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\TranslationService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\InscriptionService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\SummarizationService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\gamification\ExcelExportService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\ProjectService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\AdminDashboardController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\Question.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\MyConnection.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\ForumController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\AlertHelper.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\gamification\YouTubeApiService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\utils\ConfettiEngine.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\AppShellController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\gamification\LibreTranslateService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\gamification\UserPoints.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\gamification\EmailService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\events\ShowInscriptionController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\Project.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\collaboration\Investment.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\events\ShowEvenementController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\ProfileController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\services\collaboration\AiService.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\EntrepreneurController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\User.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\tools\EnvConfig.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\Project\ShowProjectController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\EventsPageController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\controllers\collaboration\Project\AddProjectController.java
+C:\Users\Reiner\Desktop\integration finale\investi-_java\src\main\java\edu\connexion3a8\entities\Inscription.java

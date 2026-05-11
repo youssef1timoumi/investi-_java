@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.connexion3a8.controllers.AppShellController"
+            fx:id="shellRoot" styleClass="shell-root">
+
+    <!-- Header: hamburger + logo (left)  |  theme toggle + profile pill (right) -->
+    <top>
+        <HBox fx:id="shellHeader" alignment="CENTER_LEFT" spacing="16" styleClass="shell-header">
+            <padding>
+                <Insets top="10" right="22" bottom="10" left="18"/>
+            </padding>
+
+            <Button fx:id="menuToggleBtn" text="☰" onAction="#handleToggleSidebar"
+                    styleClass="shell-menu-btn" focusTraversable="false"/>
+
+            <ImageView fitWidth="80" fitHeight="80" preserveRatio="true" smooth="true" cache="true">
+                <Image url="@INVESTI.png"/>
+            </ImageView>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Button fx:id="themeToggleBtn" text="🌙" onAction="#handleToggleTheme"
+                    styleClass="shell-theme-btn" focusTraversable="false"/>
+
+            <Button fx:id="profileBtn" onAction="#handleOpenProfile" styleClass="shell-profile-btn">
+                <graphic>
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <StackPane fx:id="avatarCircle" styleClass="shell-avatar">
+                            <Label fx:id="avatarInitial" text="?" styleClass="shell-avatar-label"/>
+                        </StackPane>
+                        <VBox alignment="CENTER_LEFT" spacing="0">
+                            <Label fx:id="profileName" text="Guest" styleClass="shell-profile-name"/>
+                            <Label fx:id="profileRole" text="" styleClass="shell-profile-role"/>
+                        </VBox>
+                    </HBox>
+                </graphic>
+            </Button>
+        </HBox>
+    </top>
+
+    <!-- Left sidebar (collapsible via clip) -->
+    <left>
+        <StackPane fx:id="sidebarClipHolder">
+            <VBox fx:id="sidebar" styleClass="shell-sidebar" prefWidth="240" minWidth="240" maxWidth="240">
+                <VBox VBox.vgrow="ALWAYS" spacing="4" styleClass="shell-sidebar-items">
+                    <padding>
+                        <Insets top="22" right="14" bottom="14" left="14"/>
+                    </padding>
+
+                    <Label text="NAVIGATION" styleClass="shell-sidebar-section"/>
+
+                    <Button fx:id="navHome"          text="Home"           onAction="#handleGoHome"          styleClass="shell-nav-item" maxWidth="Infinity"/>
+                    <Button fx:id="navCourses"       text="Courses"        onAction="#handleGoCourses"       styleClass="shell-nav-item" maxWidth="Infinity"/>
+                    <Button fx:id="navEvents"        text="Events"         onAction="#handleGoEvents"        styleClass="shell-nav-item" maxWidth="Infinity"/>
+                    <Button fx:id="navForum"         text="Forum"          onAction="#handleGoForum"         styleClass="shell-nav-item" maxWidth="Infinity"/>
+                    <Button fx:id="navProducts"      text="Products"       onAction="#handleGoProducts"      styleClass="shell-nav-item" maxWidth="Infinity"/>
+                    <Button fx:id="navCollaboration" text="Collaboration"  onAction="#handleGoCollaboration" styleClass="shell-nav-item" maxWidth="Infinity"/>
+
+                    <Label text="ADMIN" styleClass="shell-sidebar-section" fx:id="adminSectionLabel" visible="false" managed="false"/>
+                    <Button fx:id="navAdmin" text="Admin Dashboard" onAction="#handleGoAdmin" styleClass="shell-nav-item" maxWidth="Infinity" visible="false" managed="false"/>
+                </VBox>
+
+                <VBox spacing="0" styleClass="shell-sidebar-footer">
+                    <padding>
+                        <Insets top="14" right="14" bottom="22" left="14"/>
+                    </padding>
+                    <Button fx:id="logoutBtn" text="Logout" onAction="#handleLogout" styleClass="shell-logout-btn" maxWidth="Infinity"/>
+                </VBox>
+            </VBox>
+        </StackPane>
+    </left>
+
+    <!-- Content slot -->
+    <center>
+        <ScrollPane fx:id="contentScroll" fitToWidth="true" pannable="false" styleClass="shell-content-scroll">
+            <StackPane fx:id="contentSlot" styleClass="shell-content"/>
+        </ScrollPane>
+    </center>
+</BorderPane>

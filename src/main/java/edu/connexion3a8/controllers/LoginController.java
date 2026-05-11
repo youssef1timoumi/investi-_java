@@ -3,6 +3,7 @@ package edu.connexion3a8.controllers;
 import edu.connexion3a8.InvestiApp;
 import edu.connexion3a8.entities.User;
 import edu.connexion3a8.services.EmailService;
+import edu.connexion3a8.services.UserAuthService;
 import edu.connexion3a8.services.UserService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -80,38 +81,18 @@ public class LoginController implements Initializable {
         // Select innovator by default
         innovatorBtn.setSelected(true);
         
-        // Style toggle buttons when selected
-        innovatorBtn.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal) {
-                innovatorBtn.setStyle("-fx-background-color: #456990; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 12 20; -fx-cursor: hand; -fx-border-width: 0;");
-            } else {
-                innovatorBtn.setStyle("-fx-background-color: #F7F0F5; -fx-text-fill: #333; -fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 12 20; -fx-cursor: hand; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;");
-            }
-        });
-        
-        investorBtn.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal) {
-                investorBtn.setStyle("-fx-background-color: #9B7E46; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 12 20; -fx-cursor: hand; -fx-border-width: 0;");
-            } else {
-                investorBtn.setStyle("-fx-background-color: #F7F0F5; -fx-text-fill: #333; -fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 12 20; -fx-cursor: hand; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;");
-            }
-        });
-        
-        // Add real-time validation for register fields
+        // Role toggles are now styled entirely via CSS (.auth-role-toggle:selected).
+        // No inline style listeners — the CSS handles colors, shadow, and hover.
+
+        // Add subtle validation accents via style-classes rather than inline hex colors.
         registerName.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.isEmpty() && !NAME_PATTERN.matcher(newVal).matches()) {
-                registerName.setStyle("-fx-background-color: #FFE5E5; -fx-background-radius: 10; -fx-padding: 14; -fx-font-size: 14px; -fx-border-color: #A62639; -fx-border-radius: 10; -fx-border-width: 2;");
-            } else {
-                registerName.setStyle("-fx-background-color: #F7F0F5; -fx-background-radius: 10; -fx-padding: 14; -fx-font-size: 14px; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;");
-            }
+            boolean invalid = !newVal.isEmpty() && !NAME_PATTERN.matcher(newVal).matches();
+            registerName.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("invalid"), invalid);
         });
-        
+
         registerEmail.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.isEmpty() && !EMAIL_PATTERN.matcher(newVal).matches()) {
-                registerEmail.setStyle("-fx-background-color: #FFE5E5; -fx-background-radius: 10; -fx-padding: 14; -fx-font-size: 14px; -fx-border-color: #A62639; -fx-border-radius: 10; -fx-border-width: 2;");
-            } else {
-                registerEmail.setStyle("-fx-background-color: #F7F0F5; -fx-background-radius: 10; -fx-padding: 14; -fx-font-size: 14px; -fx-border-color: #E0E0E0; -fx-border-radius: 10; -fx-border-width: 1;");
-            }
+            boolean invalid = !newVal.isEmpty() && !EMAIL_PATTERN.matcher(newVal).matches();
+            registerEmail.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("invalid"), invalid);
         });
         
         // Password strength indicator
@@ -132,13 +113,13 @@ public class LoginController implements Initializable {
             loginPassword.setManaged(false);
             loginPasswordVisible.setVisible(true);
             loginPasswordVisible.setManaged(true);
-            loginPasswordToggle.setText("🙈");
+            loginPasswordToggle.setText("Hide");
         } else {
             loginPassword.setVisible(true);
             loginPassword.setManaged(true);
             loginPasswordVisible.setVisible(false);
             loginPasswordVisible.setManaged(false);
-            loginPasswordToggle.setText("👁");
+            loginPasswordToggle.setText("Show");
         }
     }
     
@@ -149,13 +130,13 @@ public class LoginController implements Initializable {
             registerPassword.setManaged(false);
             registerPasswordVisible.setVisible(true);
             registerPasswordVisible.setManaged(true);
-            registerPasswordToggle.setText("🙈");
+            registerPasswordToggle.setText("Hide");
         } else {
             registerPassword.setVisible(true);
             registerPassword.setManaged(true);
             registerPasswordVisible.setVisible(false);
             registerPasswordVisible.setManaged(false);
-            registerPasswordToggle.setText("👁");
+            registerPasswordToggle.setText("Show");
         }
     }
     
@@ -192,8 +173,10 @@ public class LoginController implements Initializable {
         registerForm.setVisible(false);
         registerForm.setManaged(false);
         
-        loginTabBtn.setStyle("-fx-background-color: #456990; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8 0 0 8; -fx-padding: 12 40; -fx-cursor: hand; -fx-border-width: 0;");
-        registerTabBtn.setStyle("-fx-background-color: #E8E8E8; -fx-text-fill: #666; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 0 8 8 0; -fx-padding: 12 40; -fx-cursor: hand; -fx-border-width: 0;");
+        loginTabBtn.setStyle("");
+        registerTabBtn.setStyle("");
+        if (!loginTabBtn.getStyleClass().contains("auth-tab-active")) loginTabBtn.getStyleClass().add("auth-tab-active");
+        registerTabBtn.getStyleClass().remove("auth-tab-active");
         
         clearMessages();
     }
@@ -205,8 +188,10 @@ public class LoginController implements Initializable {
         registerForm.setVisible(true);
         registerForm.setManaged(true);
         
-        loginTabBtn.setStyle("-fx-background-color: #E8E8E8; -fx-text-fill: #666; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8 0 0 8; -fx-padding: 12 40; -fx-cursor: hand; -fx-border-width: 0;");
-        registerTabBtn.setStyle("-fx-background-color: #9B7E46; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 0 8 8 0; -fx-padding: 12 40; -fx-cursor: hand; -fx-border-width: 0;");
+        loginTabBtn.setStyle("");
+        registerTabBtn.setStyle("");
+        loginTabBtn.getStyleClass().remove("auth-tab-active");
+        if (!registerTabBtn.getStyleClass().contains("auth-tab-active")) registerTabBtn.getStyleClass().add("auth-tab-active");
         
         clearMessages();
     }
@@ -234,9 +219,19 @@ public class LoginController implements Initializable {
                 return;
             }
             
-            if (!user.getPasswordHash().equals(password)) {
+            // Cross-version auth parity (Req 2.3): verify the password via bcrypt.
+            // This accepts Symfony-emitted $2y$ hashes and Java-emitted $2a$ hashes,
+            // and falls back to legacy plaintext comparison + upgrade-on-login for
+            // any pre-bcrypt records that may still be in the DB.
+            if (!UserAuthService.verifyPassword(password, user.getPasswordHash())) {
                 loginMessage.setText("⚠ Incorrect password");
                 return;
+            }
+            try {
+                UserAuthService.upgradeIfLegacy(user.getId(), password, user.getPasswordHash());
+            } catch (SQLException ignored) {
+                // If the silent upgrade write fails, the login still proceeds;
+                // we do not want to block a correct password due to a write glitch.
             }
             
             // Set current user in app
@@ -253,6 +248,30 @@ public class LoginController implements Initializable {
             e.printStackTrace();
         }
     }
+    
+    @FXML
+    private void handleGoogleSignIn() {
+        try {
+            // Open the web frontend in the default browser
+            String url = "https://investi.duckdns.org/";
+            
+            // Use Java Desktop API to open browser
+            if (java.awt.Desktop.isDesktopSupported()) {
+                java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+                if (desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
+                    desktop.browse(new java.net.URI(url));
+                    loginMessage.setText("✓ Opening browser for Google sign-in...");
+                    loginMessage.setStyle("-fx-text-fill: #4CAF50;");
+                }
+            } else {
+                loginMessage.setText("⚠ Could not open browser automatically");
+            }
+        } catch (Exception e) {
+            loginMessage.setText("⚠ Error opening browser: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     
     @FXML
     private void handleRegister() {

@@ -139,10 +139,16 @@ public class ShowProjectController {
         try {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxmlPath));
             javafx.scene.Parent root = loader.load();
-            javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene()
-                    .getWindow();
-            stage.setScene(new javafx.scene.Scene(root));
-            stage.show();
+            // Swap the current scene root in-place so window size + maximized
+            // state are preserved across navigation (Req X.4 / UX).
+            javafx.scene.Scene scene = ((javafx.scene.Node) event.getSource()).getScene();
+            if (scene != null) {
+                scene.setRoot(root);
+            } else {
+                javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene()
+                        .getWindow();
+                stage.setScene(new javafx.scene.Scene(root));
+            }
         } catch (java.io.IOException e) {
             e.printStackTrace();
         }
