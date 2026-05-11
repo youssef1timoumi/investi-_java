@@ -6,120 +6,109 @@
 
 <VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
       fx:controller="edu.connexion3a8.controllers.collaboration.ProductManagementController"
-      spacing="20" styleClass="main-container">
-    
+      spacing="24" styleClass="inv-page-body">
+
     <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
+        <Insets top="32" right="48" bottom="48" left="48"/>
     </padding>
 
-    <!-- Navigation Header -->
-    <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-background-color: rgba(0, 5, 1, 0.95); -fx-padding: 15px 20px; -fx-border-color: rgba(247, 240, 245, 0.1); -fx-border-width: 0 0 1 0;">
-        <Label text="🛍️ INVESTI - Products" style="-fx-text-fill: #F7F0F5; -fx-font-size: 18px; -fx-font-weight: bold;"/>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Button text="🏠 Home" onAction="#handleGoHome" style="-fx-background-color: transparent; -fx-text-fill: #F7F0F5; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 8px 15px; -fx-background-radius: 6px;"/>
-        <Button text="⚙ Admin Dashboard" onAction="#handleGoAdminDashboard" style="-fx-background-color: transparent; -fx-text-fill: #F7F0F5; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 8px 15px; -fx-background-radius: 6px;"/>
+    <!-- Hero header -->
+    <HBox alignment="CENTER_LEFT" spacing="18" styleClass="product-hero">
+        <VBox spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="Product Management" styleClass="inv-section-title"/>
+            <Label text="Add, edit and track the products available in the INVESTI marketplace."
+                   styleClass="inv-section-subtitle" wrapText="true"/>
+        </VBox>
+        <Button text="Add Product" onAction="#handleAddProduct" styleClass="btn-primary"/>
+        <Button text="Refresh"     onAction="#handleRefresh"    styleClass="btn-secondary"/>
     </HBox>
 
-    <!-- Header -->
-    <HBox alignment="CENTER_LEFT" spacing="15">
-        <Label text="🛍️ Product Management" styleClass="page-title" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Button text="➕ Add Product" onAction="#handleAddProduct" styleClass="btn-primary"/>
-        <Button text="🔄 Refresh" onAction="#handleRefresh" styleClass="btn-secondary"/>
-    </HBox>
+    <!-- Hidden legacy nav handlers kept so the controller still binds -->
+    <Button visible="false" managed="false" onAction="#handleGoHome"/>
+    <Button visible="false" managed="false" onAction="#handleGoAdminDashboard"/>
 
-    <!-- Search Bar -->
-    <HBox alignment="CENTER_LEFT" spacing="10">
-        <Label text="Search:"/>
-        <TextField fx:id="searchField" promptText="Search by name, category, or ID..." 
-                   HBox.hgrow="ALWAYS" styleClass="search-field"/>
-    </HBox>
+    <!-- Catalog card: search + table + actions -->
+    <VBox spacing="16" styleClass="glass-card" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT" spacing="14">
+            <Label text="Catalog" styleClass="section-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="searchField" promptText="Search by name, category, or ID..."
+                       styleClass="modern-input" prefWidth="320"/>
+        </HBox>
 
-    <!-- Product Table -->
-    <TableView fx:id="productTable" VBox.vgrow="ALWAYS" styleClass="data-table">
-        <columns>
-            <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
-            <TableColumn fx:id="colName" text="Name" prefWidth="200"/>
-            <TableColumn fx:id="colCategory" text="Category" prefWidth="150"/>
-            <TableColumn fx:id="colPrice" text="Price" prefWidth="80"/>
-            <TableColumn fx:id="colCurrency" text="Currency" prefWidth="80"/>
-            <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
-            <TableColumn fx:id="colStock" text="Stock" prefWidth="70"/>
-            <TableColumn fx:id="colViews" text="Views" prefWidth="70"/>
-            <TableColumn fx:id="colSales" text="Sales" prefWidth="70"/>
-        </columns>
-    </TableView>
+        <TableView fx:id="productTable" VBox.vgrow="ALWAYS" styleClass="data-table" prefHeight="420">
+            <columns>
+                <TableColumn fx:id="colId"       text="ID"       prefWidth="70"/>
+                <TableColumn fx:id="colName"     text="Name"     prefWidth="230"/>
+                <TableColumn fx:id="colCategory" text="Category" prefWidth="170"/>
+                <TableColumn fx:id="colPrice"    text="Price"    prefWidth="110"/>
+                <TableColumn fx:id="colCurrency" text="Currency" prefWidth="110"/>
+                <TableColumn fx:id="colStatus"   text="Status"   prefWidth="130"/>
+                <TableColumn fx:id="colStock"    text="Stock"    prefWidth="110"/>
+                <TableColumn fx:id="colViews"    text="Views"    prefWidth="110"/>
+                <TableColumn fx:id="colSales"    text="Sales"    prefWidth="110"/>
+            </columns>
+        </TableView>
 
-    <!-- Action Buttons -->
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Button text="✏️ Edit" onAction="#handleEditProduct" styleClass="btn-secondary"/>
-        <Button text="🗑️ Delete" onAction="#handleDeleteProduct" styleClass="btn-danger"/>
-    </HBox>
-
-    <!-- Form Container (Hidden by default) -->
-    <VBox fx:id="formContainer" spacing="15" styleClass="form-container" 
-          style="-fx-background-color: #f8f9fa; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #dee2e6; -fx-border-radius: 8;">
-        
-        <Label text="Product Details" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-        
-        <GridPane hgap="15" vgap="12">
-            <columnConstraints>
-                <ColumnConstraints percentWidth="25"/>
-                <ColumnConstraints percentWidth="75"/>
-            </columnConstraints>
-
-            <!-- Row 0: Name -->
-            <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <TextField fx:id="nameField" promptText="Product name" 
-                      GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-
-            <!-- Row 1: Description -->
-            <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <TextArea fx:id="descriptionField" promptText="Product description" 
-                     prefRowCount="3" wrapText="true"
-                     GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-            <!-- Row 2: Price & Currency -->
-            <Label text="Price:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                <TextField fx:id="priceField" promptText="0.00" HBox.hgrow="ALWAYS"/>
-                <ComboBox fx:id="currencyCombo" prefWidth="100"/>
-            </HBox>
-
-            <!-- Row 3: Category & Status -->
-            <Label text="Category:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                <ComboBox fx:id="categoryCombo" editable="true" promptText="Select or type category" 
-                         HBox.hgrow="ALWAYS"/>
-                <ComboBox fx:id="statusCombo" prefWidth="120"/>
-            </HBox>
-
-            <!-- Row 4: Stock & Discount -->
-            <Label text="Stock:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="4">
-                <TextField fx:id="stockField" promptText="0" prefWidth="100"/>
-                <Label text="Discount (%):"/>
-                <TextField fx:id="remiseField" promptText="0" prefWidth="100"/>
-            </HBox>
-
-            <!-- Row 5: Digital Product -->
-            <Label text="Type:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-            <CheckBox fx:id="digitalCheckBox" text="Digital Product" 
-                     GridPane.columnIndex="1" GridPane.rowIndex="5"/>
-
-            <!-- Row 6: Image -->
-            <Label text="Image:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
-                <TextField fx:id="imageUrlField" promptText="Image URL or path" HBox.hgrow="ALWAYS"/>
-                <Button text="📁 Browse" onAction="#handleBrowseImage"/>
-            </HBox>
-        </GridPane>
-
-        <!-- Form Buttons -->
-        <HBox spacing="10" alignment="CENTER_RIGHT">
-            <Button fx:id="saveButton" text="Save" onAction="#handleSave" styleClass="btn-primary"/>
-            <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" styleClass="btn-secondary"/>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Button text="Edit"   onAction="#handleEditProduct"   styleClass="btn-secondary"/>
+            <Button text="Delete" onAction="#handleDeleteProduct" styleClass="btn-danger"/>
         </HBox>
     </VBox>
 
+    <!-- Product form -->
+    <VBox fx:id="formContainer" spacing="18" styleClass="glass-card">
+        <Label text="Product Details" styleClass="section-title"/>
+
+        <GridPane hgap="18" vgap="14">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="22"/>
+                <ColumnConstraints percentWidth="78"/>
+            </columnConstraints>
+
+            <Label text="Name"        styleClass="label-field" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="nameField" promptText="Product name" styleClass="modern-input"
+                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Label text="Description" styleClass="label-field" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+            <TextArea fx:id="descriptionField" promptText="Product description"
+                      prefRowCount="3" wrapText="true" styleClass="modern-input"
+                      GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+            <Label text="Price"       styleClass="label-field" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                <TextField fx:id="priceField" promptText="0.00" styleClass="modern-input" HBox.hgrow="ALWAYS"/>
+                <ComboBox fx:id="currencyCombo" styleClass="filter-combo" prefWidth="110"/>
+            </HBox>
+
+            <Label text="Category"    styleClass="label-field" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                <ComboBox fx:id="categoryCombo" editable="true" promptText="Select or type a category"
+                          styleClass="filter-combo" HBox.hgrow="ALWAYS"/>
+                <ComboBox fx:id="statusCombo" styleClass="filter-combo" prefWidth="140"/>
+            </HBox>
+
+            <Label text="Stock"       styleClass="label-field" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="4" alignment="CENTER_LEFT">
+                <TextField fx:id="stockField" promptText="0"  styleClass="modern-input" prefWidth="120"/>
+                <Label text="Discount (%)" styleClass="label-field"/>
+                <TextField fx:id="remiseField" promptText="0" styleClass="modern-input" prefWidth="120"/>
+            </HBox>
+
+            <Label text="Type"        styleClass="label-field" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+            <CheckBox fx:id="digitalCheckBox" text="Digital Product"
+                      GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+            <Label text="Image"       styleClass="label-field" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                <TextField fx:id="imageUrlField" promptText="Image URL or path" styleClass="modern-input" HBox.hgrow="ALWAYS"/>
+                <Button text="Browse" onAction="#handleBrowseImage" styleClass="btn-secondary"/>
+            </HBox>
+        </GridPane>
+
+        <HBox spacing="12" alignment="CENTER_RIGHT">
+            <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" styleClass="btn-secondary"/>
+            <Button fx:id="saveButton"   text="Save"   onAction="#handleSave"   styleClass="btn-primary"/>
+        </HBox>
+    </VBox>
 </VBox>

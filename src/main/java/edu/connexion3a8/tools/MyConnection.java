@@ -1,17 +1,22 @@
 package edu.connexion3a8.tools;
 
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class MyConnection {
-    private String url = "jdbc:mysql://localhost:3306/3a8";
-    private String login = "root";
-    private String pwd = "";
+    private String url;
+    private String login;
+    private String pwd;
     private Connection cnx;
     public static MyConnection instance;
 
     private MyConnection() {
+        // Load database configuration from config.properties
+        loadDatabaseConfig();
+        
         try {
             cnx = DriverManager.getConnection(url, login, pwd);
             System.out.println("Connexion établie!");
@@ -129,6 +134,33 @@ public class MyConnection {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    private void loadDatabaseConfig() {
+        // Default values (fallback to localhost)
+        url = "jdbc:mysql://localhost:3306/3a8";
+        login = "root";
+        pwd = "";
+        
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
+            if (input == null) {
+                System.out.println("Unable to find config.properties, using default localhost connection");
+                return;
+            }
+            
+            Properties prop = new Properties();
+            prop.load(input);
+            
+            // Read database configuration
+            url = prop.getProperty("db.url", url);
+            login = prop.getProperty("db.user", login);
+            pwd = prop.getProperty("db.password", pwd);
+            
+            System.out.println("Database config loaded: " + url);
+        } catch (Exception e) {
+            System.out.println("Error loading config.properties: " + e.getMessage());
+            System.out.println("Using default localhost connection");
         }
     }
 

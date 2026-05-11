@@ -136,9 +136,14 @@ public class ShowInvestmentController {
         try {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/Main.fxml"));
             Parent root = loader.load();
-            Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
+            // Swap the root of the current scene in-place; preserves window size.
+            javafx.scene.Scene scene = ((javafx.scene.Node) event.getSource()).getScene();
+            if (scene != null) {
+                scene.setRoot(root);
+            } else {
+                Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+                stage.setScene(new Scene(root));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

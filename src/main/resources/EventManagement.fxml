@@ -3,36 +3,34 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="edu.connexion3a8.controllers.events.MainController"
+            styleClass="inv-page-body, manage-page"
             stylesheets="@css/style.css">
 
     <top>
         <VBox>
-            <HBox alignment="CENTER_LEFT" spacing="15" styleClass="header-box">
-                <Label text="⚡ INVESTI" styleClass="header-title"/>
-                <Label text="— Plateforme de Gestion"
-                       style="-fx-text-fill: #64748B; -fx-font-size: 14px;"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Button text="🏠 Admin Dashboard" onAction="#backToAdminDashboard" 
-                        styleClass="modern-button, button-primary" style="-fx-padding: 8 16;"/>
-                <Button fx:id="btnToggleTheme" text="🌙 Mode Sombre" onAction="#toggleTheme" 
-                        styleClass="modern-button, button-secondary" style="-fx-padding: 8 16;"/>
-                <Label fx:id="lblDateTime" style="-fx-text-fill: #64748B; -fx-font-size: 13px;"/>
-            </HBox>
-
+            <!-- Internal tabs bar only — site header lives in the AppShell -->
             <HBox styleClass="nav-bar" spacing="0">
-                <Button fx:id="btnNavEvenement" text="📅  ÉVÉNEMENTS"
+                <Button fx:id="btnNavEvenement" text="ÉVÉNEMENTS"
                         onAction="#afficherEvenements" styleClass="nav-btn-active"/>
-                <Button fx:id="btnNavInscription" text="📋  INSCRIPTIONS"
+                <Button fx:id="btnNavInscription" text="INSCRIPTIONS"
                         onAction="#afficherInscriptions" styleClass="nav-btn"/>
-                <Button fx:id="btnNavStats" text="📊  STATISTIQUES"
+                <Button fx:id="btnNavStats" text="STATISTIQUES"
                         onAction="#afficherStats" styleClass="nav-btn"/>
-                <Button fx:id="btnNavCalendrier" text="📆  CALENDRIER"
+                <Button fx:id="btnNavCalendrier" text="CALENDRIER"
                         onAction="#afficherCalendrier" styleClass="nav-btn"/>
+            </HBox>
+            <!-- Hidden handlers kept for the controller so FXML bindings still resolve -->
+            <HBox visible="false" managed="false">
+                <Button fx:id="btnToggleTheme" onAction="#toggleTheme" text=""/>
+                <Button onAction="#backToAdminDashboard" text=""/>
+                <Label fx:id="lblDateTime" text=""/>
             </HBox>
         </VBox>
     </top>
@@ -43,17 +41,17 @@
             <!-- VUE ÉVÉNEMENTS -->
             <VBox fx:id="vueEvenements" spacing="15" style="-fx-padding: 20;">
                 <HBox spacing="12" alignment="CENTER_LEFT">
-                    <TextField fx:id="searchEvenement" promptText="🔍 Rechercher..."
-                               styleClass="search-box" onKeyReleased="#rechercherEvenements"/>
-                    <ComboBox fx:id="filtreLieuEvent" promptText="Lieu" styleClass="filter-combo"
+                    <TextField fx:id="searchEvenement" promptText="Search events..."
+                               styleClass="search-box, modern-input" onKeyReleased="#rechercherEvenements"/>
+                    <ComboBox fx:id="filtreLieuEvent" promptText="Location" styleClass="filter-combo"
                               onAction="#filtrerEvenements"/>
                     <ComboBox fx:id="filtreMentorEvent" promptText="Mentor" styleClass="filter-combo"
                               onAction="#filtrerEvenements"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Label fx:id="lblCountEvent" text="0 événement(s)" style="-fx-text-fill: #64748B;"/>
-                    <Button text="📥 Export CSV" styleClass="btn-export" onAction="#exporterEvenementsCSV"/>
-                    <Button text="📄 Export PDF" styleClass="btn-export" onAction="#exporterEvenementsPDF"/>
-                    <Button text="➕ Ajouter" styleClass="btn-success" onAction="#navAjoutEvenement"/>
+                    <Label fx:id="lblCountEvent" text="0 events" style="-fx-text-fill: #64748B;"/>
+                    <Button text="Export CSV" styleClass="action-pill" onAction="#exporterEvenementsCSV"/>
+                    <Button text="Export PDF" styleClass="action-pill" onAction="#exporterEvenementsPDF"/>
+                    <Button text="+ New event" styleClass="action-pill, action-pill-valid" onAction="#navAjoutEvenement"/>
                 </HBox>
 
                 <TableView fx:id="tabEvent" VBox.vgrow="ALWAYS">
@@ -77,17 +75,17 @@
             <VBox fx:id="vueInscriptions" spacing="15" style="-fx-padding: 20;"
                   visible="false" managed="false">
                 <HBox spacing="12" alignment="CENTER_LEFT">
-                    <TextField fx:id="searchInscription" promptText="🔍 Rechercher..."
-                               styleClass="search-box" onKeyReleased="#rechercherInscriptions"/>
-                    <ComboBox fx:id="filtreStatutInscr" promptText="Statut" styleClass="filter-combo"
+                    <TextField fx:id="searchInscription" promptText="Search..."
+                               styleClass="search-box, modern-input" onKeyReleased="#rechercherInscriptions"/>
+                    <ComboBox fx:id="filtreStatutInscr" promptText="Status" styleClass="filter-combo"
                               onAction="#filtrerInscriptions"/>
-                    <ComboBox fx:id="filtreEventInscr" promptText="Événement" styleClass="filter-combo"
+                    <ComboBox fx:id="filtreEventInscr" promptText="Event" styleClass="filter-combo"
                               onAction="#filtrerInscriptions"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Label fx:id="lblCountInscr" text="0 inscription(s)" style="-fx-text-fill: #64748B;"/>
-                    <Button text="📥 Export CSV" styleClass="btn-export" onAction="#exporterInscriptionsCSV"/>
-                    <Button text="📄 Export PDF" styleClass="btn-export" onAction="#exporterInscriptionsPDF"/>
-                    <Button text="➕ Ajouter" styleClass="btn-success" onAction="#navAjoutInscription"/>
+                    <Label fx:id="lblCountInscr" text="0 registrations" style="-fx-text-fill: #64748B;"/>
+                    <Button text="Export CSV" styleClass="action-pill" onAction="#exporterInscriptionsCSV"/>
+                    <Button text="Export PDF" styleClass="action-pill" onAction="#exporterInscriptionsPDF"/>
+                    <Button text="+ Add" styleClass="action-pill, action-pill-valid" onAction="#navAjoutInscription"/>
                 </HBox>
 
                 <TableView fx:id="tabInscription" VBox.vgrow="ALWAYS">

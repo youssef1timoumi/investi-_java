@@ -6,79 +6,73 @@ import java.util.List;
 
 /**
  * Manages dark/light theme switching across the application.
- * Holds the current theme state and provides color values for inline styles.
+ *
+ * <p>The source of truth is the "theme-dark" style class on the Scene root
+ * (toggled by {@code AppShellController}). Any legacy code that calls the
+ * color getters below will automatically pick up the new theme without extra
+ * wiring.
  */
 public class ThemeManager {
 
     public enum Theme { DARK, LIGHT }
 
-    private static Theme currentTheme = Theme.DARK;
     private static final List<Scene> managedScenes = new ArrayList<>();
 
-    // --- Dark theme colors ---
-    private static final String DARK_BG = "#0f1114";
-    private static final String DARK_CARD = "#1a1d23";
-    private static final String DARK_BORDER = "#2a2d32";
-    private static final String DARK_TEXT = "#e7e9ea";
-    private static final String DARK_TEXT_SEC = "#71767b";
-    private static final String DARK_TEXT_MUTED = "#8899a6";
-    private static final String DARK_HEADER_BG = "rgba(15,17,20,0.85)";
-    private static final String DARK_OVERLAY = "rgba(0,0,0,0.9)";
-    private static final String DARK_SUMMARY_BG = "#1a1a2e";
+    // --- Updated palette, aligned with investi-theme.css / creator-hub ---
+    // Dark
+    private static final String DARK_BG = "#14152b";
+    private static final String DARK_CARD = "#1b1d36";
+    private static final String DARK_BORDER = "rgba(124, 92, 255, 0.22)";
+    private static final String DARK_TEXT = "#f1f2fb";
+    private static final String DARK_TEXT_SEC = "#9aa0c5";
+    private static final String DARK_TEXT_MUTED = "#8c92b3";
+    private static final String DARK_HEADER_BG = "rgba(20,21,43,0.9)";
+    private static final String DARK_OVERLAY = "rgba(11,12,30,0.92)";
+    private static final String DARK_SUMMARY_BG = "#251a52";
+    private static final String DARK_INPUT_BG = "#171935";
 
-    // --- Light theme colors ---
-    private static final String LIGHT_BG = "#f7f9fb";
+    // Light
+    private static final String LIGHT_BG = "#fafbff";
     private static final String LIGHT_CARD = "#ffffff";
-    private static final String LIGHT_BORDER = "#d0d7de";
-    private static final String LIGHT_TEXT = "#2c3e50";
-    private static final String LIGHT_TEXT_SEC = "#5a6a7a";
-    private static final String LIGHT_TEXT_MUTED = "#8899a6";
+    private static final String LIGHT_BORDER = "rgba(201, 185, 255, 0.35)";
+    private static final String LIGHT_TEXT = "#1a1c2a";
+    private static final String LIGHT_TEXT_SEC = "#6b7285";
+    private static final String LIGHT_TEXT_MUTED = "#9aa1b4";
     private static final String LIGHT_HEADER_BG = "rgba(255,255,255,0.92)";
     private static final String LIGHT_OVERLAY = "rgba(255,255,255,0.95)";
-    private static final String LIGHT_SUMMARY_BG = "#f0f2f5";
+    private static final String LIGHT_SUMMARY_BG = "#f4f0ff";
+    private static final String LIGHT_INPUT_BG = "#ffffff";
 
-    private static final String LIGHT_CSS = "styles-light.css";
-
-    public static Theme getCurrentTheme() { return currentTheme; }
-    public static boolean isDark() { return currentTheme == Theme.DARK; }
-
-    public static void toggle() {
-        currentTheme = (currentTheme == Theme.DARK) ? Theme.LIGHT : Theme.DARK;
-        applyToAllScenes();
+    /** Returns current theme based on the primary Scene's root style classes. */
+    public static Theme getCurrentTheme() {
+        return isDark() ? Theme.DARK : Theme.LIGHT;
     }
 
-    /** Register a scene so theme changes apply to it. */
+    /**
+     * True when the primary managed scene has the "theme-dark" class on its
+     * root node. Light mode is the default.
+     */
+    public static boolean isDark() {
+        for (Scene scene : managedScenes) {
+            if (scene != null && scene.getRoot() != null) {
+                return scene.getRoot().getStyleClass().contains("theme-dark");
+            }
+        }
+        return false;
+    }
+
+    /** Legacy no-op — theme is flipped by AppShell's toggle. */
+    public static void toggle() { /* handled by AppShellController */ }
+
+    /** Register a scene so later queries can reflect its theme state. */
     public static void registerScene(Scene scene) {
-        if (!managedScenes.contains(scene)) {
+        if (scene != null && !managedScenes.contains(scene)) {
             managedScenes.add(scene);
         }
-        applyToScene(scene);
     }
 
-    /** Unregister a scene (call on dialog close). */
     public static void unregisterScene(Scene scene) {
         managedScenes.remove(scene);
-    }
-
-    private static void applyToAllScenes() {
-        for (Scene scene : new ArrayList<>(managedScenes)) {
-            applyToScene(scene);
-        }
-    }
-
-    private static void applyToScene(Scene scene) {
-        String lightCssUrl = ThemeManager.class.getResource("/" + LIGHT_CSS) != null
-                ? ThemeManager.class.getResource("/" + LIGHT_CSS).toExternalForm()
-                : null;
-        if (lightCssUrl == null) return;
-
-        if (currentTheme == Theme.LIGHT) {
-            if (!scene.getStylesheets().contains(lightCssUrl)) {
-                scene.getStylesheets().add(lightCssUrl);
-            }
-        } else {
-            scene.getStylesheets().remove(lightCssUrl);
-        }
     }
 
     // --- Color getters for inline styles ---
@@ -91,6 +85,6 @@ public class ThemeManager {
     public static String headerBg()  { return isDark() ? DARK_HEADER_BG : LIGHT_HEADER_BG; }
     public static String overlay()   { return isDark() ? DARK_OVERLAY : LIGHT_OVERLAY; }
     public static String summaryBg() { return isDark() ? DARK_SUMMARY_BG : LIGHT_SUMMARY_BG; }
-    public static String userRowBg() { return isDark() ? DARK_CARD : "#f0f2f5"; }
-    public static String inputBg()   { return isDark() ? DARK_CARD : "#f0f2f5"; }
+    public static String userRowBg() { return isDark() ? DARK_CARD : "#f4f0ff"; }
+    public static String inputBg()   { return isDark() ? DARK_INPUT_BG : LIGHT_INPUT_BG; }
 }

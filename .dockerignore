@@ -1,0 +1,11 @@
+# Ignore unnecessary files
+target/
+.git/
+.idea/
+*.iml
+.DS_Store
+events/
+docs/
+interface/
+src/
+pom.xml

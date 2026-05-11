@@ -17,10 +17,20 @@ public class UserService {
     public void addUser(User user) throws SQLException {
         String query = "INSERT INTO users (email, password_hash, name, role, avatar_url, bio, points, level, is_active, email_verified) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+
+        // Hash the password with bcrypt for cross-version auth parity (Req 2.3).
+        // If the value in user.passwordHash is already a bcrypt string ($2...),
+        // preserve it as-is; otherwise treat it as plaintext and hash it.
+        String passwordValue = user.getPasswordHash();
+        if (passwordValue == null) {
+            passwordValue = "";
+        } else if (!(passwordValue.length() >= 4 && passwordValue.charAt(0) == '$' && passwordValue.charAt(1) == '2')) {
+            passwordValue = UserAuthService.hashPassword(passwordValue);
+        }
+
         try (PreparedStatement pst = connection.prepareStatement(query)) {
             pst.setString(1, user.getEmail());
-            pst.setString(2, user.getPasswordHash());
+            pst.setString(2, passwordValue);
             pst.setString(3, user.getName());
             pst.setString(4, user.getRole());
             pst.setString(5, user.getAvatarUrl());

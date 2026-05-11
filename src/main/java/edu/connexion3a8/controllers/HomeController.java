@@ -142,6 +142,15 @@ public class HomeController {
     }
 
     @FXML
+    private void handleProducts() {
+        try {
+            InvestiApp.showProductManagement();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
     private void handleLogout() {
         try {
             InvestiApp.showLoginPage();
