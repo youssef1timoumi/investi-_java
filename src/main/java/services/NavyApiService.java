@@ -227,7 +227,7 @@ public class NavyApiService {
 
                 JSONArray contentArray = new JSONArray();
 
-                String promptText = "You are a strict product validation AI. Analyze the product details below. " +
+                String promptText = "soyer pas stricte sauf si une chose n est pas logique  You are a  product validation AI. Analyze the product details below. " +
                         "1. Is the price logical for this type of product? " +
                         "2. Does the title match the product/image? " +
                         "3. Does the description fit the title and the image? " +
